@@ -5,7 +5,7 @@
 #define SoRev SOXKWREV
 #define HasSharedData YES
 #define IncSubdir X11
-#define IncSubSubdir Xaw
+#define IncSubSubdir Xkw
 
 SOXKWREV=1.0
 
