@@ -662,7 +662,9 @@ ComputeNaturalSizes (l, box, dir)
 	    else
 	    {
 		box->params.shrink[thisDir].order = 100000;
+		box->params.shrink[thisDir].value = 0;
 		box->params.stretch[thisDir].order = 100000;
+		box->params.stretch[thisDir].value = 0;
 	    }
 	}
 	for (child = box->u.box.firstChild; child; child = child->nextSibling) 
