@@ -1,0 +1,10 @@
+MYTOP=..
+#include "../games.tmpl"
+
+SRCS = canfield.c
+OBJS = canfield.o
+
+ComplexProgramTarget(kcanfield)
+
+InstallAppDefaults(KCanfield)
+InstallAppDefaults(KCanfield-color)

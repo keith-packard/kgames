@@ -1,0 +1,9 @@
+MYTOP=..
+#include "../games.tmpl"
+
+SRCS = klondike.c
+OBJS = klondike.o
+
+ComplexProgramTarget(kklondike)
+
+InstallAppDefaults(KKlondike)

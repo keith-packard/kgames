@@ -1,0 +1,4 @@
+#!/bin/sh
+tar cFFFFf - README Imakefile Xkw kspider kcanfield kklondike kmontana xmille \
+		reversi ktowers kthieves kcribbage dominos slyfox mc | compress\
+		> games.tar.Z

@@ -1,0 +1,10 @@
+MYTOP=..
+#include "../games.tmpl"
+
+SRCS = thieves.c
+OBJS = thieves.o
+
+ComplexProgramTarget(kthieves)
+
+InstallAppDefaults(KThieves)
+InstallAppDefaults(KThieves-color)

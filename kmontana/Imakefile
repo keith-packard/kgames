@@ -1,0 +1,11 @@
+MYTOP=..
+#include "../games.tmpl"
+
+XKWLIB=-lXkw_d
+
+SRCS = montana.c
+OBJS = montana.o
+
+ComplexProgramTarget(kmontana)
+
+InstallAppDefaults(KMontana)
