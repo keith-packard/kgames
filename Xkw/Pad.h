@@ -57,6 +57,8 @@
 #define XtCNumRows	"NumRows"
 #define XtNnumCols	"numCols"
 #define XtCNumCols	"NumCols"
+#define XtNbold		"bold"
+#define XtCBold		"Bold"
 
 /* declare the class constant */
 

@@ -58,12 +58,15 @@ typedef struct {
     /* resources */
     XFontStruct	    *font;
     unsigned long   foreground_pixel;
+    unsigned long   bold_pixel;
     Dimension	    rows, cols;
     Dimension	    internal_border;
     XtCallbackList  resize_callbacks;
     /* private state */
     GC		    normal_gc;
     GC		    inverse_gc;
+    GC		    bold_gc;
+    GC		    bold_inverse_gc;
     PadLinePtr	    is;
     PadLinePtr	    want;
     int		    underline_pos;

@@ -35,6 +35,8 @@ static XtResource resources[] = {
       offset (font), XtRString, XtDefaultFont },
     { XtNforeground, XtCForeground, XtRPixel, sizeof (unsigned long),
       offset (foreground_pixel), XtRString, XtDefaultForeground },
+    { XtNbold, XtCBold, XtRPixel, sizeof (unsigned long),
+      offset (bold_pixel), XtRString, "red" },
     { XtNnumRows, XtCNumRows, XtRDimension, sizeof (Dimension),
       offset (rows), XtRImmediate, (XtPointer) 1},
     { XtNnumCols, XtCNumCols, XtRDimension, sizeof (Dimension),
@@ -256,6 +258,14 @@ static void Initialize (greq, gnew)
     gcv.background = new->pad.foreground_pixel;
     gcv.font = new->pad.font->fid;
     new->pad.inverse_gc = XtGetGC (gnew, GCForeground|GCBackground|GCFont, &gcv);
+    gcv.foreground = new->pad.bold_pixel;
+    gcv.background = new->core.background_pixel;
+    gcv.font = new->pad.font->fid;
+    new->pad.bold_gc = XtGetGC (gnew, GCForeground|GCBackground|GCFont, &gcv);
+    gcv.foreground = new->core.background_pixel;
+    gcv.background = new->pad.bold_pixel;
+    gcv.font = new->pad.font->fid;
+    new->pad.bold_inverse_gc = XtGetGC (gnew, GCForeground|GCBackground|GCFont, &gcv);
     new->pad.is = 0;
     new->pad.want = 0;
     new->pad.serial = 0;
@@ -315,9 +325,18 @@ DrawText (w, row, start_col, end_col)
 	    ++is_a;
 	    ++change_col;
 	} while (change_col < end_col && *is_a == attr);
-	gc = w->pad.normal_gc;
-	if (attr & XkwPadInverse)
-	    gc = w->pad.inverse_gc;
+	if (attr & XkwPadBold)
+	{
+	    gc = w->pad.bold_gc;
+	    if (attr & XkwPadInverse)
+		gc = w->pad.bold_inverse_gc;
+	}
+	else
+	{
+	    gc = w->pad.normal_gc;
+	    if (attr & XkwPadInverse)
+		gc = w->pad.inverse_gc;
+	}
 	XDrawImageString (dpy, win, gc, x, y,
 			  is_t, change_col - start_col);
 	if (w->pad.fixed_width)
