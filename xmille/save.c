@@ -18,11 +18,15 @@ char	*ctime();
 
 int	read(), write();
 
+#if __STDC__
+#include <errno.h>
+#else
 /*
  *	This routine saves the current game for use at a later date
  */
 extern int	errno;
 extern char	*sys_errlist[];
+#endif
 
 save() {
 

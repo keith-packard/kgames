@@ -34,7 +34,7 @@
 		-1 \n \
 		reversi < +inff -100% * +inff -100% > \n \
 		-1 \n \
-		error < +inff -100% * > \
+		error < +inff -100% * +0 -0 > \
 		-1 \n \
 	} \n \
 	vertical { \n \

@@ -334,7 +334,7 @@ FindStackPlay (from_card)
     {
 	to_stack = &stackStacks[i];
 	card = to_stack->last;
-	if (card && CardIsInSuitOrder (from_card, card))
+	if (card && CardIsInOrder (from_card, card))
 	    return to_stack;
     }
     return NULL;

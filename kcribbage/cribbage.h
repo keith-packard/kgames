@@ -37,3 +37,5 @@ extern  char		c_expl[];			/* string for explanation */
 #define PLAYER	    0
 #define COMPUTER    1
 #define TABLE	    2
+
+#define getline	crib_getline

@@ -341,12 +341,12 @@ Play(from_stack, to_stack)
     }
     if (to_stack->last->card.rank != card->card.rank) {
 	Message(message, "%P and %P are of different ranks.",
-		&card->card, to_stack->last->card);
+		&card->card, &to_stack->last->card);
 	return;
     }
     if (!NextTo(to_stack, from_stack)) {
 	Message(message, "%P and %P aren't next to each other.",
-		&card->card, to_stack->last->card);
+		&card->card, &to_stack->last->card);
 	return;
     }
     MonteCarloDo(from_stack, to_stack);
@@ -397,7 +397,7 @@ BestMove()
 	best = FindMove(stack);
 	if (best) {
 	    Message(message, "Match %P and %P.",
-		    stack->last->card, best->last->card);
+		    &stack->last->card, &best->last->card);
 	    return;
 	}
     }
