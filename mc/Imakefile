@@ -1,9 +1,0 @@
-MYTOP=..
-#include "../games.tmpl"
-
-SRCS = mc.c
-OBJS = mc.o
-
-ComplexProgramTarget(mcarlo)
-
-InstallAppDefaults(MonteCarlo)

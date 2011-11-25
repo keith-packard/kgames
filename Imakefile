@@ -1,8 +1,0 @@
-#define IHaveSubdirs
-#define PassCDebugFlags 'CDEBUGFLAGS=$(CDEBUGFLAGS)'
-
-SUBDIRS = Xkw kspider kcanfield kklondike kmontana xmille reversi \
-	ktowers kthieves kcribbage dominos slyfox mc kaces ktabby
-
-MakeSubdirs($(SUBDIRS))
-DependSubdirs($(SUBDIRS))

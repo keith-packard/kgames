@@ -1,9 +1,0 @@
-INCLUDES = -I$(MYTOP)
-XPM=-lXpm
-XKW=$(MYTOP)/Xkw
-XKWLIB=-L$(XKW) -lXkw
-DEPXKWLIB=$(XKW)/libXkw.a
-
-        DEPLIBS = $(DEPXKWLIB) XawClientDepLibs
-LOCAL_LIBRARIES = $(XKWLIB) $(XPM) XawClientLibs
-SYS_LIBRARIES = -lm
