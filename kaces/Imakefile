@@ -1,0 +1,10 @@
+
+MYTOP=..
+#include "../games.tmpl"
+
+SRCS = aces.c
+OBJS = aces.o
+
+ComplexProgramTarget(kaces)
+
+InstallAppDefaults(KAces)

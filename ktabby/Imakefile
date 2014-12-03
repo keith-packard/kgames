@@ -1,0 +1,9 @@
+MYTOP=..
+#include "../games.tmpl"
+
+SRCS = tabby.c
+OBJS = tabby.o
+
+ComplexProgramTarget(ktabby)
+
+InstallAppDefaults(KTabby)

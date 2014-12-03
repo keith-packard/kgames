@@ -1,0 +1,33 @@
+/CHANGES/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/Imakefile/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/Mille.ad/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/README/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/animate.c/1.1.1.1/Sun Feb  8 05:30:35 1998//
+/background.h/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/card.h/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/color.h/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/comp.c/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/curses_ui.c/1.1.1.1/Sun Feb  8 05:30:35 1998//
+/drawcard.c/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/end.c/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/extern.c/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/fill/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/gray.bm/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/init.c/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/mille.c/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/mille.h/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/misc.c/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/move.c/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/print.c/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/roll.c/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/save.c/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/table.c/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/types.c/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/ui.c/1.1.1.1/Sun Feb  8 05:30:35 1998//
+/ui.h/1.1.1.1/Sun Feb  8 05:30:35 1998//
+/uiXt.c/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/uiXt.h/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/varpush.c/1.1.1.1/Sun Feb  8 05:30:34 1998//
+/xmille.6/1.1.1.1/Sun Feb  8 05:30:34 1998//
+D/RCS.tmp////
+D/cards////

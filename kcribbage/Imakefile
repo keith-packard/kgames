@@ -1,0 +1,9 @@
+MYTOP=..
+#include "../games.tmpl"
+
+OBJS=	extern.o crib.o support.o cards.o score.o io.o xt.o CribBoard.o
+SRCS=	extern.c crib.c support.c cards.c score.c io.c xt.c CribBoard.c
+
+ComplexProgramTarget(kcribbage)
+
+InstallAppDefaults(Cribbage)

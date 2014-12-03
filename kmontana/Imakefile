@@ -1,0 +1,9 @@
+MYTOP=..
+#include "../games.tmpl"
+
+SRCS = montana.c
+OBJS = montana.o
+
+ComplexProgramTarget(kmontana)
+
+InstallAppDefaults(KMontana)

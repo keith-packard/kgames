@@ -1,0 +1,14 @@
+MYTOP=..
+#include "../games.tmpl"
+
+#XTOOLONLYLIB= -lXt_d
+#XAWLIB = -lXaw_d
+#XKWLIB = -L$(XKW) -lXkw_d
+
+SRCS = spider.c
+OBJS = spider.o
+
+ComplexProgramTarget(kspider)
+
+InstallAppDefaults(KSpider)
+InstallAppDefaults(KSpider-color)

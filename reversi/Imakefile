@@ -1,0 +1,46 @@
+MYTOP=..
+#include "../games.tmpl"
+
+SRCS = 	move.c hasmove.c fini.c minmax.c edges.c corners.c \
+	count.c game.c xreversi.c Reversi.c transform.c
+OBJS = 	move.o hasmove.o fini.o minmax.o edges.o corners.o \
+	count.o game.o xreversi.o Reversi.o transform.o
+
+ComplexProgramTarget(xreversi)
+		
+depend:: edges.out user.c ulex.c
+
+DependTarget()
+
+InstallAppDefaults(Xreversi)
+
+clean::
+	rm -f edges.out
+
+edges.out: genedge makeedge
+	genedge | makeedge > edges.out
+
+NormalProgramTarget(genedge,genedge.o,/**/,/**/,/**/)
+
+NormalProgramTarget(makeedge,makeedge.o,/**/,/**/,/**/)
+
+makeedge.c: makeedge.y
+	yacc $*.y
+	$(MV) y.tab.c $@
+
+clean::
+	rm -f makeedge.c
+
+user.c: user.y
+	yacc -d $*.y
+	$(MV) y.tab.c $@
+
+clean::
+	rm -f user.c y.tab.h
+	
+ulex.c: ulex.l
+	lex $*.l
+	$(MV) lex.yy.c $@
+
+clean::
+	rm -f ulex.c
