@@ -44,32 +44,6 @@ struct color colorMap[NUM_COLOR] = {
 	"blue",		0,	0,
 };
 
-char	*C_fmt = "%-18.18s";	/* format for printing cards		*/
-char	Initstr[100];		/* initial string for error field	*/
-char	*_cn[NUM_CARDS] = {	/* Card name buffer			*/
-	"",
-	"25",
-	"50",
-	"75",
-	"100",
-	"200",
-	"Out of Gas",
-	"Flat Tire",
-	"Accident",
-	"Stop",
-	"Speed Limit", 
-	"Gasoline",
-	"Spare Tire",
-	"Repairs",
-	"Go",
-	"End of Limit",
-	"Extra Tank",
-	"Puncture Proof",
-	"Driving Ace",
-	"Right of Way",
-};
-char	**C_name = &_cn[1];	/* Card names				*/
-
 Display		*dpy;
 int		screen;
 Pixmap		fill;

@@ -1,3 +1,36 @@
+/*	$NetBSD: extern.c,v 1.7 2003/08/07 09:37:25 agc Exp $	*/
+
+/*
+ * Copyright (c) 1982, 1993
+ *	The Regents of the University of California.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+#include <sys/cdefs.h>
+
 # include	"mille.h"
 
 /*
@@ -11,7 +44,32 @@ bool	Debug,			/* set if debugging code on		*/
 	Order,			/* set if hand should be sorted		*/
 	Saved;			/* set if game just saved		*/
 
-char	*Fromfile = NULL;	/* startup file for game		*/
+char	Initstr[100];		/* initial string for error field	*/
+const char	*C_fmt = "%-18.18s",	/* format for printing cards	*/
+	*Fromfile = NULL,	/* startup file for game		*/
+	*const _cn[NUM_CARDS] = {	/* Card name buffer		*/
+		"",
+		"25",
+		"50",
+		"75",
+		"100",
+		"200",
+		"Out of Gas",
+		"Flat Tire",
+		"Accident",
+		"Stop",
+		"Speed Limit", 
+		"Gasoline",
+		"Spare Tire",
+		"Repairs",
+		"Go",
+		"End of Limit",
+		"Extra Tank",
+		"Puncture Proof",
+		"Driving Ace",
+		"Right of Way"
+	},
+	*const *C_name = &_cn[1];	/* Card names			*/
 
 int	Card_no,		/* Card number for current move		*/
 	End,			/* End value for current hand		*/
@@ -20,8 +78,8 @@ int	Card_no,		/* Card number for current move		*/
 	Play,			/* Current player			*/
 	Numgos,			/* Number of Go cards used by computer	*/
 	WIndow = W_SMALL,	/* Current window wanted		*/
-	Numseen[NUM_CARDS],	/* Number of cards seen in current hand	*/
-	Value[NUM_MILES] = {	/* Value of mileage cards		*/
+	Numseen[NUM_CARDS];	/* Number of cards seen in current hand	*/
+const int	Value[NUM_MILES] = {	/* Value of mileage cards	*/
 		25, 50, 75, 100, 200
 	},
 	Numcards[NUM_CARDS] = {	/* Number of cards in deck		*/
@@ -46,7 +104,7 @@ int	Card_no,		/* Card number for current move		*/
 		1,	/* C_RIGHT_WAY */
 		0	/* C_INIT */
 	};
-	Numneed[NUM_CARDS] = {	/* number of cards needed per hand	*/
+int	Numneed[NUM_CARDS] = {	/* number of cards needed per hand	*/
 		0,	/* C_25 */
 		0,	/* C_50 */
 		0,	/* C_75 */
@@ -70,13 +128,14 @@ int	Card_no,		/* Card number for current move		*/
 	};
 
 CARD	Discard,		/* Top of discard pile			*/
-	*Topcard,		/* Pointer to next card to be picked	*/
-	Opposite[NUM_CARDS] = {	/* Opposites of each card		*/
+	Sh_discard,		/* Last discard card shown		*/
+	*Topcard;		/* Pointer to next card to be picked	*/
+const CARD	Opposite[NUM_CARDS] = {	/* Opposites of each card	*/
 		C_25, C_50, C_75, C_100, C_200, C_GAS, C_SPARE,
 		C_REPAIRS, C_GO, C_END_LIMIT, C_EMPTY, C_FLAT, C_CRASH,
 		C_STOP, C_LIMIT, C_EMPTY, C_FLAT, C_CRASH, C_STOP, C_INIT
-	},
-	Deck[DECK_SZ] = {	/* Current deck				*/
+	};
+CARD	Deck[DECK_SZ] = {	/* Current deck				*/
 		C_25, C_25, C_25, C_25, C_25, C_25, C_25, C_25, C_25, C_25,
 		C_50, C_50, C_50, C_50, C_50, C_50, C_50, C_50, C_50, C_50,
 		C_75, C_75, C_75, C_75, C_75, C_75, C_75, C_75, C_75, C_75,

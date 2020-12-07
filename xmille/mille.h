@@ -140,6 +140,9 @@ typedef struct {
 # define	nextwin(x)	(1 - x)
 # define	opposite(x)	(Opposite[x])
 # define	issafety(x)	(x >= C_GAS_SAFE)
+# define	is_safety(x)	(x >= C_GAS_SAFE)
+
+# define	is_repair(x)	isrepair(x)
 
 /*
  * externals
@@ -147,12 +150,17 @@ typedef struct {
 
 extern bool	Debug, Finished, Next, On_exit, Order, Saved;
 
-extern char	*C_fmt, **C_name, *Fromfile, Initstr[];
+extern const char	*C_fmt, *Fromfile;
+extern const char *const *C_name;
+extern char	Initstr[];
 
-extern int	Card_no, End, Handstart, Movetype, Numcards[], Numgos,
-		Numneed[], Numseen[NUM_CARDS], Play, Value[], WIndow;
+extern const int Value[], Numcards[];
+extern const CARD	Opposite[NUM_CARDS];
 
-extern CARD	Deck[DECK_SZ], Discard, Opposite[NUM_CARDS], *Topcard;
+extern int	Card_no, End, Handstart, Movetype, Numgos,
+		Numneed[], Numseen[NUM_CARDS], Play, WIndow;
+
+extern CARD	Deck[DECK_SZ], Discard, *Topcard;
 
 extern FILE	*outf;
 
