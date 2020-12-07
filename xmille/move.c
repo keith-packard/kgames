@@ -1,4 +1,5 @@
 #include	"mille.h"
+#include	<stdarg.h>
 
 /*
  * @(#)move.c	1.3 (Berkeley) 7/2/83
@@ -13,7 +14,7 @@ char	*Movenames[] = {
 		"M_DISCARD", "M_DRAW", "M_PLAY", "M_ORDER"
 	};
 
-char	*playcard (), *sprint ();
+char	*playcard (), *sprint (char *, ...);
 
 domove()
 {
@@ -322,11 +323,14 @@ protected:
 }
 
 char *
-sprint (string, arg)
+sprint (char * string, ...)
 {
+	va_list ap;
 	static char	buf[512];
 
-	sprintf (buf, string, arg);
+	va_start(ap, string);
+	vsprintf (buf, string, ap);
+	va_end(ap);
 	return buf;
 }
 
