@@ -117,6 +117,9 @@ domove()
 			error("already picked");
 		else {
 			pp->hand[0] = *--Topcard;
+#ifdef ANIMATE
+			animate_move (Play, ANIMATE_DECK, pp->hand[0], ANIMATE_HAND, 0);
+#endif
 #ifdef DEBUG
 			if (Debug)
 				fprintf(outf, "DOMOVE: Draw %s\n", C_name[*Topcard]);
@@ -244,6 +247,9 @@ mustpick:
 	  case C_25:
 		if (!pp->can_go)
 			return "cannot move now";
+#ifdef ANIMATE
+		animate_move (Play, ANIMATE_HAND, Card_no, ANIMATE_MILES, card);
+#endif
 		pp->nummiles[card]++;
 		v = Value[card];
 		pp->total += v;
@@ -255,6 +261,9 @@ mustpick:
 	  case C_GAS:	case C_SPARE:	case C_REPAIRS:
 		if (pp->battle != opposite(card))
 			return sprint("can't play \"%s\"", C_name[card]);
+#ifdef ANIMATE
+		animate_move (Play, ANIMATE_HAND, Card_no, ANIMATE_BATTLE, card);
+#endif
 		pp->battle = card;
 		if (pp->safety[S_RIGHT_WAY] == S_PLAYED)
 			pp->can_go = TRUE;
@@ -265,6 +274,9 @@ mustpick:
 		    && !is_repair(pp->battle))
 			return sprint("cannot play \"Go\" on a \"%s\"",
 			    C_name[pp->battle]);
+#ifdef ANIMATE
+		animate_move (Play, ANIMATE_HAND, Card_no, ANIMATE_BATTLE, card);
+#endif
 		pp->battle = C_GO;
 		pp->can_go = TRUE;
 		break;
@@ -272,6 +284,9 @@ mustpick:
 	  case C_END_LIMIT:
 		if (pp->speed != C_LIMIT)
 			return "not limited";
+#ifdef ANIMATE
+		animate_move (Play, ANIMATE_HAND, Card_no, ANIMATE_SPEED, card);
+#endif
 		pp->speed = C_END_LIMIT;
 		break;
 
@@ -283,6 +298,9 @@ mustpick:
 		else if (pp->safety[safety(card) - S_CONV] == S_PLAYED)
 protected:
 			return "opponent is protected";
+#ifdef ANIMATE
+		animate_move (Play, ANIMATE_HAND, Card_no, ANIMATE_OBATTLE, card);
+#endif
 		pp->battle = card;
 		pp->new_battle = TRUE;
 		pp->can_go = FALSE;
@@ -295,6 +313,9 @@ protected:
 			return "opponent has limit";
 		if (pp->safety[S_RIGHT_WAY] == S_PLAYED)
 			goto protected;
+#ifdef ANIMATE
+		animate_move (Play, ANIMATE_HAND, Card_no, ANIMATE_OSPEED, card);
+#endif
 		pp->speed = C_LIMIT;
 		pp->new_speed = TRUE;
 		pp = &Player[Play];
@@ -323,6 +344,9 @@ protected:
 		 */
 		else if (pp->hand[0] == C_INIT && Topcard > Deck)
 			goto mustpick;
+#ifdef ANIMATE
+		animate_move (Play, ANIMATE_HAND, Card_no, ANIMATE_SAFETY, card);
+#endif
 		pp->safety[card - S_CONV] = S_PLAYED;
 		pp->total += SC_SAFETY;
 		pp->hand_tot += SC_SAFETY;
