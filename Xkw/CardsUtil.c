@@ -29,6 +29,7 @@
 # include	<X11/Xutil.h>
 # include	"Cards.h"
 # include	"CardsUtil.h"
+# include	<stdlib.h>
 
 typedef struct _CardHistory	*CardHistoryPtr;
 

@@ -4,8 +4,6 @@
 
 #include <stdio.h>
 
-extern int printf ();
-
 char	board[9];
 
 int

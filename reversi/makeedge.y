@@ -1,7 +1,11 @@
 %{
 int	score;
 extern int	position;
-extern void	free ();
+char	line[80];
+void output ();
+
+#include <stdio.h>
+#include <stdlib.h>
 %}
 %union {
 	struct {
@@ -402,7 +406,6 @@ main (argc, argv)
 	return ret;
 }
 
-char	line[80];
 char	*lp = line;
 
 int

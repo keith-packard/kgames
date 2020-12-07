@@ -14,6 +14,15 @@ extern int	iscolor;
 
 double	animation_speed = .5;
 
+static
+do_animate ();
+
+static
+draw_square ();
+
+static
+compute_position ();
+
 animate_move (player, orig_type, orig_arg, dest_type, dest_arg)
 {
 	int	ox, oy, dx, dy;
@@ -32,17 +41,16 @@ animate_move (player, orig_type, orig_arg, dest_type, dest_arg)
 
 # define accerate(v,r)	((v) + (speed/25 * (r)))
 
-static
-msleep (ms)
-{
-    struct { int s, us; } t;
-    int f = 0;
+#include <time.h>
 
-    t.s = ms / 1000;
-    t.us = (ms % 1000) * 1000;
-    select (1, &f, 0, 0, &t);
+static void
+msleep (int ms)
+{
+    struct timespec t = { .tv_sec = ms / 1000, .tv_nsec = (long) (ms % 1000) * 1000000 };
+
+    nanosleep(&t, NULL);
 }
-    
+
 static
 do_animate (ox, oy, dx, dy)
 {

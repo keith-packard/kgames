@@ -28,6 +28,7 @@
 #include <X11/Xmu/Converters.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdlib.h>
 #include "CardsP.h"
 
 #define offset(field)	XtOffsetOf(CardsRec, cards.field)

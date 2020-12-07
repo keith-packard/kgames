@@ -6,10 +6,10 @@
 
 #ifndef lint
 static char sccsid[] = "@(#)io.c	5.1 (Berkeley) 5/30/85";
-#endif not lint
+#endif
 
 # include	<ctype.h>
-# include	<varargs.h>
+# include	<stdarg.h>
 # include	<stdio.h>
 # include	"deck.h"
 # include	"cribbage.h"
@@ -31,6 +31,12 @@ char            *suitname[ SUITS ]      = { "SPADES", "HEARTS", "DIAMONDS",
 
 char            *suitchar[ SUITS ]      = { "S", "H", "D", "C" };
 
+
+void
+msg(char *fmt, ...);
+
+void
+addmsg(char *fmt, ...);
 
 
 /*
@@ -104,7 +110,7 @@ char		*prompt;
 	sum = 0;
 	for (;;) {
 	    msg(prompt);
-	    if(!(p = getline()) || *p == NULL) {
+	    if(!(p = getline()) || *p == '\0') {
 		msg(quiet ? "Not a number" : "That doesn't look like a number");
 		continue;
 	    }
@@ -118,7 +124,7 @@ char		*prompt;
 		    ++p;
 		}
 
-	    if (*p != ' ' && *p != '\t' && *p != NULL)
+	    if (*p != ' ' && *p != '\t' && *p != '\0')
 		sum = lo - 1;
 	    if (sum >= lo && sum <= hi)
 		return sum;
@@ -139,13 +145,12 @@ char		Msgbuf[BUFSIZ] = { '\0' };
 static int	Newpos = 0;
 
 /* VARARGS1 */
-msg(fmt, va_alist)
-char	*fmt;
-va_dcl
+void
+msg(char *fmt, ...)
 {
     va_list args;
 
-    va_start(args);
+    va_start(args, fmt);
     doadd(fmt, args);
     va_end(args);
     endmsg(TRUE);
@@ -156,13 +161,12 @@ va_dcl
  *	Add things to the current message
  */
 /* VARARGS1 */
-addmsg(fmt, va_alist)
-char	*fmt;
-va_dcl
+void
+addmsg(char *fmt, ...)
 {
     va_list args;
 
-    va_start (args);
+    va_start (args, fmt);
     doadd(fmt, args);
     va_end (args);
 }

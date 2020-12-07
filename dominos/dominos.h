@@ -49,8 +49,7 @@ typedef struct _domino {
 
 #define LinkPeer    East
 
-extern char *malloc ();
-extern char *realloc ();
+#include <stdlib.h>
 
 #define New(type)   (type *) malloc (sizeof (type))
 #define Dispose(p)  free ((char *) (p))

@@ -795,7 +795,7 @@ PlayerCallback (w, closure, data)
 	return;
     if (input->domino && input->distance == 0)
     {
-	selected_player = (int) closure;
+	selected_player = (intptr_t) closure;
 	selected_domino = input->domino;
     }
 }
@@ -954,7 +954,7 @@ makeDefaultSaveFile ()
 {
     if (!dominosResources.saveFile || !*dominosResources.saveFile)
     {
-	char	path[1024], *malloc ();
+	char	path[1024];
 
 	sprintf (path, "%s/%s", getenv ("HOME"), ".dominos");
 	dominosResources.saveFile = malloc (strlen (path) + 1);

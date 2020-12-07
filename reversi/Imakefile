@@ -7,7 +7,7 @@ OBJS = 	move.o hasmove.o fini.o minmax.o edges.o corners.o \
 	count.o game.o xreversi.o Reversi.o transform.o
 
 ComplexProgramTarget(xreversi)
-		
+
 depend:: edges.out user.c ulex.c
 
 DependTarget()
@@ -18,7 +18,9 @@ clean::
 	rm -f edges.out
 
 edges.out: genedge makeedge
-	genedge | makeedge > edges.out
+	./genedge | ./makeedge > edges.out
+
+edges.o: edges.out
 
 NormalProgramTarget(genedge,genedge.o,/**/,/**/,/**/)
 
@@ -37,7 +39,7 @@ user.c: user.y
 
 clean::
 	rm -f user.c y.tab.h
-	
+
 ulex.c: ulex.l
 	lex $*.l
 	$(MV) lex.yy.c $@

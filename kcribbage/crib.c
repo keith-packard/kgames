@@ -8,16 +8,18 @@
 char copyright[] =
 "@(#) Copyright (c) 1980 Regents of the University of California.\n\
  All rights reserved.\n";
-#endif not lint
+#endif
 
 #ifndef lint
 static char sccsid[] = "@(#)crib.c	5.1 (Berkeley) 5/30/85";
-#endif not lint
+#endif
 
 # include	<stdio.h>
 # include	<signal.h>
 # include	"deck.h"
 # include	"cribbage.h"
+
+char		*getline();
 
 # define	LOGFILE		"/usr/games/lib/criblog"
 # define	INSTRCMD	"ul /usr/games/lib/crib.instr | more -f"
@@ -31,8 +33,6 @@ char	*argv[];
 	char			*s;		/* for reading arguments */
 	char			bust;		/* flag for arg reader */
 	FILE			*f;
-	FILE			*fopen();
-	char			*getline();
 	int			bye();
 
 	UIInit (argc, argv);

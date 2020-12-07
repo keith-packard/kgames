@@ -30,7 +30,8 @@
 # include	<X11/Xaw/Cardinals.h>
 # include	"Cards.h"
 # include	<X11/Xutil.h>
-# include	<varargs.h>
+# include	<stdarg.h>
+# include	<stdio.h>
 
 char *
 CardsSuitName (s)
@@ -174,26 +175,21 @@ MessageEnd (w)
     XtSetValues (w, arg, 1);
 }
 
-MessageAppend (format, va_alist)
-    char    *format;
-    va_dcl
+MessageAppend (char *format, ...)
 {
     va_list args;
 
-    va_start (args);
+    va_start (args, format);
     append (format, args);
     va_end (args);
 }
 
-Message (w, format, va_alist)
-    Widget  w;
-    char    *format;
-    va_dcl
+Message (Widget w, char *format, ...)
 {
     va_list args;
 
     MessageStart ();
-    va_start (args);
+    va_start (args, format);
     append (format, args);
     va_end (args);
     MessageEnd (w);

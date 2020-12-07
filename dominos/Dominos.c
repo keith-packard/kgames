@@ -66,6 +66,9 @@ static void Realize ();
 static void ClassInitialize (), Initialize (), Destroy (), Redisplay ();
 static Boolean	SetValues ();
 
+static int PeerX();
+static int PeerY();
+
 DominosClassRec	dominosClassRec = {
   { /* core fields */
     /* superclass		*/	(WidgetClass) SuperClass,
@@ -179,22 +182,22 @@ GetGCs (w)
     gcv.graphics_exposures = False;
     /* pips GC */
     gcv.foreground = w->dominos.pips_pixel;
-    w->dominos.pips_gc = XtGetGC (w, mask, &gcv);
+    w->dominos.pips_gc = XtGetGC ((Widget) w, mask, &gcv);
     /* face GC */
     gcv.foreground = w->dominos.face_pixel;
-    w->dominos.face_gc = XtGetGC (w, mask, &gcv);
+    w->dominos.face_gc = XtGetGC ((Widget) w, mask, &gcv);
     /* bg GC */
     gcv.foreground = w->core.background_pixel;
-    w->dominos.bg_gc = XtGetGC (w, mask, &gcv);
+    w->dominos.bg_gc = XtGetGC ((Widget) w, mask, &gcv);
 }
 
 static void
 ReleaseGCs (w)
     DominosWidget	w;
 {
-    XtReleaseGC (w, w->dominos.pips_gc);
-    XtReleaseGC (w, w->dominos.face_gc);
-    XtReleaseGC (w, w->dominos.bg_gc);
+    XtReleaseGC ((Widget) w, w->dominos.pips_gc);
+    XtReleaseGC ((Widget) w, w->dominos.face_gc);
+    XtReleaseGC ((Widget) w, w->dominos.bg_gc);
 }
 
 static void
@@ -462,7 +465,7 @@ DominosSetDominos (gw, boardp)
     DominosWidget   w = (DominosWidget) gw;
 
     w->dominos.board = boardp;
-    if (XtIsRealized (w))
+    if (XtIsRealized ((Widget) w))
 	XClearWindow (XtDisplay(w), XtWindow(w));
     if (w->dominos.board && *w->dominos.board)
 	DrawBoard (w, *(w->dominos.board), TRUE);
