@@ -1,5 +1,6 @@
 # include	<ctype.h>
 # include	<stdio.h>
+# include	<stdarg.h>
 
 typedef char	bool;
 # define reg register
@@ -171,3 +172,12 @@ extern PLAY	Player[2];
  */
 
 CARD	getcard();
+
+void
+VError(const char *string, va_list ap);
+
+void
+Error (const char *string, ...);
+
+bool
+error (const char *string, ...);

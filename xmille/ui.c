@@ -96,13 +96,16 @@ char	*string;
 	displayString (MESS_X, MESS_Y, string);
 }
 
-Error (string, arg)
-char *string;
+void
+Error (char *string, ...)
 {
+	va_list ap;
 	char	buf[512];
 	char	*o;
 
-	sprintf (buf, string, arg);
+	va_start(string, ap);
+	vsprintf (buf, string, ap);
+	va_end(ap);
 	o = prune (buf, ERROR_W);
 	displayString (ERROR_X, ERROR_Y,  o);
 }

@@ -1,27 +1,64 @@
-#include	"mille.h"
-# ifdef	attron
-#	include	<term.h>
-#	define	_tty	cur_term->Nttyb
-# endif	attron
+/*	$NetBSD: misc.c,v 1.11 2003/08/07 09:37:25 agc Exp $	*/
 
 /*
- * @(#)misc.c	1.3 (Berkeley) 7/2/83
+ * Copyright (c) 1983, 1993
+ *	The Regents of the University of California.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+#include <sys/cdefs.h>
+
+#include <sys/file.h>
+#include <termios.h>
+
+#include <stdarg.h>
+
+#include	"mille.h"
+
+/*
+ * @(#)misc.c	1.2 (Berkeley) 3/28/83
  */
 
 #define	NUMSAFE	4
 
-/* VARARGS1 */
-error(str, arg)
-char	*str;
+bool
+error(const char *str, ...)
 {
-	Error (str, arg);
+	va_list ap;
+	va_start(ap, str);
+	VError (str, ap);
+	va_end(ap);
 	Beep ();
 	update_ui ();
 	return FALSE;
 }
 
 check_ext(forcomp)
-reg bool	forcomp; {
+	bool	forcomp;
+{
 
 
 	if (End == 700)
@@ -40,8 +77,8 @@ done:
 			}
 		}
 		else {
-			reg PLAY	*pp, *op;
-			reg int		i, safe, miles;
+			PLAY	*pp, *op;
+			int	i, safe, miles;
 
 			pp = &Player[COMP];
 			op = &Player[PLAYER];
@@ -75,10 +112,9 @@ done:
  * came from a saved file, make sure that they don't want to restore
  * it.  Exit appropriately.
  */
-check_more() {
-
-	FlushInput ();
-
+void
+check_more()
+{
 	On_exit = TRUE;
 	if (Player[PLAYER].total >= 5000 || Player[COMP].total >= 5000)
 		if (getyn("Another game? "))

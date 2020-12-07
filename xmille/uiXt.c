@@ -136,13 +136,23 @@ char	*string;
     displayString (message, string);
 }
 
-Error (string, arg)
-char *string;
+void
+VError(const char *string, va_list ap)
 {
     char	buf[512];
 
-    sprintf (buf, string, arg);
+    vsprintf (buf, string, ap);
     displayString (errors, buf);
+}
+
+void
+Error (const char *string, ...)
+{
+    va_list ap;
+
+    va_start(ap, string);
+    VError(string, ap);
+    va_end(ap);
 }
 
 Prompt (string)
