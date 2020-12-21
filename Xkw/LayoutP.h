@@ -26,6 +26,7 @@
 #ifndef _LayoutP_h
 #define _LayoutP_h
 #include    "Layout.h"
+#include    <stdlib.h>
 
 #ifdef MOTIF
 #include <Xm/ManagerP.h>
@@ -169,7 +170,19 @@ typedef struct _SubInfo {
   for ( (childP) = (pw)->composite.children ; \
         (childP) < (pw)->composite.children + (pw)->composite.num_children ; \
         (childP)++ ) if (!XtIsManaged(*childP)) ; else
-		     
+
+void
+LayYYsetsource(char *s);
+
+int
+LayYYlex(void);
+
+void
+LayYYsetdest (LayoutPtr *c);
+
+int
+LayYYparse(void);
+
 /*********************************************************************
  *
  * Layout Widget Private Data

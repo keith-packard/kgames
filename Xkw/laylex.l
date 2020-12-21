@@ -11,7 +11,16 @@
 #include    "LayoutP.h"
 #include    "laygram.h"
 static char *yysourcebase, *yysource;
-static int count (), istoken ();
+
+void
+yyerror(char *s);
+
+static int
+count (char *s, char c);
+
+static int
+istoken (char c, int first);
+
 #ifdef FLEX_SCANNER
 #define YY_INPUT(buf,result,max_size) \
     { \
@@ -81,8 +90,7 @@ max			{ yylval.oval = Maximum; return MAX; }
 %%
 
 static int
-istoken (c, first)
-    char    c;
+istoken (char c, int first)
 {
     if (c == '_')
 	return 1;
@@ -96,9 +104,7 @@ istoken (c, first)
 }
 
 static int
-count (s, c)
-    char    *s;
-    char    c;
+count (char *s, char c)
 {
     int	i = 0;
     while (*s)
@@ -107,14 +113,14 @@ count (s, c)
     return i;
 }
 
-yysetsource(s)
-    char    *s;
+void
+yysetsource(char *s)
 {
     yysourcebase = yysource = s;
 }
 
-yyerror(s)
-    char    *s;
+void
+yyerror(char *s)
 {
     char    *t;
     

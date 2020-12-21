@@ -85,3 +85,9 @@ extern void	CardGenerateStandardDeck (/* CardPtr */);
 extern void	CardShuffle (/* CardStackPtr */);
 extern void	CardInitHistory (/* void */);
 extern int	CardNextHistory (/* void */);
+
+void
+AnimateSetSpeed (int i);
+
+void
+Animate (Widget srcWidget, int srcRow, int srcCol, Widget dstWidget, int dstRow, int dstCol);

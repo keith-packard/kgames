@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL M.I.T.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, MIT X Consortium
@@ -126,7 +126,7 @@ LayoutClassRec layoutClassRec = {
     /* destroy            */   NULL,
     /* set_values         */   NULL,
     /* extension          */   NULL
-   }, 
+   },
 #ifdef MOTIF
     /* manager class fields */
     {
@@ -145,7 +145,7 @@ WidgetClass layoutWidgetClass = (WidgetClass) &layoutClassRec;
 
 /************************************************************
  *
- * Semi-public routines. 
+ * Semi-public routines.
  *
  ************************************************************/
 
@@ -184,11 +184,11 @@ DisposeLayout (app, to, data, args, num_args)
     LayoutFreeLayout (* (LayoutPtr *) to->addr);
 }
 
-static void 
+static void
 ClassInitialize()
 {
     XtSetTypeConverter ( XtRString, XtRLayout, CvtStringToLayout,
-		    NULL, (Cardinal)0, XtCacheNone, 
+		    NULL, (Cardinal)0, XtCacheNone,
  		    DisposeLayout );
 }
 
@@ -206,7 +206,7 @@ static XtGeometryResult GeometryManager(child, request, reply)
     changed = FALSE;
     bwChanged = FALSE;
     if (request->request_mode & CWBorderWidth &&
-	request->border_width != child->core.border_width) 
+	request->border_width != child->core.border_width)
     {
 	p->naturalBw = bw;
 	bw = request->border_width;
@@ -272,7 +272,7 @@ GetDesiredSize (child)
 {
     XtWidgetGeometry	desired;
     SubInfoPtr		p;
-    
+
     XtQueryGeometry (child, (XtWidgetGeometry *) NULL, &desired);
     p = SubInfo (child);
     p->inLayout = False;
@@ -285,7 +285,7 @@ static void InsertChild (child)
     Widget  child;
 {
     int		bw;
-    
+
     (*SuperClass->composite_class.insert_child) (child);
     GetDesiredSize (child);
 }
@@ -298,7 +298,7 @@ Resize(gw)
 }
 
 /* ARGSUSED */
-static Boolean 
+static Boolean
 SetValues(gold, greq, gnew)
     Widget gold, greq, gnew;
 {
@@ -402,7 +402,7 @@ PrintDirection (dir)
     default:
 	printf ("Unknown layout direction %d\n", dir);
 	break;
-  
+
     }
 }
 
@@ -415,12 +415,11 @@ TabTo(level)
 }
 
 static void
-PrintBox (box, level)
-    BoxPtr	    box;
+PrintBox (BoxPtr box, int level)
 {
     BoxPtr	child;
     Widget	w;
-    
+
     TabTo (level);
     switch (box->type) {
     case BoxBox:
@@ -459,8 +458,8 @@ LookupVariable (child, quark)
 
     while (parent = child->parent)
     {
-	for (box = parent->u.box.firstChild; 
-	     box != child; 
+	for (box = parent->u.box.firstChild;
+	     box != child;
 	     box = box->nextSibling)
 	{
 	    if (box->type == VariableBox && box->u.variable.quark == quark)
@@ -470,7 +469,7 @@ LookupVariable (child, quark)
     }
     return 0;
 }
-		
+
 static double
 Evaluate (l, box, expr, natural)
     LayoutWidget    l;
@@ -481,7 +480,7 @@ Evaluate (l, box, expr, natural)
     double	left, right, down;
     Widget	widget;
     SubInfoPtr	info;
-    
+
     switch (expr->type) {
     case Constant:
 	return expr->u.constant;
@@ -565,7 +564,7 @@ DisposeExpr (expr)
 	break;
     case Height:
 	break;
-  
+
     }
     Dispose (expr);
 }
@@ -581,7 +580,7 @@ DisposeExpr (expr)
 
 #define DoStretch(l, box, dir) \
     CheckGlue (l, box, box->params.stretch[dir], (double) box->natural[dir]);
-	
+
 #define DoShrink(l, box, dir) \
     CheckGlue (l, box, box->params.shrink[dir], (double) box->natural[dir])
 
@@ -599,7 +598,7 @@ ComputeNaturalSizes (l, box, dir)
     int		shrinkSize;
     int		stretchSize;
     LayoutDirection thisDir;
-    
+
     switch (box->type) {
     case WidgetBox:
 	w = box->u.widget.widget = QuarkToWidget (l, box->u.widget.quark);
@@ -608,7 +607,7 @@ ComputeNaturalSizes (l, box, dir)
 	    box->natural[LayoutHorizontal] = 0;
 	    box->natural[LayoutVertical] = 0;
 	}
-	else 
+	else
 	{
 	    info = SubInfo (w);
 	    info->inLayout = True;
@@ -667,7 +666,7 @@ ComputeNaturalSizes (l, box, dir)
 		box->params.stretch[thisDir].value = 0;
 	    }
 	}
-	for (child = box->u.box.firstChild; child; child = child->nextSibling) 
+	for (child = box->u.box.firstChild; child; child = child->nextSibling)
 	{
 	    if (child->type == VariableBox)
 		continue;
@@ -737,7 +736,7 @@ ComputeNaturalSizes (l, box, dir)
 		    int	    largestMinSize;
 
 		    largestMinSize = 0;
-		    for (child = box->u.box.firstChild; child; child = child->nextSibling) 
+		    for (child = box->u.box.firstChild; child; child = child->nextSibling)
 		    {
 			if (child->type == VariableBox)
 			    continue;
@@ -809,7 +808,7 @@ ComputeSizes (box)
 	    totalGlue[1].order = 100000;
 	    totalGlue[1].value = 0;
 	    maxGlue = 1;
-	    if (shrinking) 
+	    if (shrinking)
 	    {
 		totalGlue[0] = shrink;
 		/* for first-order infinites, shrink it to zero and then
@@ -818,9 +817,9 @@ ComputeSizes (box)
 		if (shrink.order == 1) {
 		    totalSizes = 0;
 		    remainingGlue = 0;
-		    for (child = box->u.box.firstChild; 
-			 child; 
-			 child = child->nextSibling) 
+		    for (child = box->u.box.firstChild;
+			 child;
+			 child = child->nextSibling)
 		    {
 			if (child->type == VariableBox)
 			    continue;
@@ -857,7 +856,7 @@ ComputeSizes (box)
 			maxGlue = 2;
 		    }
 		}
-		if (totalGlue[0].order <= 0 && 
+		if (totalGlue[0].order <= 0 &&
 		    -totalChange[0] > totalGlue[0].value)
 		{
 		    totalChange[0] = -totalGlue[0].value;
@@ -867,7 +866,7 @@ ComputeSizes (box)
 		totalGlue[0] = stretch;
 	}
     }
-	
+
     /* adjust each box */
     for (dir = LayoutHorizontal; dir <= LayoutVertical; dir++)
     {
@@ -878,7 +877,7 @@ ComputeSizes (box)
 	    remainingChange = totalChange[0] + totalChange[1];
 	}
     }
-    for (child = box->u.box.firstChild; child; child = child->nextSibling) 
+    for (child = box->u.box.firstChild; child; child = child->nextSibling)
     {
 	if (child->type == VariableBox)
 	    continue;
@@ -900,8 +899,8 @@ ComputeSizes (box)
 			if (remainingGlue <= 0)
 			    change = remainingChange;
 			else
-			    change = GluePart (glue->value, 
-					       totalGlue[i].value, 
+			    change = GluePart (glue->value,
+					       totalGlue[i].value,
 					       totalChange[i]);
 			if (glue->order == -1 && change)
 			    happy = False;
@@ -937,7 +936,7 @@ SetSizes (box, x, y)
     int		bw;
     Widget	w;
     SubInfoPtr	info;
-    
+
     switch (box->type) {
     case WidgetBox:
 	w = box->u.widget.widget;
@@ -950,7 +949,7 @@ SetSizes (box, x, y)
 	    width -= bw * 2;
 	    height -= bw * 2;
 	    /* Widgets which grow too small are placed off screen */
-	    if (width <= 0 || height <= 0) 
+	    if (width <= 0 || height <= 0)
 	    {
 		width = 1;
 		height = 1;
@@ -964,7 +963,7 @@ SetSizes (box, x, y)
     case GlueBox:
 	break;
     case BoxBox:
-	for (child = box->u.box.firstChild; child; child = child->nextSibling) 
+	for (child = box->u.box.firstChild; child; child = child->nextSibling)
 	{
 	    if (child->type == VariableBox)
 		continue;
@@ -983,7 +982,7 @@ LayoutFreeLayout (box)
     BoxPtr  box;
 {
     BoxPtr  child, next;
-    
+
     switch (box->type) {
     case BoxBox:
 	for (child = box->u.box.firstChild; child; child = next)
@@ -1015,7 +1014,7 @@ LayoutGetNaturalSize (l, widthp, heightp)
     XtWidgetGeometry	desired;
 
     box = l->layout.layout;
-    if (box) 
+    if (box)
     {
 	ComputeNaturalSizes (l, box, LayoutHorizontal);
 	*widthp = box->natural[LayoutHorizontal];
@@ -1057,7 +1056,7 @@ LayoutLayout (l, attemptResize)
 	 l->layout.prefered_height != prefered_height))
     {
 	(void) XtMakeResizeRequest ((Widget) l,
-				    l->layout.prefered_width, 
+				    l->layout.prefered_width,
 				    l->layout.prefered_height,
 				    NULL, NULL);
     }

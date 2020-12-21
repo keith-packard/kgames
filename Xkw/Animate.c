@@ -29,27 +29,33 @@
 # include	<X11/StringDefs.h>
 # include	<X11/Xos.h>
 # include	"Cards.h"
+# include	"CardsUtil.h"
 
 #define DEFAULT_ANIMATION_SPEED	20
 double	animation_speed = DEFAULT_ANIMATION_SPEED;
 
 static Dimension  width, height;
 static Pixel	    xor_value;
-static do_animate (), draw_square (), compute_position ();
 
-AnimateSetSpeed (i)
-    int	    i;
+static void
+do_animate (Widget widget, int ox, int oy, int dx, int dy);
+
+static void
+draw_square (Widget widget, int x1, int y1, int x2, int y2);
+
+static void
+compute_position (Widget w, int row, int col, Widget animate, int *xp, int *yp);
+
+void
+AnimateSetSpeed (int i)
 {
     if (i < 0)
 	i = DEFAULT_ANIMATION_SPEED;
     animation_speed = i;
 }
 
-Animate (srcWidget, srcRow, srcCol, dstWidget, dstRow, dstCol)
-    Widget  srcWidget;
-    int	    srcRow, srcCol;
-    Widget  dstWidget;
-    int	    dstRow, dstCol;
+void
+Animate (Widget srcWidget, int srcRow, int srcCol, Widget dstWidget, int dstRow, int dstCol)
 {
     int	ox, oy, dx, dy;
     Arg	arg[4];
@@ -75,8 +81,8 @@ Animate (srcWidget, srcRow, srcCol, dstWidget, dstRow, dstCol)
 
 # define accerate(v,r)	((v) + (speed/25 * (r)))
 
-static
-msleep (ms)
+static void
+msleep (int ms)
 {
     struct timeval t;
     int f = 0;
@@ -85,10 +91,9 @@ msleep (ms)
     t.tv_usec = (ms % 1000) * 1000;
     select (1, (fd_set *) &f, 0, 0, &t);
 }
-    
-static
-do_animate (widget, ox, oy, dx, dy)
-    Widget  widget;
+
+static void
+do_animate (Widget widget, int ox, int oy, int dx, int dy)
 {
 	Display	*dpy = XtDisplay (widget);
 	double	x, y;
@@ -207,9 +212,8 @@ do_animate (widget, ox, oy, dx, dy)
 	XFlush (dpy);
 }
 
-static
-draw_square (widget, x1, y1, x2, y2)
-    Widget  widget;
+static void
+draw_square (Widget widget, int x1, int y1, int x2, int y2)
 {
     static GC	    gc;
     static Widget   oldw;
@@ -234,17 +238,13 @@ draw_square (widget, x1, y1, x2, y2)
 }
 
 
-static
-compute_position (w, row, col, animate, xp, yp)
-    Widget  w;
-    int	    row, col;
-    Widget  animate;
-    int	    *xp, *yp;
+static void
+compute_position (Widget w, int row, int col, Widget animate, int *xp, int *yp)
 {
     XRectangle	r;
     Position	x, y;
     Arg		args[2];
-    
+
     HandRectangleForPos (w, row, col, &r);
     XtSetArg (args[0], XtNx, &x);
     XtSetArg (args[1], XtNy, &y);

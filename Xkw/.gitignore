@@ -1,0 +1,5 @@
+laylex.c
+laygram.c
+laygram.h
+*.a
+*.so*

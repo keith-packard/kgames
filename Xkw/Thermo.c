@@ -21,6 +21,7 @@
  *
  */
 
+#include <stdio.h>
 #include <X11/IntrinsicP.h>
 #include <X11/StringDefs.h>
 #include "ThermoP.h"
@@ -282,9 +283,10 @@ Destroy (gw)
 #define HorizontalPos(w,v)    ((w)->thermo.startPad + HArea(w) * (v) / \
 			    ((w)->thermo.maximum - (w)->thermo.minimum))
 
-drawMercury (w, old, new)
-    ThermoWidget    w;
-    int		    old, new;
+static void
+drawMercury (ThermoWidget	w,
+	     int		old,
+	     int		new)
 {
     int	    x, y, other, width, height;
 
@@ -315,11 +317,11 @@ drawMercury (w, old, new)
 			    x, y, width, height);
     }
 }
- 
-drawTick (w, v, len)
-    ThermoWidget    w;
-    int		    v;
-    int		    len;
+
+static void
+drawTick (ThermoWidget	w,
+	  int		v,
+	  int		len)
 {
     int	    x, y, width, height;
 
@@ -340,9 +342,9 @@ drawTick (w, v, len)
 		    x, y, width, height);
 }
 
-drawValue (w, v)
-    ThermoWidget    w;
-    int		    v;
+static void
+drawValue (ThermoWidget	w,
+	   int		v)
 {
     char    label[30];
     int	    width;
@@ -366,10 +368,9 @@ drawValue (w, v)
 }
 
 static void
-Redisplay (gw, event, region)
-    Widget  gw;
-    XEvent  *event;
-    Region  region;
+Redisplay (Widget  gw,
+	   XEvent  *event,
+	   Region  region)
 {
     ThermoWidget    w = (ThermoWidget) gw;
     int		    v;
@@ -385,8 +386,7 @@ Redisplay (gw, event, region)
 }
 
 static Boolean
-SetValues (gcur, greq, gnew)
-    Widget  gcur, greq, gnew;
+SetValues (Widget gcur, Widget greq, Widget gnew)
 {
     ThermoWidget    cur = (ThermoWidget) gcur,
 		    req = (ThermoWidget) greq,

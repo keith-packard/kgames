@@ -59,8 +59,24 @@ typedef struct _HandInput {
     Cardinal	    *num_params;
 } HandInputRec, *HandInputPtr;
 
-extern XtPointer    HandAddCard ();
-extern void	    HandRemoveCard ();
+void
+HandRectangleForPos (Widget gw, int row, int col, XRectangle *r);
+
+XtPointer
+HandAddCard (Widget	gw,
+	     XtPointer	private,
+	     int	row,
+	     int	col,
+	     int	offset);
+
+void
+HandRemoveCard (Widget gw, XtPointer card);
+
+void
+HandReplaceCard (Widget gw, XtPointer card, XtPointer private, int offset);
+
+void
+HandRemoveAllCards (Widget gw);
 
 #define InsertRow -1
 #define InsertCol -1

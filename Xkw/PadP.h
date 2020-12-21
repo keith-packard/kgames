@@ -28,6 +28,7 @@
 #include "Pad.h"
 /* include superclass private header file */
 #include <X11/Xaw/SimpleP.h>
+#include <stdlib.h>
 
 typedef struct {
     int empty;

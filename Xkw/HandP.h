@@ -9,6 +9,7 @@
 #ifndef _XtHandP_h
 #define _XtHandP_h
 
+#include <stdlib.h>
 #include "Hand.h"
 #include <X11/Xaw/SimpleP.h>
 

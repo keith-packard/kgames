@@ -9,7 +9,7 @@
 
 SOXKWREV=1.0
 
-INCLUDES=-I..
+INCLUDES=-I.. -D_DEFAULT_SOURCE
         HEADERS = Cards.h CardsP.h CardsUtil.h SuitCards.h Hand.h HandP.h \
 		  Thermo.h ThermoP.h Layout.h LayoutP.h Pad.h PadP.h
            SRCS = Cards.c Hand.c Thermo.c Layout.c laygram.c laylex.c \
@@ -30,9 +30,11 @@ laygram.c : laygram.y
 	sed 's/yy/LayYY/g' y.tab.h > laygram.h
 	rm y.tab.c y.tab.h
 
+laygram.h : laygram.c
+
 clean::
 	-rm laygram.c laygram.h
-	
+
 laylex.c: laylex.l
 	lex laylex.l
 	sed 's/yy/LayYY/g' lex.yy.c > laylex.c

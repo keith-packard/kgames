@@ -30,4 +30,15 @@ typedef struct _SuitCards {
     CardStackRec    suits[4];
 } SuitCardsRec, *SuitCardsPtr;
 
-extern CardPtr	SuitCardsHandInputToCard (/* SuitCardsPtr, HandInputPtr */);
+CardPtr
+SuitCardsHandInputToCard (SuitCardsPtr, HandInputPtr);
+
+void
+SuitCardsInit (SuitCardsPtr	s,
+	       CardStackPtr	under,
+	       Widget		widget,
+	       CardsSuit	emptySuit,
+	       Boolean		horizontal,
+	       int		row,
+	       int		col,
+	       CardDisplay	display);

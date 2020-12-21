@@ -406,13 +406,16 @@ CardsReplaceCard (gw, data, card)
 					else \
 					    XSetClipMask(dpy,gc,None); \
 				    }
-CheckCopyPlane(dpy, src, dst, gc, width, height, dstx, dsty, clip)
-    Display	*dpy;
-    Pixmap	src;
-    Window	dst;
-    GC		gc;
-    int		width, height, dstx, dsty;
-    XRectangle	*clip;
+static void
+CheckCopyPlane(Display	*dpy,
+	       Pixmap	src,
+	       Window	dst,
+	       GC	gc,
+	       int	width,
+	       int	height,
+	       int	dstx,
+	       int	dsty,
+	       XRectangle	*clip)
 {
     int	    srcx = 0, srcy = 0;
 
@@ -437,14 +440,17 @@ CheckCopyPlane(dpy, src, dst, gc, width, height, dstx, dsty, clip)
 	XCopyPlane (dpy, src, dst, gc, srcx, srcy, 
 		    width, height, dstx, dsty, 1);
 }
-    
-CheckCopyArea(dpy, src, dst, gc, width, height, dstx, dsty, clip)
-    Display	*dpy;
-    Pixmap	src;
-    Window	dst;
-    GC		gc;
-    int		width, height, dstx, dsty;
-    XRectangle	*clip;
+
+static void
+CheckCopyArea(Display	*dpy,
+	      Pixmap	src,
+	      Window	dst,
+	      GC	gc,
+	      int	width,
+	      int	height,
+	      int	dstx,
+	      int	dsty,
+	      XRectangle *clip)
 {
     int	    srcx = 0, srcy = 0;
 

@@ -32,6 +32,7 @@
 # include	<X11/Xutil.h>
 # include	<stdarg.h>
 # include	<stdio.h>
+# include	"Message.h"
 
 char *
 CardsSuitName (s)
@@ -125,10 +126,8 @@ MessageInt (s, i)
 static char MessageBuffer[1024];
 static char *MessagePtr;
 
-static
-append (format, args)
-    char	*format;
-    va_list	args;
+static void
+append (char *format, va_list args)
 {
     char	*m;
 
@@ -160,21 +159,23 @@ append (format, args)
     MessagePtr = m;
 }
 
-MessageStart ()
+void
+MessageStart (void)
 {
     MessagePtr = MessageBuffer;
 }
 
-MessageEnd (w)
-    Widget  w;
+void
+MessageEnd (Widget w)
 {
     Arg	arg[1];
-    
+
     *MessagePtr = '\0';
     XtSetArg (arg[0], XtNlabel, MessageBuffer);
     XtSetValues (w, arg, 1);
 }
 
+void
 MessageAppend (char *format, ...)
 {
     va_list args;
@@ -184,6 +185,7 @@ MessageAppend (char *format, ...)
     va_end (args);
 }
 
+void
 Message (Widget w, char *format, ...)
 {
     va_list args;

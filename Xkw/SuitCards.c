@@ -30,14 +30,15 @@
 # include	<Xkw/Cards.h>
 # include	<Xkw/SuitCards.h>
 
-SuitCardsInit (s, under, widget, emptySuit, horizontal, row, col, display)
-    SuitCardsPtr    s;
-    CardStackPtr    under;
-    Widget	    widget;
-    CardsSuit	    emptySuit;
-    Boolean	    horizontal;
-    int		    row, col;
-    CardDisplay	    display;
+void
+SuitCardsInit (SuitCardsPtr	s,
+	       CardStackPtr	under,
+	       Widget		widget,
+	       CardsSuit	emptySuit,
+	       Boolean		horizontal,
+	       int		row,
+	       int		col,
+	       CardDisplay	display)
 {
     int		    position;
     int		    basePosition;
@@ -66,10 +67,8 @@ SuitCardsInit (s, under, widget, emptySuit, horizontal, row, col, display)
     s->aceHigh = True;
 }
 
-Boolean
-SuitRankGreater (a, b, aceHigh)
-    CardsRank	a, b;
-    Boolean	aceHigh;
+static Boolean
+SuitRankGreater (CardsRank a, CardsRank b, Boolean aceHigh)
 {
     if (a == b)
 	return False;
@@ -80,11 +79,11 @@ SuitRankGreater (a, b, aceHigh)
     return a > b;
 }
 
-SuitCardsMoveFromStack (from_stack, card, to_suit, remember)
-    CardStackPtr    from_stack;
-    CardPtr	    card;
-    SuitCardsPtr    to_suit;
-    Boolean	    remember;
+static void
+SuitCardsMoveFromStack (CardStackPtr	from_stack,
+			CardPtr	   	card,
+			SuitCardsPtr    to_suit,
+			Boolean		remember)
 {
     CardStackPtr    to_stack;
     CardPtr	    to_card, next_card;
@@ -104,26 +103,26 @@ SuitCardsMoveFromStack (from_stack, card, to_suit, remember)
     CardMoveCards (from_stack, card, card, to_stack, to_card, remember);
 }
 
-SuitCardsMove (from_suit, card, to_suit, remember)
-    SuitCardsPtr    from_suit;
-    CardPtr	    card;
-    SuitCardsPtr    to_suit;
-    Boolean	    remember;
+void
+SuitCardsMove (SuitCardsPtr	from_suit,
+	       CardPtr	    	card,
+	       SuitCardsPtr	to_suit,
+	       Boolean		remember)
 {
     CardStackPtr    from_stack;
     CardsSuit	    suit;
 
     suit = card->card.suit;
     from_stack = &from_suit->suits[CardsSuitToInt(suit)];
-    SuitCardsMoveFromStack (from_stack, to_suit, card, remember);
+    SuitCardsMoveFromStack (from_stack, card, to_suit, remember);
 }
 
-SuitCardsMoveToStack (from_suit, card, to_stack, to_card, remember)
-    SuitCardsPtr    from_suit;
-    CardPtr	    card;
-    CardStackPtr    to_stack;
-    CardPtr	    to_card;
-    Boolean	    remember;
+void
+SuitCardsMoveToStack (SuitCardsPtr	from_suit,
+		      CardPtr		card,
+		      CardStackPtr	to_stack,
+		      CardPtr		to_card,
+		      Boolean		remember)
 {
     CardStackPtr    from_stack;
     CardsSuit	    suit;
@@ -133,8 +132,8 @@ SuitCardsMoveToStack (from_suit, card, to_stack, to_card, remember)
     CardMoveCards (from_stack, card, card, to_stack, to_card, remember); 
 }
 
-SuitCardsDisplay (s)
-    SuitCardsPtr    s;
+void
+SuitCardsDisplay (SuitCardsPtr s)
 {
     CardsSuit	suit;
 

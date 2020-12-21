@@ -943,12 +943,11 @@ static Boolean SetValues (gcur, greq, gnew)
 
 /* Insert a card */
 XtPointer
-HandAddCard (gw, private, row, col, offset)
-    Widget	gw;
-    XtPointer	private;
-    int		row;
-    int		col;
-    int		offset;
+HandAddCard (Widget	gw,
+	     XtPointer	private,
+	     int	row,
+	     int	col,
+	     int	offset)
 {
     HandWidget	    w = (HandWidget) gw;
     CardPtr	    c, sib;
@@ -1060,9 +1059,7 @@ HandAddCard (gw, private, row, col, offset)
 
 /* remove a card */
 void
-HandRemoveCard (gw, card)
-    Widget	gw;
-    XtPointer	card;
+HandRemoveCard (Widget gw, XtPointer card)
 {
     HandWidget	    w = (HandWidget) gw;
     CardPtr	    c, sib;
@@ -1096,10 +1093,7 @@ HandRemoveCard (gw, card)
 
 /* change the private value for a card and force a redisplay */
 void
-HandReplaceCard (gw, card, private, offset)
-    Widget	gw;
-    XtPointer	card;
-    XtPointer	private;
+HandReplaceCard (Widget gw, XtPointer card, XtPointer private, int offset)
 {
     HandWidget	    w = (HandWidget) gw;
     CardPtr c;
@@ -1117,10 +1111,7 @@ HandReplaceCard (gw, card, private, offset)
 }
 
 void
-HandRectangleForPos (gw, row, col, r)
-    Widget	gw;
-    int		row, col;
-    XRectangle	*r;
+HandRectangleForPos (Widget gw, int row, int col, XRectangle *r)
 {
     HandWidget	    w = (HandWidget) gw;
 
@@ -1130,11 +1121,8 @@ HandRectangleForPos (gw, row, col, r)
     r->height = w->hand.card_height;
 }
 
-void
-HandRectangleForCard (gw, card, r)
-    Widget	gw;
-    XtPointer	card;
-    XRectangle	*r;
+static void
+HandRectangleForCard (Widget gw, XtPointer card, XRectangle *r)
 {
     HandWidget	    w = (HandWidget) gw;
     CardPtr	c;
@@ -1153,11 +1141,8 @@ HandRectangleForCard (gw, card, r)
 	HandRectangleForPos (gw, c->row, c->col, r);
 }
 
-Boolean
-HandXYToPos (gw, x, y, rowp, colp)
-    Widget  gw;
-    int	    x, y;
-    int	    *rowp, *colp;
+static Boolean
+HandXYToPos (Widget gw, int x, int y, int *rowp, int *colp)
 {
     HandWidget	w = (HandWidget) gw;
 
@@ -1173,8 +1158,7 @@ HandXYToPos (gw, x, y, rowp, colp)
 }
 
 void
-HandRemoveAllCards (gw)
-    Widget  gw;
+HandRemoveAllCards (Widget gw)
 {
     HandWidget	    w = (HandWidget) gw;
     CardPtr	    c, n;

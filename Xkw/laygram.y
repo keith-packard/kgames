@@ -12,6 +12,9 @@
 
 static LayoutPtr    *dest;
 
+void
+yyerror(char *s);
+
 %}
 
 %union {
@@ -308,13 +311,15 @@ orientation	:   VERTICAL
 		;
 %%
 
-yywrap ()
+int
+yywrap (void)
 {
     return 1;
 }
 
-yysetdest (c)
-    LayoutPtr	*c;
+void
+yysetdest (LayoutPtr *c)
 {
+    (void) yywrap;
     dest = c;
 }
