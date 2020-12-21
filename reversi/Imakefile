@@ -6,11 +6,9 @@ SRCS = 	move.c hasmove.c fini.c minmax.c edges.c corners.c \
 OBJS = 	move.o hasmove.o fini.o minmax.o edges.o corners.o \
 	count.o game.o xreversi.o Reversi.o transform.o
 
-ComplexProgramTarget(xreversi)
-
 depend:: edges.out user.c ulex.c
 
-DependTarget()
+ComplexProgramTarget(xreversi)
 
 InstallAppDefaults(Xreversi)
 
@@ -35,8 +33,8 @@ makeedge.h: makeedge.c
 clean::
 	rm -f makeedge.c
 
-user.c: user.y
-	yacc -d $*.y
+user.c: user.y edges.out
+	yacc -d user.y
 	$(MV) y.tab.c $@
 
 user.h: user.c
