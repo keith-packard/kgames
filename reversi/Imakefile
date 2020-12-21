@@ -30,12 +30,16 @@ makeedge.c: makeedge.y
 	yacc $*.y
 	$(MV) y.tab.c $@
 
+makeedge.h: makeedge.c
+
 clean::
 	rm -f makeedge.c
 
 user.c: user.y
 	yacc -d $*.y
 	$(MV) y.tab.c $@
+
+user.h: user.c
 
 clean::
 	rm -f user.c y.tab.h

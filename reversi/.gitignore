@@ -4,3 +4,5 @@ makeedge
 xreversi
 makeedge.c
 xreversi._man
+y.tab.h
+ulex.c

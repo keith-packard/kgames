@@ -1,1 +1,4 @@
 *.o
+Makefile
+Makefile.bak
+exports
