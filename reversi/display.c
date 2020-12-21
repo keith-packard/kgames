@@ -72,7 +72,7 @@ dispGrid ()
 }
 
 void
-dispNoGrid ()
+dispNoGrid (void)
 {
 	register int	i, j;
 
@@ -160,8 +160,7 @@ int who;
 }
 
 void
-dispScore (board)
-register boardT	board;
+dispScore (boardT board)
 {
 	register int	i,j;
 	register int	ws, bs;
@@ -225,7 +224,7 @@ int player;
 }
 
 void
-dispHelp ()
+dispHelp (void)
 {
 	register int	i;
 	register char	**h;
@@ -251,7 +250,7 @@ dispHelp ()
 }
 
 void
-dispNoHelp ()
+dispNoHelp (void)
 {
 	register int	i;
 	register char	**h;
@@ -280,7 +279,7 @@ static char	lexbuf[256];
 static char	*lexpnt;
 
 void
-readLine ()
+readLine (void)
 {
 	int	ch, x, y;
 

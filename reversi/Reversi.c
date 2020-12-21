@@ -62,26 +62,17 @@ static XtResource resources[] = {
 
 #define superclass		(&simpleClassRec)
 
-static void Initialize();
-static void Resize();
-static void Redisplay();
-static Boolean SetValues();
-static void ClassInitialize();
-static void Destroy();
-static void Realize();
-
 /****************************************************************
  *
  * Private Procedures
  *
  ****************************************************************/
 
-static void ClassInitialize()
+static void ClassInitialize(void)
 {
 } /* ClassInitialize */
 
-static void GetnormalGCs(rw)
-    ReversiWidget rw;
+static void GetnormalGCs(ReversiWidget rw)
 {
     XGCValues	values;
 
@@ -107,8 +98,7 @@ static void GetnormalGCs(rw)
 	&values);
 }
 
-static void GetGrayTile(rw)
-    ReversiWidget   rw;
+static void GetGrayTile(ReversiWidget rw)
 {
     Pixmap  tile;
 
@@ -125,8 +115,7 @@ static void GetGrayTile(rw)
 #define MIN_DISTINGUISH	10000.0
 
 static Bool
-DistinguishableColors (colorA, colorB)
-XColor	*colorA, *colorB;
+DistinguishableColors (XColor *colorA, XColor *colorB)
 {
     double	    deltaRed, deltaGreen, deltaBlue;
     double	    dist;
@@ -141,8 +130,7 @@ XColor	*colorA, *colorB;
 }
 
 static void
-GetWidgetBackground (rw)
-    ReversiWidget   rw;
+GetWidgetBackground (ReversiWidget rw)
 {
     XColor		defs[3];
     Colormap		cmap;
@@ -165,13 +153,14 @@ GetWidgetBackground (rw)
 }
 
 /* ARGSUSED */
-static void Initialize(request, new, args, count)
-    Widget	request, new;
-    Arg		*args;
-    Cardinal	*count;
+static void Initialize(Widget request, Widget new, Arg *args, Cardinal *count)
 {
     ReversiWidget rw = (ReversiWidget) new;
     int		x, y;
+
+    (void) request;
+    (void) args;
+    (void) count;
 
     GetnormalGCs(rw);
 
@@ -197,9 +186,7 @@ static void Initialize(request, new, args, count)
  * Repaint the widget window
  */
 
-static void PaintEntry (rw, x, y)
-    ReversiWidget   rw;
-    int		    x, y;
+static void PaintEntry (ReversiWidget rw, int x, int y)
 {
     GC	gc;
     double  dx, dy, dw, dh;
@@ -241,8 +228,7 @@ static void PaintEntry (rw, x, y)
 }
 
 static void
-PaintGrid (rw)
-    ReversiWidget   rw;
+PaintGrid (ReversiWidget rw)
 {
     int	i;
     Display	*dpy;
@@ -268,24 +254,20 @@ PaintGrid (rw)
 }
 
 /* ARGSUSED */
-static void Redisplay(w, event, region)
-    Widget w;
-    XEvent *event;
-    Region region;
+static void Redisplay(Widget w, XEvent *event, Region region)
 {
     ReversiWidget rw = (ReversiWidget) w;
     int	x, y;
-    
+
+    (void) event;
+    (void) region;
     PaintGrid (rw);
     for (y = 0; y < BOARD_HEIGHT; y++)
 	for (x = 0; x < BOARD_WIDTH; x++)
 	    PaintEntry (rw, x, y);
 }
 
-static void Realize(w, value_mask, attributes)
-    Widget w;
-    XtValueMask *value_mask;
-    XSetWindowAttributes *attributes;
+static void Realize(Widget w, XtValueMask *value_mask, XSetWindowAttributes *attributes)
 {
     ReversiWidget   rw = (ReversiWidget) w;
 
@@ -293,8 +275,7 @@ static void Realize(w, value_mask, attributes)
     GetWidgetBackground (rw);
 }
 
-static void Resize(w)
-    Widget w;
+static void Resize(Widget w)
 {
     ReversiWidget	rw = (ReversiWidget) w;
 
@@ -310,16 +291,17 @@ static void Resize(w)
  */
 
 /* ARGSUSED */
-static Boolean SetValues(current, request, new, args, count)
-    Widget current, request, new;
-    Arg *args;
-    Cardinal *count;
+static Boolean SetValues(Widget current, Widget request, Widget new, Arg *args, Cardinal *count)
 {
+    (void) current;
+    (void) request;
+    (void) new;
+    (void) args;
+    (void) count;
     return False;
 }
 
-static void Destroy(w)
-    Widget w;
+static void Destroy(Widget w)
 {
     ReversiWidget rw = (ReversiWidget)w;
 
@@ -329,20 +311,11 @@ static void Destroy(w)
 
 void
 XawReversiSetSpot (
-#if NeedFunctionPrototypes
 		   Widget	w,
 		   int		x,
 		   int		y,
 		   ReversiStone	value
-#else
-		   w, x, y, value
-#endif
 		   )
-#if !NeedFunctionPrototypes
-    Widget	    w;
-    int		    x, y;
-    ReversiStone    value;
-#endif
 {
     ReversiWidget   rw = (ReversiWidget) w;
 
@@ -360,12 +333,11 @@ XawReversiSetSpot (
 }
 
 static void
-DoAnimate (closure, interval)
-    XtPointer	    closure;
-    XtIntervalId    *interval;
+DoAnimate (XtPointer closure, XtIntervalId *interval)
 {
     Animate *a = (Animate *) closure;
 
+    (void) interval;
     if (a->togo == 0)
     {
 	a->state = AnimateNone;
@@ -385,7 +357,6 @@ DoAnimate (closure, interval)
 
 void
 XawReversiAnimateSpot (
-#if NeedFunctionPrototypes
 		       Widget		w,
 		       int		x,
 		       int		y,
@@ -393,17 +364,7 @@ XawReversiAnimateSpot (
 		       ReversiStone	B,
 		       unsigned long	delay,
 		       int		repeat
-#else
-		       w, x, y, A, B, delay, repeat
-#endif
 		       )
-#if !NeedFunctionPrototypes
-    Widget	    w;
-    int		    x, y;
-    ReversiStone    A, B;
-    unsigned long   delay;
-    int		    repeat;
-#endif
 {
     ReversiWidget   rw = (ReversiWidget) w;
     Animate	    *a;
@@ -433,11 +394,7 @@ XawReversiAnimateSpot (
 }
 
 static void
-Select (w, event, params, num_params)
-    Widget	w;
-    XEvent	*event;
-    String *params;		/* unused */
-    Cardinal *num_params;	/* unused */
+Select (Widget w, XEvent *event, String *params, Cardinal *num_params)
 {
     ReversiWidget   rw = (ReversiWidget) w;
     int	    x, y;
@@ -445,6 +402,8 @@ Select (w, event, params, num_params)
     int	    rx, ry;
     ReversiMove	move;
 
+    (void) params;
+    (void) num_params;
     switch (event->type)
     {
     case ButtonPress:
@@ -513,6 +472,10 @@ ReversiClassRec reversiClassRec = {
   }, {
 /* simple class */
     /* change_sensitive		*/	XtInheritChangeSensitive,
+    /* extension		*/	NULL,
+  }, {
+/* reversi class */
+      /* foo			*/	0,
   }
 };
 

@@ -1,5 +1,29 @@
+/*
+ * Copyright © 2020 Keith Packard
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that copyright
+ * notice and this permission notice appear in supporting documentation, and
+ * that the name of the copyright holders not be used in advertising or
+ * publicity pertaining to distribution of the software without specific,
+ * written prior permission.  The copyright holders make no representations
+ * about the suitability of this software for any purpose.  It is provided "as
+ * is" without express or implied warranty.
+ *
+ * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ */
+
 #include <stdio.h>
 #include <sys/signal.h>
+#include <stdlib.h>
+#include <time.h>
 #include "reversi.h"
 
 boardT	board, saveBoard;
@@ -25,23 +49,21 @@ int	showScore = 1;
 struct move	saveGame[64];
 struct move	*saveP;
 
-int
-caught ()
+static void
+caught (int sig)
 {
+	(void) sig;
 	gotsignal++;
 	signal (SIGINT, caught);
-	return 0;
 }
 
 int
-main (argc, argv)
-int argc;
-char **argv;
+main (int argc, char **argv)
 {
 	signal (SIGINT, caught);
 	level = 2;
 	dispInit (argc, argv);
-	srand (getpid());
+	srandom (time(NULL));
 	while (*++argv && **argv == '-') {
 		while (*++*argv) {
 			switch (**argv) {
@@ -89,7 +111,7 @@ char **argv;
 }
 
 void
-setup ()
+setup (void)
 {
 	register int	i,j;
 
@@ -103,8 +125,7 @@ setup ()
 }
 
 void
-replay (file)
-char *file;
+replay (char *file)
 {
 	int	x, y, p;
 	if (rfile)
@@ -145,8 +166,7 @@ char *file;
 }
 
 void
-domove (x,y)
-int x, y;
+domove (int x, int y)
 {
 	if (1 <= x && x <= SIZE &&
 	    1 <= y && y <= SIZE &&
@@ -173,7 +193,7 @@ int x, y;
 }
 
 void
-checkInput ()
+checkInput (void)
 {
 	if (!atend) {
 		loop:	;
@@ -221,7 +241,7 @@ checkInput ()
 }
 
 void
-undo ()
+undo (void)
 {
 	if (saved) {
 		copy (board, saveBoard);
@@ -232,7 +252,7 @@ undo ()
 }
 
 void
-doHint ()
+doHint (void)
 {
 	if (hasmove (player, board)) {
 		hint (player, board, level);

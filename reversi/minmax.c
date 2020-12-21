@@ -5,6 +5,8 @@
 # include	"reversi.h"
 # include	<setjmp.h>
 # include	<stdio.h>
+# include	<string.h>
+# include	<stdlib.h>
 
 int	maxlev, movex, movey;
 
@@ -19,15 +21,15 @@ int	maxlev, movex, movey;
  *	caught.
  */
 short	morder[64][2] = {
-	1,1, 1,8, 8,1, 8,8,
-	1,3, 1,6, 3,1, 3,8, 6,1, 6,8, 8,3, 8,6,
-	3,3, 3,6, 6,3, 6,6,
-	1,4, 1,5, 4,1, 4,8, 5,1, 5,8, 8,4, 8,5,
-	3,4, 3,5, 4,3, 4,6, 5,3, 5,6, 6,4, 6,5,
-	2,3, 2,6, 3,2, 3,7, 6,2, 6,7, 7,3, 7,6,
-	2,4, 2,5, 4,2, 4,7, 5,2, 5,7, 7,4, 7,5,
-	1,2, 1,7, 2,1, 2,8, 7,1, 7,8, 8,2, 8,7,
-	2,2, 2,7, 7,2, 7,7, 4,4, 4,5, 5,4, 5,5,
+	{ 1,1, }, { 1,8, }, { 8,1, }, { 8,8, },
+	{ 1,3, }, { 1,6, }, { 3,1, }, { 3,8, }, { 6,1, }, { 6,8, }, { 8,3, }, { 8,6, },
+	{ 3,3, }, { 3,6, }, { 6,3, }, { 6,6, },
+	{ 1,4, }, { 1,5, }, { 4,1, }, { 4,8, }, { 5,1, }, { 5,8, }, { 8,4, }, { 8,5, },
+	{ 3,4, }, { 3,5, }, { 4,3, }, { 4,6, }, { 5,3, }, { 5,6, }, { 6,4, }, { 6,5, },
+	{ 2,3, }, { 2,6, }, { 3,2, }, { 3,7, }, { 6,2, }, { 6,7, }, { 7,3, }, { 7,6, },
+	{ 2,4, }, { 2,5, }, { 4,2, }, { 4,7, }, { 5,2, }, { 5,7, }, { 7,4, }, { 7,5, },
+	{ 1,2, }, { 1,7, }, { 2,1, }, { 2,8, }, { 7,1, }, { 7,8, }, { 8,2, }, { 8,7, },
+	{ 2,2, }, { 2,7, }, { 7,2, }, { 7,7, }, { 4,4, }, { 4,5, }, { 5,4, }, { 5,5, },
 };
 
 jmp_buf	stopsearch;
@@ -42,48 +44,10 @@ FILE	*debug;
 # define	NOMOVE	(-300000)
 #endif
 
-#define	UNROLL
-#define	USECOPY
-#ifdef	USECOPY
-# ifdef UNROLL
-
-#define Copy5(a,b,o)	a[o+0] = b[o+0]; \
-			a[o+1] = b[o+1]; \
- 			a[o+2] = b[o+2]; \
-			a[o+3] = b[o+3]; \
-			a[o+4] = b[o+4];
-	
-#define Copy25(a,b,o)	Copy5(a,b,o+0) \
-			Copy5(a,b,o+5) \
-			Copy5(a,b,o+10) \
-			Copy5(a,b,o+15) \
-			Copy5(a,b,o+20)
-
-#define copyb(a,b) { \
-	register int	*dst = (int *) a, *src = (int *) b; \
-	Copy25 (dst,src,0) \
-}
-
-# else
-struct copyB {
-	boardT	data;
-};
-#  define	copyb(next,board)	(*((struct copyB *)next) = *((struct copyB *) board))
-# endif
-#else
-# define	copyb(next,board)	copy(next,board)
-#endif
-
 void
-copy(next, board)
-register int	*next, *board;
+copy(boardT next, boardT board)
 {
-	register int	count;
-
-	count = sizeof (boardT) / sizeof (int);
-	do {
-		*next++ = *board++;
-	} while (--count);
+	memcpy(next, board, sizeof(boardT));
 }
 
 /*
@@ -92,31 +56,31 @@ register int	*next, *board;
  */
  
 boardT	base = {
-	  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-	  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-	  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-	  0,   0,   0,   3,   1,   1,   3,   0,   0,   0,
-	  0,   0,   0,   1,   0,   0,   1,   0,   0,   0,
-	  0,   0,   0,   1,   0,   0,   1,   0,   0,   0,
-	  0,   0,   0,   3,   1,   1,   3,   0,   0,   0,
-	  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-	  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-	  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+	{  0,   0,   0,   0,   0,   0,   0,   0,   0,   0, },
+	{  0,   0,   0,   0,   0,   0,   0,   0,   0,   0, },
+	{  0,   0,   0,   0,   0,   0,   0,   0,   0,   0, },
+	{  0,   0,   0,   3,   1,   1,   3,   0,   0,   0, },
+	{  0,   0,   0,   1,   0,   0,   1,   0,   0,   0, },
+	{  0,   0,   0,   1,   0,   0,   1,   0,   0,   0, },
+	{  0,   0,   0,   3,   1,   1,   3,   0,   0,   0, },
+	{  0,   0,   0,   0,   0,   0,   0,   0,   0,   0, },
+	{  0,   0,   0,   0,   0,   0,   0,   0,   0,   0, },
+	{  0,   0,   0,   0,   0,   0,   0,   0,   0,   0, },
 };
 
 # define bget(b, x, y)	*(((boardE *) (b)) + ((((x) << 2) + x) << 1) + (y))
 
 scoreT edgemod[10][3] = {
-	0,	0,	0,
-	0,	0,	0,
-	0,	0,	0,
-	5,	-10,	5,
-	5,	-5,	5,
-	5,	-5,	5,
-	5,	-10,	5,
-	0,	0,	0,
-	0,	0,	0,
-	0,	0,	0,
+	{ 0,	0,	0, },
+	{ 0,	0,	0, },
+	{ 0,	0,	0, },
+	{ 5,	-10,	5, },
+	{ 5,	-5,	5, },
+	{ 5,	-5,	5, },
+	{ 5,	-10,	5, },
+	{ 0,	0,	0, },
+	{ 0,	0,	0, },
+	{ 0,	0,	0, },
 };
 
 extern scoreT	cornerscores[4][4][4][4];
@@ -129,20 +93,15 @@ extern scoreT	edgescores[4][4][4][4][4][4][4][4];
 						  [f+1][g+1][h+1];
 
 int
-computer (player, board, level)
-int player;
-boardT	board;
-int level;
+computer (int player, boardT board, int level)
 {
-	int	i;
-
 #ifdef MDEBUG
 	if (!debug)
 		debug = fopen ("debug", "w");
 #endif
 	maxlev = level;
 	movex = movey = -1;
-	i = seek (player, board, 0, 1, -NOMOVE);
+	seek (player, board, 0, 1, -NOMOVE);
 	if (movex == -1 || movey == -1)
 		return 0;
 #ifdef MDEBUG
@@ -154,19 +113,14 @@ int level;
 }
 
 int
-hint (player, board, level)
-int player;
-boardT board;
-int level;
+hint (int player, boardT board, int level)
 {
-	int	i;
-
 #ifdef MDEBUG
 	if (!debug)
 		debug = fopen ("debug", "w");
 #endif
 	maxlev = level;
-	i = seek (player, board, 0, 1, -NOMOVE);
+	seek (player, board, 0, 1, -NOMOVE);
 #ifdef MDEBUG
 	fprintf (debug, "player %d hint %d, %d\n", player, movex, movey);
 	fflush (debug);
@@ -179,16 +133,7 @@ int level;
 extern int offsets[];
 
 int
-seek (player, board, level, moved, best)
-#ifdef pdp11
-int	player;
-#else
-register int	player;
-#endif
-boardT	board;
-int level;
-int moved;
-int best;
+seek (int player, boardT board, int level, int moved, int best)
 {
 	boardT		next;
 	int		x, y;
@@ -233,13 +178,9 @@ int best;
 		}
 goodmove:	;
 		{
-#ifdef pdp11
 			int	s;
-#else
-			register int	s;
-#endif
 
-			copyb (next, board);
+			copy (next, board);
 			/*
 			 *	moved is set if we come from
 			 *	a command, not if the previous
@@ -315,7 +256,7 @@ fprintf (debug, "%.*s l %d %d,%d %d\n", level+1, "          ", level, x, y, s);
 				 *	by choosing among equal moves
 				 *	randomly
 				 */
-				if (s == max && (rand() >> 3) & 01)
+				if (s == max && (random() >> 3) & 01)
 					continue;
 				if (s > best)
 					return -s;

@@ -8,8 +8,7 @@
 # include	<stdio.h>
 
 void
-fini (board)
-boardT	board;
+fini (boardT board)
 {
 	register int	x,y;
 	register int	wscore, bscore;

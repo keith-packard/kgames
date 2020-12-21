@@ -7,9 +7,7 @@
 # include	"reversi.h"
 
 int
-hasmove (player, board)
-int player;
-boardT	board;
+hasmove (int player, boardT board)
 {
 	register int	x,y;
 

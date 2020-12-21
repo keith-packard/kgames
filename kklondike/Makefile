@@ -38,9 +38,9 @@ all::
 
 # platform:  $XFree86: xc/config/cf/linux.cf,v 3.220 2003/12/30 22:38:33 tsi Exp $
 
-# operating system:  Linux 3.17.0 x86_64 [ELF] (3.17.0)
-# libc:	(6.19.0)
-# binutils:	(224)
+# operating system:  Linux 5.8.0-3-amd64 x86_64 [ELF] (5.8.0)
+# libc:	(6.31.0)
+# binutils:	(235)
 
 # $Xorg: lnxLib.rules,v 1.3 2000/08/17 19:41:47 cpqbld Exp $
 # $XFree86: xc/config/cf/lnxLib.rules,v 3.52 2003/10/31 20:49:03 herrb Exp $
@@ -194,7 +194,7 @@ CXXEXTRA_INCLUDES =
          CXXFLAGS = $(CXXDEBUGFLAGS) $(CXXOPTIONS) $(THREADS_CXXFLAGS) $(CXXDEFINES)
 
          COMPRESS = compress
-          GZIPCMD = gzip
+          GZIPCMD = gzip -n
 
               CPP = cpp $(STD_CPP_DEFINES)
            RAWCPP = cpp -undef $(STD_CPP_OPTIONS)
@@ -1042,7 +1042,7 @@ CXXPROJECT_DEFINES =
 
 MYTOP=..
 
-INCLUDES = -I$(MYTOP)
+INCLUDES = -I$(MYTOP) -D_DEFAULT_SOURCE -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes
 XPM=-lXpm
 XKW=$(MYTOP)/Xkw
 XKWLIB=-L$(XKW) -lXkw
@@ -1200,23 +1200,42 @@ klondike.o: klondike.c /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/sys/types.h /usr/include/features.h \
  /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
+ /usr/include/x86_64-linux-gnu/bits/long-double.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
  /usr/include/x86_64-linux-gnu/bits/types.h \
- /usr/include/x86_64-linux-gnu/bits/typesizes.h /usr/include/time.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.9/include/stddef.h /usr/include/endian.h \
+ /usr/include/x86_64-linux-gnu/bits/timesize.h \
+ /usr/include/x86_64-linux-gnu/bits/typesizes.h \
+ /usr/include/x86_64-linux-gnu/bits/time64.h \
+ /usr/include/x86_64-linux-gnu/bits/types/clock_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/clockid_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/time_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/timer_t.h \
+ /usr/lib/gcc/x86_64-linux-gnu/10/include/stddef.h \
+ /usr/include/x86_64-linux-gnu/bits/stdint-intn.h /usr/include/endian.h \
  /usr/include/x86_64-linux-gnu/bits/endian.h \
+ /usr/include/x86_64-linux-gnu/bits/endianness.h \
  /usr/include/x86_64-linux-gnu/bits/byteswap.h \
- /usr/include/x86_64-linux-gnu/bits/byteswap-16.h \
+ /usr/include/x86_64-linux-gnu/bits/uintn-identity.h \
  /usr/include/x86_64-linux-gnu/sys/select.h \
  /usr/include/x86_64-linux-gnu/bits/select.h \
- /usr/include/x86_64-linux-gnu/bits/sigset.h \
- /usr/include/x86_64-linux-gnu/bits/time.h \
- /usr/include/x86_64-linux-gnu/sys/sysmacros.h /usr/include/X11/X.h \
+ /usr/include/x86_64-linux-gnu/bits/types/sigset_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__sigset_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/struct_timeval.h \
+ /usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h \
+ /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h \
+ /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h \
+ /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h \
+ /usr/include/x86_64-linux-gnu/bits/struct_mutex.h \
+ /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h /usr/include/X11/X.h \
  /usr/include/X11/Xfuncproto.h /usr/include/X11/Xosdefs.h \
  /usr/include/X11/Xutil.h /usr/include/X11/keysym.h \
  /usr/include/X11/keysymdef.h /usr/include/X11/Xresource.h \
- /usr/include/string.h /usr/include/X11/Core.h \
+ /usr/include/string.h \
+ /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
+ /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
+ /usr/include/strings.h /usr/include/X11/Core.h \
  /usr/include/X11/Composite.h /usr/include/X11/Constraint.h \
  /usr/include/X11/Object.h /usr/include/X11/RectObj.h \
  /usr/include/X11/StringDefs.h /usr/include/X11/Shell.h \
@@ -1227,16 +1246,23 @@ klondike.o: klondike.c /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
  /usr/include/x86_64-linux-gnu/bits/stat.h /usr/include/unistd.h \
  /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
- /usr/include/x86_64-linux-gnu/bits/confname.h /usr/include/getopt.h \
- /usr/include/x86_64-linux-gnu/sys/time.h /usr/include/X11/Xarch.h \
- /usr/include/X11/Xaw/Command.h /usr/include/X11/Xaw/Label.h \
- /usr/include/X11/Xaw/Simple.h /usr/include/X11/Xmu/Converters.h \
- /usr/include/X11/Xaw/Box.h /usr/include/X11/Xaw/Dialog.h \
- /usr/include/X11/Xaw/Form.h /usr/include/X11/Xaw/MenuButton.h \
- /usr/include/X11/Xaw/SimpleMenu.h /usr/include/X11/Xaw/SmeBSB.h \
- /usr/include/X11/Xaw/Sme.h /usr/include/X11/Xaw/AsciiText.h \
- /usr/include/X11/Xaw/Text.h /usr/include/X11/Xaw/TextSink.h \
- /usr/include/X11/Xaw/TextSrc.h /usr/include/X11/Xaw/AsciiSrc.h \
- /usr/include/X11/Xaw/AsciiSink.h /usr/include/X11/Xaw/MultiSrc.h \
- /usr/include/X11/Xaw/Cardinals.h ../Xkw/Cards.h ../Xkw/Hand.h \
- ../Xkw/Layout.h ../Xkw/CardsUtil.h
+ /usr/include/x86_64-linux-gnu/bits/environments.h \
+ /usr/include/x86_64-linux-gnu/bits/confname.h \
+ /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
+ /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
+ /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
+ /usr/include/x86_64-linux-gnu/sys/time.h /usr/include/time.h \
+ /usr/include/x86_64-linux-gnu/bits/time.h \
+ /usr/include/x86_64-linux-gnu/bits/types/struct_tm.h \
+ /usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h \
+ /usr/include/X11/Xarch.h /usr/include/X11/Xaw/Command.h \
+ /usr/include/X11/Xaw/Label.h /usr/include/X11/Xaw/Simple.h \
+ /usr/include/X11/Xmu/Converters.h /usr/include/X11/Xaw/Box.h \
+ /usr/include/X11/Xaw/Dialog.h /usr/include/X11/Xaw/Form.h \
+ /usr/include/X11/Xaw/MenuButton.h /usr/include/X11/Xaw/SimpleMenu.h \
+ /usr/include/X11/Xaw/SmeBSB.h /usr/include/X11/Xaw/Sme.h \
+ /usr/include/X11/Xaw/AsciiText.h /usr/include/X11/Xaw/Text.h \
+ /usr/include/X11/Xaw/TextSink.h /usr/include/X11/Xaw/TextSrc.h \
+ /usr/include/X11/Xaw/AsciiSrc.h /usr/include/X11/Xaw/AsciiSink.h \
+ /usr/include/X11/Xaw/MultiSrc.h /usr/include/X11/Xaw/Cardinals.h \
+ ../Xkw/Cards.h ../Xkw/Hand.h ../Xkw/Layout.h ../Xkw/CardsUtil.h

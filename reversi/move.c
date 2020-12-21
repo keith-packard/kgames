@@ -9,10 +9,7 @@
 int		offsets[] = { -11, -10, -9, -1, 1, 9, 10, 11, 0 };
 
 void
-move (player, x, y, board)
-register int	player;
-int				x, y;
-boardT			board;
+move (int player, int x, int y, boardT board)
 {
 	register boardE	*b, *m;
 	register int	*o, i;
@@ -36,10 +33,7 @@ boardT			board;
 }
 
 int
-legal (player, x, y, board)
-register int	player;
-int		x, y;
-boardT		board;
+legal (int player, int x, int y, boardT board)
 {
 	register int	i;
 	register boardE	*m;

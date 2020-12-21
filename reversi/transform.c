@@ -2,18 +2,16 @@
  * transformed coordinate system objects for X
  */
 
+# include	<stdlib.h>
 # include	<X11/Xlib.h>
 # include	"transform.h"
 
-extern char *malloc ();
-extern void free ();
-
 static XPoint *
-TranslatePoints (points, n_points, t, mode)
-TPoint	*points;
-int	n_points;
-Transform	*t;
-int	mode;
+TranslatePoints (
+	TPoint	*points,
+	int	n_points,
+	Transform	*t,
+	int	mode)
 {
 	XPoint	*xpoints;
 	int	i;
@@ -34,15 +32,15 @@ int	mode;
 }
 
 void
-TFillPolygon (dpy, d, gc, t, points, n_points, shape, mode)
-register Display	*dpy;
-Drawable		d;
-GC			gc;
-Transform		*t;
-TPoint			*points;
-int			n_points;
-int			shape;
-int			mode;
+TFillPolygon (
+	Display			*dpy,
+	Drawable		d,
+	GC			gc,
+	Transform		*t,
+	TPoint			*points,
+	int			n_points,
+	int			shape,
+	int			mode)
 {
 	XPoint	*xpoints;
 
@@ -55,13 +53,17 @@ int			mode;
 }
 
 void
-TDrawArc (dpy, d, gc, t, x, y, width, height, angle1, angle2)
-	register Display	*dpy;
-	Drawable		d;
-	GC			gc;
-	Transform		*t;
-	double			x, y, width, height;
-	int			angle1, angle2;
+TDrawArc (
+	Display			*dpy,
+	Drawable		d,
+	GC			gc,
+	Transform		*t,
+	double			x,
+	double			y,
+	double			width,
+	double			height,
+	int			angle1,
+	int			angle2)
 {
 	int	xx, xy, xw, xh;
 
@@ -81,13 +83,17 @@ TDrawArc (dpy, d, gc, t, x, y, width, height, angle1, angle2)
 }
 
 void
-TFillArc (dpy, d, gc, t, x, y, width, height, angle1, angle2)
-	register Display	*dpy;
-	Drawable		d;
-	GC			gc;
-	Transform		*t;
-	double			x, y, width, height;
-	int			angle1, angle2;
+TFillArc (
+	Display			*dpy,
+	Drawable		d,
+	GC			gc,
+	Transform		*t,
+	double			x,
+	double			y,
+	double			width,
+	double			height,
+	int			angle1,
+	int			angle2)
 {
 	int	xx, xy, xw, xh;
 
@@ -107,12 +113,15 @@ TFillArc (dpy, d, gc, t, x, y, width, height, angle1, angle2)
 }
 
 void
-TDrawLine (dpy, d, gc, t, x1, y1, x2, y2)
-    Display	*dpy;
-    Drawable	d;
-    GC		gc;
-    Transform	*t;
-    double	x1, y1, x2, y2;
+TDrawLine (
+    Display	*dpy,
+    Drawable	d,
+    GC		gc,
+    Transform	*t,
+    double	x1,
+    double	y1,
+    double	x2,
+    double	y2)
 {
 	int	xx1, xy1, xx2, xy2;
 
@@ -124,12 +133,15 @@ TDrawLine (dpy, d, gc, t, x1, y1, x2, y2)
 }
 
 void
-TClearArea (dpy, d, t, x, y, width, height, exposures)
-	register Display	*dpy;
-	Drawable		d;
-	Transform		*t;
-	double			x, y, width, height;
-	int			exposures;
+TClearArea (
+	Display			*dpy,
+	Drawable		d,
+	Transform		*t,
+	double			x,
+	double			y,
+	double			width,
+	double			height,
+	int			exposures)
 {
 	int	xx, xy, xw, xh;
 
@@ -141,10 +153,16 @@ TClearArea (dpy, d, t, x, y, width, height, exposures)
 }
 
 void
-SetTransform (t, xx1, xx2, xy1, xy2, tx1, tx2, ty1, ty2)
-Transform	*t;
-int		xx1, xx2, xy1, xy2;
-double		tx1, tx2, ty1, ty2;
+SetTransform (
+	Transform	*t,
+	int		xx1,
+	int		xx2,
+	int		xy1,
+	int		xy2,
+	double		tx1,
+	double		tx2,
+	double		ty1,
+	double		ty2)
 {
 	t->mx = ((double) xx2 - xx1) / (tx2 - tx1);
 	t->bx = ((double) xx1) - t->mx * tx1;

@@ -24,37 +24,91 @@ struct move {
 # define	WHITE	1
 # define	BLACK	-1
 
-extern int legal ();
-extern int hasmove ();
-extern void dispError ();
-extern void dispInit ();
-extern void dispGrid ();
-extern void fini ();
-extern int computer ();
-extern int seek ();
-extern void move ();
-extern int hint ();
-extern int seek ();
-extern int count ();
-extern void setup ();
-extern void display ();
-extern void replay ();
-extern int playGame ();
-extern void dispEnd ();
-extern void dispTurn ();
-extern void dispMove ();
-extern void dispHint ();
-extern void dispHelp ();
-extern void dispNoGrid ();
-extern void dispScore ();
-extern void dispNoScore ();
-extern void dispNoHelp ();
-extern void copy ();
-extern void doHint ();
-extern void undo ();
-extern void domove ();
-extern void checkInput ();
+int
+legal (int player, int x, int y, boardT board);
 
-extern int rand ();
-extern void srand ();
-extern int getpid ();
+int
+hasmove (int player, boardT board);
+
+void
+dispError (char *s);
+
+void
+dispInit(int argc, char **argv);
+
+void
+dispGrid (void);
+
+void
+fini (boardT board);
+
+int
+computer (int player, boardT board, int level);
+
+int
+seek (int player, boardT board, int level, int moved, int best);
+
+void
+move (int player, int x, int y, boardT board);
+
+int
+hint (int player, boardT board, int level);
+
+int
+seek (int player, boardT board, int level, int moved, int best);
+
+int
+count (int player, boardT board);
+
+void
+setup (void);
+
+void
+display (boardT board);
+
+void
+replay (char *file);
+
+int
+playGame (void);
+
+void
+dispEnd (void);
+
+void
+dispTurn (int player);
+
+void
+dispMove (int x, int y, int player);
+
+void
+dispHint (int x, int y, int player);
+
+void dispHelp (void);
+
+extern
+void dispNoGrid (void);
+
+void
+dispScore (boardT board);
+
+void
+dispNoScore (void);
+
+void
+dispNoHelp (void);
+
+void
+copy(boardT next, boardT board);
+
+void
+doHint (void);
+
+void
+undo (void);
+
+void
+domove (int x, int y);
+
+void
+checkInput (void);

@@ -1,3 +1,25 @@
+/*
+ * Copyright © 2020 Keith Packard
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that copyright
+ * notice and this permission notice appear in supporting documentation, and
+ * that the name of the copyright holders not be used in advertising or
+ * publicity pertaining to distribution of the software without specific,
+ * written prior permission.  The copyright holders make no representations
+ * about the suitability of this software for any purpose.  It is provided "as
+ * is" without express or implied warranty.
+ *
+ * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ */
+#include <stdint.h>
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
 #include <X11/Xaw/Cardinals.h>
@@ -21,7 +43,8 @@ static Widget	playerLabel, playWhite, playBlack, playBoth, playNeither;
 static Widget	levelLabel, levelValue;
 static Widget	turn;
 
-static void DoSetLevel();
+static void
+DoSetLevel (Widget w, XtPointer closure, XtPointer call_data);
 
 /* Command line options table.  Only resources are entered here...there is a
    pass over the remaining options after XtParseCommand is let loose. */
@@ -46,11 +69,8 @@ static XrmOptionDescRec options[] = {
 {"-animate",	"*animateTimeout",	XrmoptionSepArg,	NULL}
 };
 
-Widget
-MakeCommandButton(box, name, function)
-Widget box;
-char *name;
-XtCallbackProc function;
+static Widget
+MakeCommandButton(Widget box, char *name, XtCallbackProc function)
 {
   Widget w = XtCreateManagedWidget(name, commandWidgetClass, box, NULL, ZERO);
   if (function != NULL)
@@ -58,22 +78,22 @@ XtCallbackProc function;
   return w;
 }
 
-Widget
-MakeRadioButton (parent, name, callback, value, group)
-    Widget	    parent;
-    char	    *name;
-    XtCallbackProc  callback;
-    int		    value;
-    Widget	    group;
+static Widget
+MakeRadioButton (
+    Widget	    parent,
+    char	    *name,
+    XtCallbackProc  callback,
+    int		    value,
+    Widget	    group)
 {
     Arg		args[2];
     Widget	button;
     Cardinal	n;
 
     n = 0;
-    XtSetArg (args[n], XtNradioData, (caddr_t) value); n++;
+    XtSetArg (args[n], XtNradioData, (caddr_t) (intptr_t) value); n++;
     if (group) {
-	XtSetArg (args[n], XtNradioGroup, (caddr_t) group); n++;
+	XtSetArg (args[n], XtNradioGroup, (caddr_t) (intptr_t) group); n++;
     }
     button = XtCreateManagedWidget (name, toggleWidgetClass,
 				       parent, args, n);
@@ -82,10 +102,8 @@ MakeRadioButton (parent, name, callback, value, group)
     return button;
 }
 
-Widget 
-MakeStringBox(parent, name, string)
-Widget parent;
-String name, string;
+static Widget 
+MakeStringBox(Widget parent, String name, String string)
 {
     Arg args[5];
     Cardinal numargs = 0;
@@ -100,10 +118,11 @@ String name, string;
     
     Source = XawTextGetSource (StringW);
     XtAddCallback (Source, XtNcallback, DoSetLevel, (caddr_t) NULL);
-    return(StringW);  
+    return(StringW);
 }
 
-void waitForServer ();
+static void
+waitForServer(Boolean yield);
 
 extern int  com, defcom;
 extern int  level;
@@ -111,30 +130,42 @@ extern int  level;
 int UIdone, UIret;
 
 static void
-DoQuit ()
+DoQuit (Widget w, XtPointer closure, XtPointer call_data)
 {
+    (void) w;
+    (void) closure;
+    (void) call_data;
     dispError ("");
     UIdone = 1;
     UIret = 0;
 }
 
-void
-DoHint ()
+static void
+DoHint (Widget w, XtPointer closure, XtPointer call_data)
 {
+    (void) w;
+    (void) closure;
+    (void) call_data;
     dispError ("");
     doHint ();
 }
 
-void
-DoUndo ()
+static void
+DoUndo (Widget w, XtPointer closure, XtPointer call_data)
 {
+    (void) w;
+    (void) closure;
+    (void) call_data;
     dispError ("");
     undo ();
 }
 
-void
-DoRestart ()
+static void
+DoRestart (Widget w, XtPointer closure, XtPointer call_data)
 {
+    (void) w;
+    (void) closure;
+    (void) call_data;
     dispError ("");
     UIdone = 1;
     UIret = 1;
@@ -145,12 +176,15 @@ DoRestart ()
 #define PLAY_BOTH	3
 #define PLAY_NEITHER	4
 
-void
-DoPlay ()
+static void
+DoPlay (Widget w, XtPointer closure, XtPointer call_data)
 {
     int	    current;
 
-    current = (int) XawToggleGetCurrent (playWhite);
+    (void) w;
+    (void) closure;
+    (void) call_data;
+    current = (intptr_t) XawToggleGetCurrent (playWhite);
     switch (current)
     {
     case PLAY_WHITE:
@@ -170,12 +204,12 @@ DoPlay ()
     }
 }
 
-void
-SetPlay ()
+static void
+SetPlay (void)
 {
     int	current, should_be = 0;
 
-    current = (int) XawToggleGetCurrent (playWhite);
+    current = (intptr_t) XawToggleGetCurrent (playWhite);
     switch (com)
     {
     case WHITE:
@@ -193,16 +227,16 @@ SetPlay ()
     }
     if (current != should_be)
     {
-	XawToggleSetCurrent (playWhite, (caddr_t) should_be);
+	XawToggleSetCurrent (playWhite, (caddr_t) (intptr_t) should_be);
     }
 }
 
 static void
-DoMove (w, closure, call_data)
-    Widget	w;
-    XtPointer	closure;
-    XtPointer	call_data;
+DoMove (Widget w, XtPointer closure, XtPointer call_data)
 {
+    (void) w;
+    (void) closure;
+    (void) call_data;
     ReversiMovePtr  move = (ReversiMovePtr) call_data;
     dispError ("");
     domove (move->x + 1, move->y + 1);
@@ -213,17 +247,25 @@ static char levelString[100];
 static Bool levelChanged;
 
 static void
-DoSetLevel (w, e, p, n)
-    Widget	w;
-    XEvent	*e;
-    String	*p;
-    Cardinal	*n;
+DoSetLevel (Widget w, XtPointer closure, XtPointer call_data)
 {
+    (void) w;
+    (void) closure;
+    (void) call_data;
     levelChanged = TRUE;
 }
 
-void
-SetLevel ()
+static void
+DoSetLevelAction (Widget w, XEvent *event, String *string, Cardinal *num)
+{
+    (void) event;
+    (void) string;
+    (void) num;
+    DoSetLevel(w, NULL, NULL);
+}
+
+static void
+SetLevel (void)
 {
     Widget  source;
     Arg	    args[1];
@@ -239,12 +281,11 @@ SetLevel ()
 }
 
 XtActionsRec xreversi_actions[] = {
-    "SetLevel",	    DoSetLevel,
+    { "SetLevel",	    DoSetLevelAction, },
 };
 
-void dispInit(argc, argv)
-    int argc;
-    char **argv;
+void
+dispInit(int argc, char **argv)
 {
     topLevel = XtInitialize( NULL, "Xreversi",
 			     options, XtNumber(options),
@@ -279,7 +320,7 @@ void dispInit(argc, argv)
 }
 
 int
-playGame ()
+playGame (void)
 {
     UIdone = 0;
 
@@ -293,8 +334,7 @@ playGame ()
 }
 
 void
-display (board)
-boardT	board;
+display (boardT board)
 {
     int	    i, j;
     ReversiStone    stone;
@@ -320,8 +360,7 @@ boardT	board;
 }
 
 void
-dispError (s)
-char	*s;
+dispError (char *s)
 {
     Arg	args[1];
 
@@ -331,18 +370,17 @@ char	*s;
 }
 
 void
-dispGrid ()
+dispGrid (void)
 {
 }
 
 void
-dispEnd ()
+dispEnd (void)
 {
 }
 
-void
-waitForServer(yield)
-    Boolean yield;
+static void
+waitForServer(Boolean yield)
 {
     XSync (XtDisplay (topLevel), False);
     while (yield || XtPending ())
@@ -357,8 +395,7 @@ waitForServer(yield)
 }
 
 void
-dispTurn (player)
-int player;
+dispTurn (int player)
 {
     static char	turnString[100];
     static int	oldPlayer = 100;
@@ -380,9 +417,7 @@ int player;
 }
 
 void
-dispMove (x, y, player)
-int x, y;
-int player;
+dispMove (int x, int y, int player)
 {
     ReversiStone	A, B;
 
@@ -398,9 +433,7 @@ int player;
 }
 
 void
-dispHint (x, y, player)
-int x, y;
-int player;
+dispHint (int x, int y, int player)
 {
     dispMove (x, y, player);
 }

@@ -25,8 +25,73 @@ typedef struct _TRectangle {
 # define Twidth(w,h,t)	(((double) (w)) / (t)->mx)
 # define Theight(w,h,t)	(((double) (h)) / (t)->my)
 
-extern void	SetTransform ();
-extern void	TClearArea ();
-extern void	TFillArc ();
-extern void	TDrawLine ();
-extern void	TClearArea ();
+void
+TFillPolygon (
+	Display			*dpy,
+	Drawable		d,
+	GC			gc,
+	Transform		*t,
+	TPoint			*points,
+	int			n_points,
+	int			shape,
+	int			mode);
+
+void
+TDrawArc (
+	Display			*dpy,
+	Drawable		d,
+	GC			gc,
+	Transform		*t,
+	double			x,
+	double			y,
+	double			width,
+	double			height,
+	int			angle1,
+	int			angle2);
+
+void
+TFillArc (
+	Display			*dpy,
+	Drawable		d,
+	GC			gc,
+	Transform		*t,
+	double			x,
+	double			y,
+	double			width,
+	double			height,
+	int			angle1,
+	int			angle2);
+
+void
+SetTransform (
+	Transform	*t,
+	int		xx1,
+	int		xx2,
+	int		xy1,
+	int		xy2,
+	double		tx1,
+	double		tx2,
+	double		ty1,
+	double		ty2);
+
+void
+TClearArea (
+	Display			*dpy,
+	Drawable		d,
+	Transform		*t,
+	double			x,
+	double			y,
+	double			width,
+	double			height,
+	int			exposures);
+
+void
+TDrawLine (
+    Display	*dpy,
+    Drawable	d,
+    GC		gc,
+    Transform	*t,
+    double	x1,
+    double	y1,
+    double	x2,
+    double	y2);

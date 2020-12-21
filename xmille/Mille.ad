@@ -45,34 +45,35 @@ horizontal { \
 		MinPlayWidth = 550 \
 		PlayVertShrink = (100% - $MinPlayHeight) \
 		PlayHorzShrink = (100% - $MinPlayWidth) \
-		computerPlay < -$PlayHorzShrink * +inf -$PlayVertShrink > \
+		computerPlay < -$PlayHorzShrink * +1 -$PlayVertShrink > \
 		horizontal { \
 			-1 \
 			vertical { \
-				computerMiles < +1 -100% * >\
+				computerMiles < +1 -100% * +1 >\
 				horizontal { \
 					0 < +inf > \
 					vertical { \
-						message \
+						message < * +1 > \
 						errors \
 						0 < +1 > \
 					}\
 					vertical { \
-						deckCount < +inf -100% * >\
-						deck < -100% * -100% > \
+						deckCount < +inf -100% * +inf >\
+						deck < -100% * +inf -100% > \
 						0 < +1 > \
 					} \
 					(width deck / 4) < -inf > \
 				} \
-				humanMiles < +1 -100% * > \
+				humanMiles < +1 -100% * +1 > \
 			} \
 			10 < -inf > \
 			score < +1 * +1 > \
 		} \
-		humanPlay < -$PlayHorzShrink * +inf -$PlayVertShrink > \
+		humanPlay < -$PlayHorzShrink * +1 -$PlayVertShrink > \
 		horizontal { \
 			-$HumanHandBorderWidth \
 			humanHand < -$PlayHorzShrink * -$PlayVertShrink > \
+			0 < +inf > \
 		} \
 		-$HumanHandBorderWidth \
 	} \
@@ -83,7 +84,6 @@ horizontal { \
 		humanSafeties < -150% * -100% > \
 		humanSafetyLabel < +inf -inf * >\
 	} \
-	0 < +inf > \
 } \
 }
 

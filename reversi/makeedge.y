@@ -2,10 +2,24 @@
 int	score;
 extern int	position;
 char	line[80];
-void output ();
 
 #include <stdio.h>
 #include <stdlib.h>
+
+static int yylex (void);
+
+static int
+yyerror (char *s);
+
+static int
+yywrap (void);
+
+static void
+output (int score, char *comment);
+
+static void
+flush_output (void);
+
 %}
 %union {
 	struct {
@@ -390,14 +404,10 @@ oempties:	empties
 
 int	verbose;
 
-void flush_output ();
-
 int
-main (argc, argv)
-	int	argc;
-	char	**argv;
+main (int argc, char **argv)
 {
-	int	ret, yyparse ();
+	int	ret;
 
 	if (argc > 1 && argv[1][0] == 'v')
 		verbose = 1;
@@ -408,16 +418,15 @@ main (argc, argv)
 
 char	*lp = line;
 
-int
-yyerror (s)
-char *s;
+static int
+yyerror (char *s)
 {
 	fprintf (stderr, "%s in %s\n", s, line);
 	return 0;
 }
 
-int
-yywrap ()
+static int
+yywrap (void)
 {
 	return 1;
 }
@@ -426,16 +435,17 @@ int position = 1;
 
 int base[] = { 0, 20, -30, 15, -5, -5, 15, -30, 20, 0 };
 
-int
-yylex ()
+static int
+yylex (void)
 {
-	char *gets();
-
-	if (*lp == '\0')
-		if (fgets (line, 80, stdin) == 0)
+	(void) yywrap;
+	if (*lp == '\0') {
+		if (fgets (line, 80, stdin) == 0) {
 			return -1;
-		else
+		} else {
 			lp = line;
+		}
+	}
 	for (;;) {
 		switch (*lp++) {
 		case ' ':
@@ -470,10 +480,8 @@ yylex ()
 
 int	column;
 
-void
-output (score, comment)
-int	score;
-char	*comment;
+static void
+output (int score, char *comment)
 {
 	if (verbose)
 		printf ("\t%5d,\t/*%s */\n", score, comment);
@@ -487,8 +495,8 @@ char	*comment;
 	}
 }
 
-void
-flush_output ()
+static void
+flush_output (void)
 {
 	if (!verbose && column)
 		printf ("\n");

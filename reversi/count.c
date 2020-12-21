@@ -7,9 +7,7 @@
 # include	"reversi.h"
 
 int
-count (player, board)
-int player;
-boardT	board;
+count (int player, boardT board)
 {
 	register int	x, y, count;
 

@@ -7,10 +7,10 @@
 char	board[9];
 
 int
-main (argc, argv)
-int argc;
-char **argv;
+main (int argc, char ** argv)
 {
+	(void) argc;
+	(void) argv;
 	register int	i;
 	for (board[1] = -1; board[1] <= 2; board[1]++)
 	for (board[2] = -1; board[2] <= 2; board[2]++)
