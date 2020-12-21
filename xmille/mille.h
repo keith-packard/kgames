@@ -181,3 +181,6 @@ Error (const char *string, ...);
 
 bool
 error (const char *string, ...);
+
+char *
+GetpromptedInput (char *string);

@@ -30,6 +30,11 @@
  */
 
 #include <sys/cdefs.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
 
 #include <time.h>
 
@@ -52,7 +57,7 @@ typedef	struct stat	STAT;
 bool
 save()
 {
-	char	*sp;
+	char	*sp, *ans;
 	int	outf;
 	time_t	*tp;
 	char	buf[80];
@@ -87,19 +92,10 @@ over:
 	}
 	Error (buf);
 	time(tp);			/* get current time		*/
-	rv = varpush(outf, writev);
+	rv = varpush(outf, write);
 	close(outf);
-	if (rv == FALSE) {
+	if (rv == FALSE)
 		unlink(buf);
-	} else {
-		strcpy(buf, ctime(tp));
-		for (sp = buf; *sp != '\n'; sp++)
-			continue;
-		*sp = '\0';
-		wprintw(Score, " [%s]", buf);
-	}
-	wclrtoeol(Score);
-	wrefresh(Score);
 	return rv;
 }
 
@@ -126,7 +122,7 @@ rest_f(file)
 		warn("%s", file);
 		exit(1);
 	}
-	varpush(inf, readv);
+	varpush(inf, read);
 	close(inf);
 	strcpy(buf, ctime(&sbuf.st_mtime));
 	for (sp = buf; *sp != '\n'; sp++)
@@ -138,4 +134,21 @@ rest_f(file)
 	(void)sprintf(Initstr, "%s [%s]\n", file, buf);
 	Fromfile = file;
 	return !On_exit;
+}
+
+void
+rest(void)
+{
+	char	buf[80];
+	char *ans;
+	if (Fromfile && getyn("Same file? "))
+		strcpy(buf, Fromfile);
+	else {
+over:
+		ans = GetpromptedInput ("File: ");
+		if (!ans)
+		    return FALSE;
+		strcpy (buf, ans);
+	}
+	rest_f(buf);
 }

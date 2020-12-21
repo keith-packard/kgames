@@ -640,6 +640,7 @@ DoRestore (w, closure, data)
     Widget  w;
     XtPointer	closure, data;
 {
+    rest();
 }
 
 static void
@@ -892,8 +893,7 @@ register char	*prompt;
 }
 
 char *
-GetpromptedInput (string)
-char	*string;
+GetpromptedInput (char *string)
 {
     Arg	    args[1];
     XEvent  event;
