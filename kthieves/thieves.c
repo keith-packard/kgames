@@ -275,7 +275,7 @@ NewGame ()
     fromCard = 0;
     InitStacks ();
     GenerateCards ();
-    CardShuffle (&deckStack);
+    CardShuffle (&deckStack, False);
     FirstDeal ();
     CardInitHistory ();
     DisplayStacks ();

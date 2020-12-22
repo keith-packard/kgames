@@ -178,7 +178,7 @@ NewGame ()
     fromCard = 0;
     InitStacks ();
     GenerateCards ();
-    CardShuffle (&suitStacks[0]);
+    CardShuffle (&suitStacks[0], False);
     FirstDeal ();
     CardInitHistory ();
     DisplayStacks ();
@@ -414,7 +414,7 @@ static Boolean
 AlreadyInOrder (a, b)
     CardPtr a, b;
 {
-    if (a && b && CardInSuitOrder (a,b))
+    if (a && b && CardIsInSuitOrder (a,b))
 	return True;
     return False;
 }
