@@ -66,28 +66,51 @@ typedef struct _CardStack {
 #define Some(t,n)   (t*) malloc(sizeof(t) * n)
 #define More(p,t,n) ((p)? (t *) realloc((char *) p, sizeof(t)*n):Some(t,n))
 
-Boolean	CardIsInOrder (CardPtr, CardPtr);
-Boolean	CardIsInSuitOrder (CardPtr, CardPtr);
-Boolean	CardIsInAlternatingSuitOrder (CardPtr, CardPtr);
-CardPtr	CardInOrder (CardPtr);
-CardPtr	CardInSuitOrder (CardPtr);
-CardPtr	CardInAlternatingSuitOrder (CardPtr);
+int
+CardRandom (void);
 
-CardPtr	CardInReverseOrder (CardPtr);
-CardPtr	CardInReverseSuitOrder (CardPtr);
-CardPtr	CardInReverseAlternatingSuitOrder (CardPtr);
+Boolean
+CardIsInOrder (CardPtr, CardPtr);
 
-void	CardDisplayStack (CardStackPtr);
+Boolean
+CardIsInSuitOrder (CardPtr, CardPtr);
+
+Boolean
+CardIsInAlternatingSuitOrder (CardPtr, CardPtr);
+
+CardPtr
+CardInOrder (CardPtr);
+
+CardPtr
+CardInSuitOrder (CardPtr);
+
+CardPtr
+CardInAlternatingSuitOrder (CardPtr);
+
+void
+CardSetAnimate (Boolean animate);
+
+CardPtr
+CardInReverseOrder (CardPtr);
+
+CardPtr
+CardInReverseSuitOrder (CardPtr);
+
+CardPtr
+CardInReverseAlternatingSuitOrder (CardPtr);
+
+void
+CardDisplayStack (CardStackPtr);
 
 void	CardTurn (CardPtr, CardFace, Boolean);
 void	CardMove (CardStackPtr, CardPtr, CardStackPtr, Boolean);
 void	CardMoveCards (CardStackPtr, CardPtr, CardPtr, CardStackPtr, CardPtr, Boolean);
-void	CardRecordHistoryCallback (void (*)(), char *);
+void	CardRecordHistoryCallback (void (*)(void *), void *);
 Boolean	CardUndo (void);
 
-void	CardInitStack (CardStackPtr, Widget, CardsSuit, Boolean, Boolean, int);
+void	CardInitStack (CardStackPtr, Widget, CardsSuit, Boolean, int position, CardDisplay display);
 void	CardGenerateStandardDeck (CardPtr);
-void	CardShuffle (CardStackPtr);
+void	CardShuffle (CardStackPtr, Boolean remember);
 void	CardInitHistory (void);
 int	CardNextHistory (void);
 

@@ -35,8 +35,7 @@
 # include	"Message.h"
 
 char *
-CardsSuitName (s)
-    CardsSuit	s;
+CardsSuitName (CardsSuit s)
 {
     switch (s) {
     case CardsSpade:
@@ -53,11 +52,8 @@ CardsSuitName (s)
 }
 
 char *
-CardsRankName (r)
-    CardsRank	r;
+CardsRankName (CardsRank r)
 {
-    static  char    num[10];
-
     switch (r) {
     case CardsAce:
 	return "Ace";
@@ -91,18 +87,14 @@ CardsRankName (r)
 }
 
 static char *
-MessageCard (s, c)
-    char	    *s;
-    CardsCardPtr    c;
+MessageCard (char *s, CardsCardPtr c)
 {
     sprintf (s, "%s of %ss", CardsRankName (c->rank), CardsSuitName (c->suit));
     return s + strlen(s);
 }
 
 static char *
-MessageShortCard (s, c)
-    char	    *s;
-    CardsCardPtr    c;
+MessageShortCard (char *s, CardsCardPtr c)
 {
     char    suit;
 
@@ -115,9 +107,7 @@ MessageShortCard (s, c)
 }
 
 static char *
-MessageInt (s, i)
-    char    *s;
-    int	    i;
+MessageInt (char *s, int i)
 {
     sprintf (s, "%d", i);
     return s + strlen(s);

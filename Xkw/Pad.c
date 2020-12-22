@@ -48,54 +48,6 @@ static XtResource resources[] = {
 #undef offset
 };
 
-static void	Initialize(), Destroy (), Redisplay (), Resize ();
-static Boolean	SetValues ();
-
-PadClassRec padClassRec = {
-  { /* core fields */
-    /* superclass		*/	(WidgetClass) &widgetClassRec,
-    /* class_name		*/	"Pad",
-    /* widget_size		*/	sizeof(PadRec),
-    /* class_initialize		*/	NULL,
-    /* class_part_initialize	*/	NULL,
-    /* class_inited		*/	FALSE,
-    /* initialize		*/	Initialize,
-    /* initialize_hook		*/	NULL,
-    /* realize			*/	XtInheritRealize,
-    /* actions			*/	NULL,
-    /* num_actions		*/	0,
-    /* resources		*/	resources,
-    /* num_resources		*/	XtNumber(resources),
-    /* xrm_class		*/	NULLQUARK,
-    /* compress_motion		*/	TRUE,
-    /* compress_exposure	*/	XtExposeCompressSeries|XtExposeGraphicsExpose|XtExposeNoExpose,
-    /* compress_enterleave	*/	TRUE,
-    /* visible_interest		*/	FALSE,
-    /* destroy			*/	Destroy,
-    /* resize			*/	Resize,
-    /* expose			*/	Redisplay,
-    /* set_values		*/	SetValues,
-    /* set_values_hook		*/	NULL,
-    /* set_values_almost	*/	XtInheritSetValuesAlmost,
-    /* get_values_hook		*/	NULL,
-    /* accept_focus		*/	NULL,
-    /* version			*/	XtVersion,
-    /* callback_private		*/	NULL,
-    /* tm_table			*/	NULL,
-    /* query_geometry		*/	XtInheritQueryGeometry,
-    /* display_accelerator	*/	XtInheritDisplayAccelerator,
-    /* extension		*/	NULL
-  },
-  { /* simple fields */
-    /* empty			*/	0
-  },
-  { /* pad fields */
-    /* empty			*/	0
-  }
-};
-
-WidgetClass padWidgetClass = (WidgetClass)&padClassRec;
-
 static void
 Clear (PadLinePtr l, int n)
 {
@@ -116,7 +68,7 @@ ResizeBuffer (PadLinePtr *bp, Dimension old_rows, Dimension old_cols, Dimension 
 {
     PadLinePtr	oldb;
     PadLinePtr	b;
-    int		row, col;
+    int		row;
     int		max_row, max_col;
 
     b = Some(PadLineRec, new_rows);
@@ -164,7 +116,6 @@ getSize (PadWidget w, Dimension rows, Dimension cols, Dimension *widthp, Dimensi
 {
     int	size;
     unsigned long   value, value2;
-    Atom	UNDERLINE_POSITION, UNDERLINE_THICKNESS;
     int		dir, font_ascent, font_descent;
     XCharStruct	overall;
 
@@ -234,12 +185,14 @@ setSize (PadWidget w)
 }
 
 static void
-Initialize (Widget greq, Widget gnew)
+Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
-    PadWidget	req = (PadWidget) greq,
-		new = (PadWidget) gnew;
+    PadWidget	new = (PadWidget) gnew;
     XGCValues	gcv;
 
+    (void) greq;
+    (void) args;
+    (void) count;
     getSize (new, new->pad.rows, new->pad.cols,
 	     &new->core.width, &new->core.height);
     gcv.foreground = new->pad.foreground_pixel;
@@ -478,7 +431,6 @@ ScrollBuffer (PadWidget w, PadLinePtr b, int start_row, int end_row, int dist)
 static Boolean
 AddLines(PadWidget w, int at, int num)
 {
-    int	i;
     int	bottom = UntilEqual(w, at + num);
 
     if (num == 0 || num >= ((bottom - 1) - at))
@@ -494,7 +446,6 @@ AddLines(PadWidget w, int at, int num)
 static Boolean
 DelLines(PadWidget w, int at, int num)
 {
-    register int	i;
     int	bottom = UntilEqual(w, at + num);
 
     if (num == 0 || num >= ((bottom - 1) - at))
@@ -562,13 +513,14 @@ Redisplay (Widget gw, XEvent *event, Region region)
 {
     PadWidget   w = (PadWidget) gw;
     int		start_row, end_row, row;
-    int		start_col, end_col;
+    int		start_col = 0, end_col = 0;
     PadCopyPtr  copy;
     unsigned long   expose_serial;
     Boolean	*repaint;
     int		amt;
     Boolean	*r;
 
+    (void) region;
     if (!XtIsRealized (gw))
 	return;
     if (event->type != NoExpose)
@@ -829,7 +781,7 @@ XkwPadXYToRowCol (Widget gw, int x, int y, int *rowp, int *colp)
 }
 
 static Boolean
-SetValues (Widget gcur, Widget greq, Widget gnew)
+SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     PadWidget	    cur = (PadWidget) gcur,
 		    req = (PadWidget) greq,
@@ -838,6 +790,8 @@ SetValues (Widget gcur, Widget greq, Widget gnew)
     Boolean	    redraw = FALSE, newgc = FALSE, newsize = FALSE;
     Dimension	    width, height;
 
+    (void) args;
+    (void) count;
     if (req->pad.foreground_pixel != cur->pad.foreground_pixel)
 	newgc = TRUE;
     if (req->pad.font != cur->pad.font)
@@ -865,3 +819,48 @@ SetValues (Widget gcur, Widget greq, Widget gnew)
     }
     return redraw;
 }
+
+PadClassRec padClassRec = {
+  { /* core fields */
+    /* superclass		*/	(WidgetClass) &widgetClassRec,
+    /* class_name		*/	"Pad",
+    /* widget_size		*/	sizeof(PadRec),
+    /* class_initialize		*/	NULL,
+    /* class_part_initialize	*/	NULL,
+    /* class_inited		*/	FALSE,
+    /* initialize		*/	Initialize,
+    /* initialize_hook		*/	NULL,
+    /* realize			*/	XtInheritRealize,
+    /* actions			*/	NULL,
+    /* num_actions		*/	0,
+    /* resources		*/	resources,
+    /* num_resources		*/	XtNumber(resources),
+    /* xrm_class		*/	NULLQUARK,
+    /* compress_motion		*/	TRUE,
+    /* compress_exposure	*/	XtExposeCompressSeries|XtExposeGraphicsExpose|XtExposeNoExpose,
+    /* compress_enterleave	*/	TRUE,
+    /* visible_interest		*/	FALSE,
+    /* destroy			*/	Destroy,
+    /* resize			*/	Resize,
+    /* expose			*/	Redisplay,
+    /* set_values		*/	SetValues,
+    /* set_values_hook		*/	NULL,
+    /* set_values_almost	*/	XtInheritSetValuesAlmost,
+    /* get_values_hook		*/	NULL,
+    /* accept_focus		*/	NULL,
+    /* version			*/	XtVersion,
+    /* callback_private		*/	NULL,
+    /* tm_table			*/	NULL,
+    /* query_geometry		*/	XtInheritQueryGeometry,
+    /* display_accelerator	*/	XtInheritDisplayAccelerator,
+    /* extension		*/	NULL
+  },
+  { /* simple fields */
+    /* empty			*/	0
+  },
+  { /* pad fields */
+    /* empty			*/	0
+  }
+};
+
+WidgetClass padWidgetClass = (WidgetClass)&padClassRec;

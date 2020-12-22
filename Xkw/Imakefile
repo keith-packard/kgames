@@ -9,7 +9,7 @@
 
 SOXKWREV=1.0
 
-INCLUDES=-I.. -D_DEFAULT_SOURCE
+INCLUDES=-I.. -D_DEFAULT_SOURCE  -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes
         HEADERS = Cards.h CardsP.h CardsUtil.h SuitCards.h Hand.h HandP.h \
 		  Thermo.h ThermoP.h Layout.h LayoutP.h Pad.h PadP.h
            SRCS = Cards.c Hand.c Thermo.c Layout.c laygram.c laylex.c \

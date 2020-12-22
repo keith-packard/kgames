@@ -77,74 +77,33 @@ static XtResource resources[] = {
 
 #undef offset
 
-static void Initialize ();		    /* set default sizes */
-static void Destroy ();			    /* free card records */
-static void Resize ();			    /* set widget size */
-static void Realize ();			    /* realize widget */
-static void Redisplay ();		    /* draw */
-void HandUpdateDisplay ();		    /* display */
-static XtGeometryResult QueryGeometry ();   /* query_geometry */
-static Boolean SetValues ();		    /* set resource values */
-static int handWidth (), handHeight ();
-
-static char defaultTranslations[] =
-"<BtnDown>: select()";
-
-static void ActionSelect();
-static XtActionsRec actions[] = {
-    { "select", ActionSelect },		    /* select card */
-};
+static char defaultTranslations[] =  "<BtnDown>: select()";
 
 #define SuperClass  ((SimpleWidgetClass)&simpleClassRec)
 
-HandClassRec handClassRec = {
-  { /* core fields */
-    /* superclass		*/	(WidgetClass) SuperClass,
-    /* class_name		*/	"Hand",
-    /* widget_size		*/	sizeof(HandRec),
-    /* class_initialize		*/	NULL,
-    /* class_part_initialize	*/	NULL,
-    /* class_inited		*/	FALSE,
-    /* initialize		*/	Initialize,
-    /* initialize_hook		*/	NULL,
-    /* realize			*/	Realize,
-    /* actions			*/	actions,
-    /* num_actions		*/	XtNumber(actions),
-    /* resources		*/	resources,
-    /* num_resources		*/	XtNumber(resources),
-    /* xrm_class		*/	NULLQUARK,
-    /* compress_motion		*/	TRUE,
-    /* compress_exposure	*/	FALSE,
-    /* compress_enterleave	*/	TRUE,
-    /* visible_interest		*/	FALSE,
-    /* destroy			*/	Destroy,
-    /* resize			*/	Resize,
-    /* expose			*/	Redisplay,
-    /* set_values		*/	SetValues,
-    /* set_values_hook		*/	NULL,
-    /* set_values_almost	*/	NULL,
-    /* get_values_hook		*/	NULL,
-    /* accept_focus		*/	NULL,
-    /* version			*/	XtVersion,
-    /* callback_private		*/	NULL,
-    /* tm_table			*/	defaultTranslations,
-    /* query_geometry		*/	QueryGeometry,
-    /* display_accelerator	*/	XtInheritDisplayAccelerator,
-    /* extension		*/	NULL
-  },
-  { /* simple fields */
-    /* change_sensitive		*/	XtInheritChangeSensitive
-  },
-  { /* hand fields */
-    /* ignore                   */	0
-  }
-};
-
-WidgetClass handWidgetClass = (WidgetClass) &handClassRec;
+static int
+handWidth (HandWidget w, int num_cols)
+{
+    return w->hand.card_width + 2 * w->hand.internal_border +
+	   (num_cols - 1) * w->hand.col_offset;
+}
 
 static int
-BestOffset (want, have, desired, item_size, num_items)
-    int	    want, have, desired, item_size, num_items;
+handHeight (HandWidget w, int num_rows)
+{
+    return w->hand.card_height + 2 * w->hand.internal_border +
+	   (num_rows - 1) * w->hand.row_offset;
+}
+
+static void
+getHandSize (HandWidget w, Dimension *widthp, Dimension *heightp)
+{
+    *widthp = handWidth (w, w->hand.num_cols);
+    *heightp = handHeight (w, w->hand.num_rows);
+}
+
+static int
+BestOffset (int want, int have, int desired, int item_size, int num_items)
 {
     int	val, min;
     int	last_showing;
@@ -165,12 +124,10 @@ BestOffset (want, have, desired, item_size, num_items)
 }
 
 static int
-BestColOffset (w, num_cols)
-    HandWidget	w;
-    int		num_cols;
+BestColOffset (HandWidget w, int num_cols)
 {
     int	borders = 2 * w->hand.internal_border;
-    
+
     return BestOffset (handWidth (w, num_cols) - borders,
 		       w->core.width - borders,
 		       w->hand.col_offset, w->hand.card_width,
@@ -178,12 +135,10 @@ BestColOffset (w, num_cols)
 }
 
 static int
-BestRowOffset (w, num_rows)
-    HandWidget	w;
-    int		num_rows;
+BestRowOffset (HandWidget w, int num_rows)
 {
     int	borders = 2 * w->hand.internal_border;
-    
+
     return BestOffset (handHeight (w, num_rows) - borders,
 		       w->core.height - borders,
 		       w->hand.row_offset, w->hand.card_height,
@@ -191,9 +146,7 @@ BestRowOffset (w, num_rows)
 }
 
 static int
-ColsInRow (w, row)
-    HandWidget	w;
-    int		row;
+ColsInRow (HandWidget w, int row)
 {
     int	    maxCol = -1;
     CardPtr c;
@@ -202,11 +155,9 @@ ColsInRow (w, row)
 	    maxCol = c->col;
     return maxCol;
 }
-    
+
 static int
-RowsInCol (w, col)
-    HandWidget	w;
-    int		col;
+RowsInCol (HandWidget w, int col)
 {
     int	maxRow = -1;
     CardPtr c;
@@ -215,11 +166,9 @@ RowsInCol (w, col)
 	    maxRow = c->row;
     return maxRow;
 }
-    
+
 static int
-XPos (w, row, col)
-    HandWidget	w;
-    int		row, col;
+XPos (HandWidget w, int row, int col)
 {
     int	offset;
     CardPtr c;
@@ -227,7 +176,7 @@ XPos (w, row, col)
     int numDefault;
     int	defaultOffset;
     int	lastCol;
-    
+
     if (w->hand.row_major)
     {
 	numCol = ColsInRow (w, row) + 1;
@@ -243,7 +192,7 @@ XPos (w, row, col)
 	    if (c->shouldBeUp && c->row == row && c->col >= lastCol && c->col < col)
 	    {
 		numDefault += (c->col - lastCol);
-		if (c->offset == XkwHandDefaultOffset || 
+		if (c->offset == XkwHandDefaultOffset ||
 		    c->offset > defaultOffset)
 		    numDefault++;
 		else
@@ -262,10 +211,7 @@ XPos (w, row, col)
 }
 
 static int
-ColFromX (w, x, row)
-    HandWidget	w;
-    int		x;
-    int		row;
+ColFromX (HandWidget w, int x, int row)
 {
     int	offset;
     int	adjust;
@@ -297,9 +243,7 @@ ColFromX (w, x, row)
 }
 
 static int
-YPos (w, row, col)
-    HandWidget	w;
-    int		row, col;
+YPos (HandWidget w, int row, int col)
 {
     CardPtr c;
     int	    offset;
@@ -307,7 +251,7 @@ YPos (w, row, col)
     int	    numDefault;
     int	    defaultOffset;
     int	    lastRow;
-    
+
     if (!w->hand.row_major)
     {
 	numRow = RowsInCol (w, col) + 1;
@@ -323,7 +267,7 @@ YPos (w, row, col)
 	    if (c->shouldBeUp && c->col == col && c->row >= lastRow && c->row < row)
 	    {
 		numDefault += (c->row - lastRow);
-		if (c->offset == XkwHandDefaultOffset || 
+		if (c->offset == XkwHandDefaultOffset ||
 		    c->offset > defaultOffset)
 		    numDefault++;
 		else
@@ -342,10 +286,7 @@ YPos (w, row, col)
 }
 
 static int
-RowFromY (w, y, col)
-    HandWidget	w;
-    int		y;
-    int		col;
+RowFromY (HandWidget w, int y, int col)
 {
     int	offset;
     int	adjust;
@@ -376,40 +317,14 @@ RowFromY (w, y, col)
     }
 }
 
-static int
-handWidth (w, num_cols)
-    HandWidget	w;
-    int		num_cols;
-{
-    return w->hand.card_width + 2 * w->hand.internal_border +
-	   (num_cols - 1) * w->hand.col_offset;
-}
-
-static int
-handHeight (w, num_rows)
-    HandWidget	w;
-    int		num_rows;
-{
-    return w->hand.card_height + 2 * w->hand.internal_border +
-	   (num_rows - 1) * w->hand.row_offset;
-}
-
 static void
-getHandSize (w, widthp, heightp)
-    HandWidget	w;
-    Dimension	*widthp, *heightp;
-{
-    *widthp = handWidth (w, w->hand.num_cols);
-    *heightp = handHeight (w, w->hand.num_rows);
-}
-
-
-static void Initialize (greq, gnew)
-    Widget  greq, gnew;
+Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     HandWidget	req = (HandWidget) greq,
 		new = (HandWidget) gnew;
 
+    (void) args;
+    (void) count;
     getHandSize (req, &new->core.width, &new->core.height);
     new->hand.real_row_offset = new->hand.row_offset;
     new->hand.real_col_offset = new->hand.col_offset;
@@ -428,17 +343,15 @@ static void Initialize (greq, gnew)
 	EnterWindowMask | LeaveWindowMask | \
 	PointerMotionHintMask | KeymapStateMask | \
 	MotionMask )
-	    
-static void Realize (widget, value_mask, attributes)
-    Widget		 widget;
-    XtValueMask		 *value_mask;
-    XSetWindowAttributes *attributes;
+
+static void
+Realize (Widget widget, XtValueMask *value_mask, XSetWindowAttributes *attributes)
 {
     unsigned int    event_mask = 0;
 #define MAX_BUT	256
     unsigned char   mapping[MAX_BUT];
     int	    i, max;
-    
+
     (*SuperClass->core_class.realize)(widget, value_mask, attributes);
     if (*value_mask & CWEventMask)
 	event_mask = attributes->event_mask;
@@ -455,8 +368,8 @@ static void Realize (widget, value_mask, attributes)
     }
 }
 
-static void Destroy (gw)
-    Widget  gw;
+static void
+Destroy (Widget gw)
 {
     HandWidget	w = (HandWidget) gw;
     CardPtr	c, n;
@@ -467,9 +380,8 @@ static void Destroy (gw)
     }
 }
 
-static XtGeometryResult QueryGeometry (gw, intended, prefered)
-    Widget  gw;
-    XtWidgetGeometry	*intended, *prefered;
+static XtGeometryResult
+QueryGeometry (Widget gw, XtWidgetGeometry *intended, XtWidgetGeometry *prefered)
 {
     HandWidget	w = (HandWidget) gw;
     Dimension	width, height;
@@ -503,18 +415,13 @@ static XtGeometryResult QueryGeometry (gw, intended, prefered)
     return result;
 }
 
-static Bool XYInCard (w, c, x, y)
-    HandWidget	w;
-    CardPtr	c;
-    int		x, y;
+static Bool XYInCard (HandWidget w, CardPtr c, int x, int y)
 {
     return c->x <= x && x < c->x + w->hand.card_width &&
 	   c->y <= y && y < c->y + w->hand.card_height;
 }
 
-static CardPtr XYToCard (w, x, y)
-    HandWidget	w;
-    int		x, y;
+static CardPtr XYToCard (HandWidget w, int x, int y)
 {
     CardPtr c;
 
@@ -525,11 +432,7 @@ static CardPtr XYToCard (w, x, y)
     return NULL;
 }
 
-static void ActionSelect (gw, event, params, num_params)
-    Widget  gw;
-    XEvent  *event;
-    String  *params;
-    Cardinal	*num_params;
+static void ActionSelect (Widget gw, XEvent *event, String *params, Cardinal *num_params)
 {
     HandWidget	    w = (HandWidget) gw;
     CardPtr	    c;
@@ -542,7 +445,7 @@ static void ActionSelect (gw, event, params, num_params)
 	if (w->hand.row_major)
 	{
 	    row = atoi (params[1]);
-	    w->hand.num_cols - 1;
+	    col = w->hand.num_cols - 1;
 	}
 	else
 	{
@@ -593,13 +496,11 @@ static void ActionSelect (gw, event, params, num_params)
     XtCallCallbackList ((Widget) w, w->hand.input_callback, (XtPointer) &input);
 }
 
-static Bool CardInRect (w, rect, c)
-    HandWidget	w;
-    XRectangle	*rect;
-    CardPtr	c;
+static Bool CardInRect (HandWidget w, XRectangle *rect, CardPtr c)
 {
     XRectangle	*card = &c->clip;
 
+    (void) w;
     return rect->x < card->x + card->width &&
 	   card->x < rect->x + rect->width &&
 	   rect->y < card->y + card->height &&
@@ -631,12 +532,10 @@ static Bool CardInRect (w, rect, c)
     } \
 }
 
-static void MarkCard (w, c)
-    HandWidget	w;
-    CardPtr	c;
+static void MarkCard (HandWidget w, CardPtr c)
 {
     XRectangle	*r;
-    ErasedPtr	e, n, *p;
+    ErasedPtr	e, *p;
     int		cx1, cy1, cx2, cy2;
     int		x1, y1, x2, y2;
     Boolean	allClipped;
@@ -656,7 +555,7 @@ static void MarkCard (w, c)
 	    cy1 = c->clip.y;
 	if (cy2 > c->clip.y + c->clip.height)
 	    cy2 = c->clip.y + c->clip.height;
-	for (p = &w->hand.erased; e = *p;)
+	for (p = &w->hand.erased; (e = *p);)
 	{
 	    allClipped = False;
 	    x1 = e->r.x;
@@ -685,9 +584,7 @@ static void MarkCard (w, c)
 	    MarkCard (w, c);
 }
 
-static void MarkRectangle (w, r)
-    HandWidget	w;
-    XRectangle	*r;
+static void MarkRectangle (HandWidget w, XRectangle *r)
 {
     CardPtr c;
 
@@ -697,9 +594,7 @@ static void MarkRectangle (w, r)
 }
 
 static void
-EraseCard (w, c)
-    HandWidget	w;
-    CardPtr	c;
+EraseCard (HandWidget w, CardPtr c)
 {
     ErasedPtr	e = New(ErasedRec);
 
@@ -712,11 +607,8 @@ EraseCard (w, c)
     w->hand.erased = e;
 }
 
-
-Boolean
-ComputeClip (w, card)
-    HandWidget	    w;
-    CardPtr	    card;
+static void
+ComputeClip (HandWidget w, CardPtr card)
 {
     int	    x1, y1, x2, y2;
     int	    cx1, cy1, cx2, cy2;
@@ -728,7 +620,7 @@ ComputeClip (w, card)
     ox2 = x2 = x1 + w->hand.card_width;
     oy2 = y2 = y1 + w->hand.card_height;
     c = card;
-    while (c = c->prev) 
+    while ((c = c->prev))
     {
 	if (!c->shouldBeUp)
 	    continue;
@@ -751,18 +643,17 @@ ComputeClip (w, card)
 }
 
 void
-HandUpdateDisplay (gw)
-    Widget  gw;
+HandUpdateDisplay (Widget gw)
 {
     HandWidget	    w = (HandWidget) gw;
     CardPtr	    c, nc;
-    ErasedPtr	    e, ne;
+    ErasedPtr	    e;
     HandDisplayRec  display;
     int		    x, y;
 
     if (!XtIsRealized (gw))
 	return;
-    
+
     /* Mark cards for redisplay */
     for (c = w->hand.topCard; c; c = nc)
     {
@@ -801,16 +692,16 @@ HandUpdateDisplay (gw)
     /* mark effects of redisplay */
     for (c = w->hand.bottomCard; c; c = c->prev)
     {
-	if (c->shouldBeUp && !c->isUp || c->forceRedraw)
+	if ((c->shouldBeUp && !c->isUp) || c->forceRedraw)
 	{
 	    MarkCard (w, c);
 	    c->isUp = True;
 	    c->forceRedraw = False;
 	}
     }
-    
+
     /* clear out the blank areas */
-    while (e = w->hand.erased)
+    while ((e = w->hand.erased))
     {
 	w->hand.erased = e->next;
 	c = 0;
@@ -825,7 +716,7 @@ HandUpdateDisplay (gw)
 	    MarkRectangle (w, &e->r);
 	    if (e->fill)
 	    {
-		XClearArea (XtDisplay(w), XtWindow (w), 
+		XClearArea (XtDisplay(w), XtWindow (w),
 			    e->r.x, e->r.y, e->r.width, e->r.height, False);
 	    }
 	}
@@ -852,17 +743,17 @@ HandUpdateDisplay (gw)
 	}
 }
 
-/* 
+/*
  * widget was resized, adjust row and column offsets.  The expose
  * event will cause the card positions to get recomputed which will
  * then cause them all to be redrawn
  */
 
-static void Resize (gw)
-    Widget  gw;
+static void
+Resize (Widget gw)
 {
     HandWidget	w = (HandWidget) gw;
-    
+
     w->hand.real_col_offset = BestColOffset (w, w->hand.num_cols);
     w->hand.real_row_offset = BestRowOffset (w, w->hand.num_rows);
     w->hand.exposeTime = 0;
@@ -872,18 +763,15 @@ static void Resize (gw)
  * Redisplay function.  Queue the rectangle as an erased area
  * and redisplay when we've gotten all of the events
  */
-static void Redisplay (gw, event, region)
-    Widget  gw;
-    XEvent  *event;
-    Region  region;
+static void
+Redisplay (Widget gw, XEvent *event, Region region)
 {
     HandWidget	    w = (HandWidget) gw;
-    CardPtr	    c;
-    XRectangle	    r;
     ErasedPtr	    e;
     int		    cx1, cy1, cx2, cy2;
     int		    x1, y1, x2, y2;
 
+    (void) region;
     x1 = event->xexpose.x;
     x2 = x1 + event->xexpose.width;
     y1 = event->xexpose.y;
@@ -911,17 +799,17 @@ static void Redisplay (gw, event, region)
 	w->hand.lastExpose.y = y1;
 	w->hand.lastExpose.width = x2 - x1;
 	w->hand.lastExpose.height = y2 - y1;
-	HandUpdateDisplay (w);
+	HandUpdateDisplay (gw);
     }
 }
 
 /*
  * When values are set which change the desired size, ask for
- * the new size 
+ * the new size
  */
- 
-static Boolean SetValues (gcur, greq, gnew)
-    Widget  gcur, greq, gnew;
+
+static Boolean
+SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     HandWidget	cur = (HandWidget) gcur,
 		req = (HandWidget) greq,
@@ -929,6 +817,8 @@ static Boolean SetValues (gcur, greq, gnew)
     Dimension	curwidth, curheight, reqwidth, reqheight;
     Dimension	width, height;
 
+    (void) args;
+    (void) count;
     getHandSize (cur, &curwidth, &curheight);
     getHandSize (req, &reqwidth, &reqheight);
     if (curwidth != reqwidth || curheight != reqheight)
@@ -954,7 +844,7 @@ HandAddCard (Widget	gw,
     int		    maxPos;
 
     /* compute values for row/col if requested */
-    if (row == InsertRow) 
+    if (row == InsertRow)
     {
 	maxPos = -1;
 	for (c = w->hand.topCard; c; c = c->next)
@@ -1021,24 +911,24 @@ HandAddCard (Widget	gw,
     c->offset = offset;
     /* insert the new card on the list */
     c->next = sib;	/* c is above sib */
-    
+
     if (sib)
 	c->prev = sib->prev;
     else
 	c->prev = w->hand.bottomCard;
-    
+
     if (c->next)
 	c->next->prev = c;
     else
 	w->hand.bottomCard = c;
-    
+
     if (c->prev)
 	c->prev->next = c;
     else
 	w->hand.topCard = c;
-    
+
     /* adjust higher cards rows */
-    if (w->hand.row_insert) 
+    if (w->hand.row_insert)
     {
 	for (sib = c->prev; sib; sib = sib->prev)
 	    if (sib->col == c->col && sib->row == row)
@@ -1072,7 +962,7 @@ HandRemoveCard (Widget gw, XtPointer card)
 	return;
     c->shouldBeUp = False;
     c->delete = True;
-    if (w->hand.row_insert) 
+    if (w->hand.row_insert)
     {
 	row = c->row;
 	for (sib = c->prev; sib; sib = sib->prev)
@@ -1107,7 +997,7 @@ HandReplaceCard (Widget gw, XtPointer card, XtPointer private, int offset)
     c->offset = offset;
     w->hand.exposeTime = 0;
     if (XtIsRealized (gw) && w->hand.immediate_update)
-    	HandUpdateDisplay (w);
+    	HandUpdateDisplay (gw);
 }
 
 void
@@ -1121,6 +1011,7 @@ HandRectangleForPos (Widget gw, int row, int col, XRectangle *r)
     r->height = w->hand.card_height;
 }
 
+#if 0
 static void
 HandRectangleForCard (Widget gw, XtPointer card, XRectangle *r)
 {
@@ -1130,7 +1021,7 @@ HandRectangleForCard (Widget gw, XtPointer card, XRectangle *r)
     for (c = w->hand.topCard; c; c = c->next)
 	if (c == (CardPtr) card)
 	    break;
-    if (!c) 
+    if (!c)
     {
 	r->x = 0;
 	r->y = 0;
@@ -1156,6 +1047,7 @@ HandXYToPos (Widget gw, int x, int y, int *rowp, int *colp)
     }
     return False;
 }
+#endif
 
 void
 HandRemoveAllCards (Widget gw)
@@ -1173,3 +1065,53 @@ HandRemoveAllCards (Widget gw)
     if (XtIsRealized (gw))
 	XClearWindow (XtDisplay (w), XtWindow (w));
 }
+
+static XtActionsRec actions[] = {
+    { "select", ActionSelect },		    /* select card */
+};
+
+HandClassRec handClassRec = {
+  { /* core fields */
+    /* superclass		*/	(WidgetClass) SuperClass,
+    /* class_name		*/	"Hand",
+    /* widget_size		*/	sizeof(HandRec),
+    /* class_initialize		*/	NULL,
+    /* class_part_initialize	*/	NULL,
+    /* class_inited		*/	FALSE,
+    /* initialize		*/	Initialize,
+    /* initialize_hook		*/	NULL,
+    /* realize			*/	Realize,
+    /* actions			*/	actions,
+    /* num_actions		*/	XtNumber(actions),
+    /* resources		*/	resources,
+    /* num_resources		*/	XtNumber(resources),
+    /* xrm_class		*/	NULLQUARK,
+    /* compress_motion		*/	TRUE,
+    /* compress_exposure	*/	FALSE,
+    /* compress_enterleave	*/	TRUE,
+    /* visible_interest		*/	FALSE,
+    /* destroy			*/	Destroy,
+    /* resize			*/	Resize,
+    /* expose			*/	Redisplay,
+    /* set_values		*/	SetValues,
+    /* set_values_hook		*/	NULL,
+    /* set_values_almost	*/	NULL,
+    /* get_values_hook		*/	NULL,
+    /* accept_focus		*/	NULL,
+    /* version			*/	XtVersion,
+    /* callback_private		*/	NULL,
+    /* tm_table			*/	defaultTranslations,
+    /* query_geometry		*/	QueryGeometry,
+    /* display_accelerator	*/	XtInheritDisplayAccelerator,
+    /* extension		*/	NULL
+  },
+  { /* simple fields */
+    /* change_sensitive		*/	XtInheritChangeSensitive,
+    /* extension                */      NULL,
+  },
+  { /* hand fields */
+    /* ignore                   */	0
+  }
+};
+
+WidgetClass handWidgetClass = (WidgetClass) &handClassRec;

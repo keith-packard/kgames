@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
@@ -110,71 +110,22 @@ static Pixmap	medium_map[CARDS_PER_DECK];
 static Boolean	any_small, made_small;
 
 static Pixmap	card_bitmaps[CARDS_PER_DECK];
-static Pixmap	gray_bitmap, gray_pixmap;
+static Pixmap	gray_bitmap;
 
 #define SuperClass  ((HandWidgetClass)&handClassRec)
 
-static void ClassInitialize (), Initialize (), Destroy ();
-static Boolean	SetValues ();
+static void
+DisplayCallback (Widget gw, XtPointer closure, XtPointer data);
 
-CardsClassRec	cardsClassRec = {
-  { /* core fields */
-    /* superclass		*/	(WidgetClass) SuperClass,
-    /* class_name		*/	"Cards",
-    /* widget_size		*/	sizeof(CardsRec),
-    /* class_initialize		*/	ClassInitialize,
-    /* class_part_initialize	*/	NULL,
-    /* class_inited		*/	FALSE,
-    /* initialize		*/	Initialize,
-    /* initialize_hook		*/	NULL,
-    /* realize			*/	XtInheritRealize,
-    /* actions			*/	NULL,
-    /* num_actions		*/	0,
-    /* resources		*/	resources,
-    /* num_resources		*/	XtNumber(resources),
-    /* xrm_class		*/	NULLQUARK,
-    /* compress_motion		*/	TRUE,
-    /* compress_exposure	*/	TRUE,
-    /* compress_enterleave	*/	TRUE,
-    /* visible_interest		*/	FALSE,
-    /* destroy			*/	Destroy,
-    /* resize			*/	XtInheritResize,
-    /* expose			*/	XtInheritExpose,
-    /* set_values		*/	SetValues,
-    /* set_values_hook		*/	NULL,
-    /* set_values_almost	*/	NULL,
-    /* get_values_hook		*/	NULL,
-    /* accept_focus		*/	NULL,
-    /* version			*/	XtVersion,
-    /* callback_private		*/	NULL,
-    /* tm_table			*/	NULL,
-    /* query_geometry		*/	XtInheritQueryGeometry,
-    /* display_accelerator	*/	XtInheritDisplayAccelerator,
-    /* extension		*/	NULL
-  },
-  { /* simple fields */
-    /* change_sensitive		*/	XtInheritChangeSensitive
-  },
-  { /* hand fields */
-    /* ignore                   */	0
-  },
-  { /* cards fields */
-    /* ignore			*/	0
-  },
-};
+static void
+FillCard (CardsWidget w, int x, int y, GC gc, Boolean *hasp, XRectangle *clip);
 
-WidgetClass cardsWidgetClass = (WidgetClass) &cardsClassRec;
-
-static void DisplayCallback ();
-
-static Status 
-GetSize (dpy, p, widthp, heightp)
-    Display *dpy;
-    Pixmap  p;
-    unsigned int    *widthp, *heightp;
+static Status
+GetSize (Display *dpy, Pixmap p, unsigned int *widthp, unsigned int *heightp)
 {
-    int	    x, y, borderWidth, depth;
-    Window  root;
+    int x, y;
+    unsigned int borderWidth, depth;
+    Window root;
 
     return XGetGeometry (dpy, p, &root, &x, &y, widthp, heightp, &borderWidth, &depth);
 }
@@ -228,16 +179,15 @@ GetSize (dpy, p, widthp, heightp)
 
 #define CARD_WIDTH(w)	((w)->cards.medium_cards ? MEDIUM_CARD_WIDTH : (w)->cards.small_cards ? SMALL_CARD_WIDTH : LARGE_CARD_WIDTH)
 #define CARD_HEIGHT(w)	((w)->cards.medium_cards ? MEDIUM_CARD_HEIGHT : (w)->cards.small_cards ? SMALL_CARD_HEIGHT : LARGE_CARD_HEIGHT)
-			    
+
 #define ScreenNo(w) XScreenNumberOfScreen (XtScreen (w))
-			    
+
 static int  cardsRef = 0;
 
-static void make_card_maps ();
+static void make_card_maps (CardsWidget w);
 
 static void
-setSizeVars (req, new)
-    CardsWidget	req, new;
+setSizeVars (CardsWidget req, CardsWidget new)
 {
     Arg	args[10];
     int	i = 0;
@@ -248,6 +198,7 @@ setSizeVars (req, new)
     Boolean row_major;
     Boolean row_major_set;
 
+    (void) req;
     XtSetArg (args[i], XtNcardWidth, width); i++;
     XtSetArg (args[i], XtNcardHeight, height); i++;
     display_x = 0;
@@ -291,7 +242,7 @@ setSizeVars (req, new)
 	}
 	col_offset = width + width / 10;
     }
-    if (new->cards.overlap & CardsOverlapVertical) 
+    if (new->cards.overlap & CardsOverlapVertical)
     {
 	if (!row_major_set)
 	{
@@ -333,16 +284,20 @@ setSizeVars (req, new)
 }
 
 static Boolean
-CvtStringToCardsOverlap (dpy, args, num_args, from, to, converter_data)
-    Display	*dpy;
-    XrmValue	*args;
-    Cardinal	*num_args;
-    XrmValue	*from, *to;
-    XtPointer	*converter_data;
+CvtStringToCardsOverlap (Display *dpy,
+			 XrmValue *args,
+			 Cardinal *num_args,
+			 XrmValue *from,
+			 XrmValue *to,
+			 XtPointer *converter_data)
 {
     char    *s = (char *) from->addr;
     CardsOverlap    *result = (CardsOverlap *) to->addr;
 
+    (void) dpy;
+    (void) args;
+    (void) num_args;
+    (void) converter_data;
     if (!strcmp (s, "neither"))
 	*result = CardsOverlapNeither;
     else if (!strcmp (s, "vertical"))
@@ -357,10 +312,10 @@ CvtStringToCardsOverlap (dpy, args, num_args, from, to, converter_data)
 }
 
 static void
-ClassInitialize()
+ClassInitialize(void)
 {
     XtSetTypeConverter ( XtRString, XtRCardsOverlap, CvtStringToCardsOverlap,
-		    NULL, (Cardinal)0, XtCacheNone, 
+		    NULL, (Cardinal)0, XtCacheNone,
  		    (XtDestructor)NULL );
 }
 
@@ -388,19 +343,22 @@ CardsReplaceCard (gw, data, card)
 
 #define UsualSuspects(w)	Display *dpy = XtDisplay ((Widget) w); \
 				Window	window = XtWindow ((Widget) w)
-				
+
+#define UsualDpy(w)		Display *dpy = XtDisplay ((Widget) w)
+
 #define CardGC(w,suit) GC cardgc = ((suit) == CardsSpade || \
 				    (suit) == CardsClub) ? \
 				    (w)->cards.blackgc : (w)->cards.redgc; \
 		       Boolean *hasp = ((suit) == CardsSpade || \
 					(suit) == CardsClub) ? \
 					&(w)->cards.blackHasClip : \
-					&(w)->cards.redHasClip
-				    
+			                &(w)->cards.redHasClip; \
+		       (void) hasp
+
 #define GetScreen(w)		int screen = ScreenNo(w)
-    			    
+
 #define SetClip(dpy,gc,clip,has)    if (((clip) != NULL) != *(has)) {\
-					if (*(has) = ((clip) != NULL)) \
+					if ((*(has) = ((clip) != NULL))) \
 					    XSetClipRectangles(dpy, gc, 0, 0, \
 						clip, 1, YXBanded); \
 					else \
@@ -437,7 +395,7 @@ CheckCopyPlane(Display	*dpy,
 	    height = clip->y + clip->height - dsty;
     }
     if (width > 0 && height > 0)
-	XCopyPlane (dpy, src, dst, gc, srcx, srcy, 
+	XCopyPlane (dpy, src, dst, gc, srcx, srcy,
 		    width, height, dstx, dsty, 1);
 }
 
@@ -472,20 +430,19 @@ CheckCopyArea(Display	*dpy,
 	    height = clip->y + clip->height - dsty;
     }
     if (width > 0 && height > 0)
-	XCopyArea (dpy, src, dst, gc, srcx, srcy, 
+	XCopyArea (dpy, src, dst, gc, srcx, srcy,
 		    width, height, dstx, dsty);
 }
-    
+
 static void
-GetGCs (w)
-    CardsWidget	w;
+GetGCs (CardsWidget w)
 {
-    UsualSuspects(w);
+    UsualDpy(w);
     GetScreen(w);
     XGCValues	gcv;
     XtGCMask	mask, tmask;
     unsigned	width, height;
-    
+
     mask = GCForeground | GCBackground | GCGraphicsExposures;
     gcv.graphics_exposures = False;
     /* white GC */
@@ -501,7 +458,7 @@ GetGCs (w)
 	gcv.line_width = 0;
     w->cards.blackgc = XtGetGC ((Widget) w, mask | GCLineWidth, &gcv);
     w->cards.blackHasClip = False;
-    
+
     /* empty GC */
     gcv.foreground = w->cards.empty_color;
     gcv.background = w->cards.black_color;
@@ -528,7 +485,7 @@ GetGCs (w)
 				    &gcv);
     }
     w->cards.redHasClip = False;
-    
+
     /* back GC */
     if (w->cards.back)
     {
@@ -544,8 +501,8 @@ GetGCs (w)
     }
     w->cards.back_delta_x = (CARD_WIDTH(w) - width) / 2;
     w->cards.back_delta_y = (CARD_HEIGHT(w) - height) / 2;
-    
-    if (w->cards.color) 
+
+    if (w->cards.color)
 	gcv.foreground = w->cards.inverse_color;
     else
 	gcv.foreground = w->cards.black_color;
@@ -555,7 +512,7 @@ GetGCs (w)
     if (w->cards.use_tile)
     {
 	GC  tgc = XtGetGC ((Widget) w, tmask, &gcv);
-	
+
 	if (w->cards.backTile)
 	    XFreePixmap (dpy, w->cards.backTile);
 	w->cards.backTile = XCreatePixmap (dpy, RootWindow (dpy, screen),
@@ -571,8 +528,7 @@ GetGCs (w)
 }
 
 static void
-ReleaseGCs (w)
-    CardsWidget	w;
+ReleaseGCs (CardsWidget w)
 {
     XtReleaseGC ((Widget) w, w->cards.whitegc);
     XtReleaseGC ((Widget) w, w->cards.blackgc);
@@ -581,21 +537,19 @@ ReleaseGCs (w)
     XtReleaseGC ((Widget) w, w->cards.backgc);
 }
 
-static void 
-Initialize (greq, gnew)
-    Widget  greq, gnew;
+static void
+Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     CardsWidget	req = (CardsWidget) greq,
 		new = (CardsWidget) gnew;
-    XGCValues	gcv;
-    XtGCMask	mask;
-    unsigned	width, height;
     Display	*dpy;
     int		screen;
-    
+
+    (void) args;
+    (void) count;
     dpy = XtDisplay (new);
     screen = ScreenNo(new);
-    
+
     if (new->cards.color == COLOR_UNSET)
     {
 	if (DisplayCells (dpy, screen) > 2)
@@ -603,10 +557,10 @@ Initialize (greq, gnew)
 	else
 	    new->cards.color = False;
     }
-    
+
     if (!new->cards.color)
 	new->cards.medium_cards = False;
-    
+
     new->cards.redgc = 0;
     new->cards.blackgc = 0;
     new->cards.whitegc = 0;
@@ -614,15 +568,14 @@ Initialize (greq, gnew)
     new->cards.backTile = 0;
 
     setSizeVars (req, new);
-    
+
     XtAddCallback (gnew, XtNdisplayCallback, DisplayCallback, (XtPointer) gnew);
 
     GetGCs (new);
 }
 
-static void 
-Destroy (gw)
-    Widget  gw;
+static void
+Destroy (Widget gw)
 {
     CardsWidget	w = (CardsWidget) gw;
 
@@ -634,26 +587,28 @@ Destroy (gw)
 }
 
 static Boolean
-SetValues (gcur, greq, gnew)
-    Widget  gcur, greq, gnew;
+SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     CardsWidget	cur = (CardsWidget) gcur,
 		req = (CardsWidget) greq,
  		new = (CardsWidget) gnew;
+
+    (void) args;
+    (void) count;
     if (!cur->cards.color)
 	new->cards.medium_cards = False;
     else
 	new->cards.medium_cards = req->cards.medium_cards;
-    
+
     if (new->cards.medium_cards)
 	any_medium = True;
     else if (req->cards.small_cards)
 	any_small = True;
     else
 	any_large = True;
-    
+
     make_card_maps(cur);
-    
+
     if (req->cards.small_cards != cur->cards.small_cards ||
 	req->cards.medium_cards != cur->cards.medium_cards ||
 	req->cards.overlap != cur->cards.overlap)
@@ -675,12 +630,9 @@ SetValues (gcur, greq, gnew)
  */
 
 static Pixmap
-make_red_map(w, bits, width, height)
-    CardsWidget	w;
-    char	*bits;
-    int		width, height;
+make_red_map(CardsWidget w, char *bits, int width, int height)
 {
-    UsualSuspects(w);
+    UsualDpy(w);
     GetScreen(w);
     Pixmap	tmpmap, newmap;
     static  GC	depth1gc;
@@ -700,13 +652,13 @@ make_red_map(w, bits, width, height)
 	gcv.foreground = 1;
 	gcv.background = 0;
 	gcv.fill_style = FillStippled;
-	depth1gc = XCreateGC (dpy, newmap, 
+	depth1gc = XCreateGC (dpy, newmap,
 			      GCBackground|GCStipple|GCFillStyle, &gcv);
     }
     XSetForeground (dpy, depth1gc, 1);
     XCopyPlane (dpy, tmpmap, newmap, depth1gc,
 		0, 0, width, height, 0, 0, 1);
-    
+
     XSetForeground (dpy, depth1gc, 0);
     XFillRectangle(dpy, newmap, depth1gc, 0, 0, width, height);
     XFreePixmap(dpy, tmpmap);
@@ -714,78 +666,80 @@ make_red_map(w, bits, width, height)
     return (newmap);
 }
 
-static void flip_bits (), rot_180 ();
+static void
+flip_bits(unsigned char *src, unsigned char *dst, int W, int H);
 
 static void
-make_card_maps(w)
-    CardsWidget	w;
+rot_180(unsigned char *src, unsigned char *dst, int W, int H);
+
+static void
+make_card_maps(CardsWidget w)
 {
-    UsualSuspects(w);
+    UsualDpy(w);
     GetScreen(w);
     unsigned char	*new_bits;
     CardsRank		rank;
-    CardsSuit		suit;
     int			r;
     int	i;
 
     if (any_large && !made_large)
     {
 	made_large = True;
-	for (rank = CardsAce; rank <= CardsKing; rank++)	
+	for (rank = CardsAce; rank <= CardsKing; rank++)
 	{
 	    r = CardsRankToInt (rank);
-	    rank_map[r] = XCreateBitmapFromData(dpy, 
+	    rank_map[r] = XCreateBitmapFromData(dpy,
 						     RootWindow(dpy, screen),
 						     rank_bits[r], rank_width, rank_height);
-    
+
 	    if (w->cards.color)
-		rank_map_red[r] = XCreateBitmapFromData(dpy, 
+		rank_map_red[r] = XCreateBitmapFromData(dpy,
 							     RootWindow(dpy, screen),
 							     rank_bits[r], rank_width, rank_height);
-    
+
 	    else
 		rank_map_red[r] = make_red_map(w, rank_bits[r],
 						    rank_width, rank_height);
-    
+
 	    new_bits = (unsigned char *) calloc(sizeof(rank_bits[r]), 1);
-	    rot_180((unsigned char *)rank_bits[r], new_bits, 
+	    rot_180((unsigned char *)rank_bits[r], new_bits,
 		    rank_width, rank_height);
-	    rank_r_map[r] = XCreateBitmapFromData(dpy, 
-						       RootWindow(dpy, screen),
-						       new_bits, rank_width, rank_height);
+	    rank_r_map[r] = XCreateBitmapFromData(dpy,
+						  RootWindow(dpy, screen),
+						  (char *) new_bits, rank_width, rank_height);
 	    if (w->cards.color)
-		rank_r_map_red[r] = XCreateBitmapFromData(dpy, 
-							       RootWindow(dpy, screen),
-							       new_bits, rank_width, rank_height);
+		rank_r_map_red[r] = XCreateBitmapFromData(dpy,
+							  RootWindow(dpy, screen),
+							  (char *) new_bits, rank_width, rank_height);
 	    else
-		rank_r_map_red[r] = make_red_map(w, (char *)new_bits, 
-						      rank_width, rank_height);
+		rank_r_map_red[r] = make_red_map(w, (char *)new_bits,
+						 rank_width, rank_height);
 	    free((char *)new_bits);
 	}
-    
+
 	i = CardsSuitToInt (CardsSpade);
 	/* make all the card bitmaps */
-	suit_map[i] = XCreateBitmapFromData(dpy, 
+	suit_map[i] = XCreateBitmapFromData(dpy,
 					    RootWindow(dpy, screen),
 					    spade_bits, spade_width, spade_height);
-    
+
 	new_bits = (unsigned char *) calloc(sizeof(spade_bits), 1);
-	flip_bits((unsigned char *)spade_bits, new_bits, spade_width, 
+	flip_bits((unsigned char *)spade_bits, new_bits, spade_width,
 		  spade_height);
 	suit_r_map[i] = XCreateBitmapFromData(dpy, RootWindow(dpy, screen),
-					      new_bits, spade_width, spade_height);
+					      (char *) new_bits, spade_width, spade_height);
 	free((char *)new_bits);
-    
+
 	suit_sm_map[i] = XCreateBitmapFromData(dpy, RootWindow(dpy, screen),
 					       spade_sm_bits, spade_sm_width, spade_sm_height);
-    
+
 	new_bits = (unsigned char *) calloc(sizeof(spade_sm_bits), 1);
 	flip_bits((unsigned char *)spade_sm_bits, new_bits, spade_sm_width,
 		  spade_sm_height);
 	suit_sm_r_map[i] = XCreateBitmapFromData(dpy, RootWindow(dpy, screen),
-						 new_bits, spade_sm_width, spade_sm_height);
+						 (char *) new_bits, spade_sm_width, spade_sm_height);
 	free((char *)new_bits);
-    
+
 	if (w->cards.trademark)
 	{
 	    suit_lg_map[i] = w->cards.trademark;
@@ -798,187 +752,187 @@ make_card_maps(w)
 	    trademark_width = spade_lg_width;
 	    trademark_height = spade_lg_height;
 	}
-    
+
 	jack_map[i] = XCreateBitmapFromData(dpy, RootWindow(dpy, screen),
 					    jack_s_bits, jack_s_width, jack_s_height);
-    
+
 	queen_map[i] = XCreateBitmapFromData(dpy, RootWindow(dpy, screen),
 					     queen_s_bits, queen_s_width, queen_s_height);
-    
+
 	king_map[i] = XCreateBitmapFromData(dpy, RootWindow(dpy, screen),
 					    king_s_bits, king_s_width, king_s_height);
-    
+
 	i = CardsSuitToInt(CardsHeart);
 	/* make all the card bitmaps */
 	new_bits = (unsigned char *) calloc(sizeof(heart_bits), 1);
-	flip_bits((unsigned char *)heart_bits, new_bits, heart_width, 
+	flip_bits((unsigned char *)heart_bits, new_bits, heart_width,
 		  heart_height);
-    
+
 	if (w->cards.color)	{
-	    suit_map[i] = XCreateBitmapFromData(dpy, 
+	    suit_map[i] = XCreateBitmapFromData(dpy,
 						RootWindow(dpy, screen),
 						heart_bits, heart_width, heart_height);
-	    suit_r_map[i] = XCreateBitmapFromData(dpy, 
+	    suit_r_map[i] = XCreateBitmapFromData(dpy,
 						  RootWindow(dpy, screen),
-						  new_bits, heart_width, heart_height);
+						  (char *) new_bits, heart_width, heart_height);
 	} else	{
-	    suit_map[i] = make_red_map(w, heart_bits, heart_width, 
+	    suit_map[i] = make_red_map(w, heart_bits, heart_width,
 				       heart_height);
-	    suit_r_map[i] = make_red_map(w, (char *)new_bits, heart_width, 
+	    suit_r_map[i] = make_red_map(w, (char *)new_bits, heart_width,
 					 heart_height);
 	}
-    
+
 	free((char *)new_bits);
-    
+
 	new_bits = (unsigned char *) calloc(sizeof(heart_sm_bits), 1);
-	flip_bits((unsigned char *)heart_sm_bits, new_bits, heart_sm_width, 
+	flip_bits((unsigned char *)heart_sm_bits, new_bits, heart_sm_width,
 		  heart_sm_height);
 	suit_sm_r_map[i] = XCreateBitmapFromData(dpy, RootWindow(dpy, screen),
-						 new_bits, heart_sm_width, heart_sm_height);
-    
+						 (char *) new_bits, heart_sm_width, heart_sm_height);
+
 	if (w->cards.color)	{
-	    suit_sm_map[i] = XCreateBitmapFromData(dpy, 
+	    suit_sm_map[i] = XCreateBitmapFromData(dpy,
 						   RootWindow(dpy, screen),
 						   heart_sm_bits, heart_sm_width, heart_sm_height);
-	    suit_sm_r_map[i] = XCreateBitmapFromData(dpy, 
+	    suit_sm_r_map[i] = XCreateBitmapFromData(dpy,
 						     RootWindow(dpy, screen),
-						     new_bits, heart_sm_width, heart_sm_height);
+						     (char *) new_bits, heart_sm_width, heart_sm_height);
 	} else	{
-	    suit_sm_map[i] = make_red_map(w, heart_sm_bits, heart_sm_width, 
+	    suit_sm_map[i] = make_red_map(w, heart_sm_bits, heart_sm_width,
 					  heart_height);
-	    suit_sm_r_map[i] = make_red_map(w, (char *)new_bits, 
+	    suit_sm_r_map[i] = make_red_map(w, (char *)new_bits,
 					    heart_sm_width, heart_sm_height);
 	}
 	free((char *)new_bits);
-    
+
 	suit_lg_map[i] = suit_map[i];
-    
-	if (w->cards.color)	
+
+	if (w->cards.color)
 	{
-	    jack_map[i] = XCreateBitmapFromData(dpy, 
+	    jack_map[i] = XCreateBitmapFromData(dpy,
 						RootWindow(dpy, screen),
 						jack_h_bits, jack_h_width, jack_h_height);
-    
-	    queen_map[i] = XCreateBitmapFromData(dpy, 
+
+	    queen_map[i] = XCreateBitmapFromData(dpy,
 						 RootWindow(dpy, screen),
 						 queen_h_bits, queen_h_width, queen_h_height);
-    
-	    king_map[i] = XCreateBitmapFromData(dpy, 
+
+	    king_map[i] = XCreateBitmapFromData(dpy,
 						RootWindow(dpy, screen),
 						king_h_bits, king_h_width, king_h_height);
 	} else	{
-	    jack_map[i] = make_red_map(w, jack_h_bits, jack_h_width, 
+	    jack_map[i] = make_red_map(w, jack_h_bits, jack_h_width,
 				       jack_h_height);
-    
-	    queen_map[i] = make_red_map(w, queen_h_bits, queen_h_width, 
+
+	    queen_map[i] = make_red_map(w, queen_h_bits, queen_h_width,
 					queen_h_height);
-    
-	    king_map[i] = make_red_map(w, king_h_bits, king_h_width, 
+
+	    king_map[i] = make_red_map(w, king_h_bits, king_h_width,
 				       king_h_height);
 	}
-    
-    
+
+
 	i = CardsSuitToInt(CardsDiamond);
-	
+
 	/* make all the card bitmaps */
 	new_bits = (unsigned char *) calloc(sizeof(diamond_bits), 1);
-	flip_bits((unsigned char *)diamond_bits, new_bits, diamond_width, 
+	flip_bits((unsigned char *)diamond_bits, new_bits, diamond_width,
 		  diamond_height);
-    
+
 	if (w->cards.color)	{
-	    suit_map[i] = XCreateBitmapFromData(dpy, 
+	    suit_map[i] = XCreateBitmapFromData(dpy,
 						RootWindow(dpy, screen),
 						diamond_bits, diamond_width, diamond_height);
-	    suit_r_map[i] = XCreateBitmapFromData(dpy, 
+	    suit_r_map[i] = XCreateBitmapFromData(dpy,
 						  RootWindow(dpy, screen),
-						  new_bits, diamond_width, diamond_height);
+						  (char *) new_bits, diamond_width, diamond_height);
 	} else	{
-	    suit_map[i] = make_red_map(w, diamond_bits, diamond_width, 
+	    suit_map[i] = make_red_map(w, diamond_bits, diamond_width,
 				       diamond_height);
-	    suit_r_map[i] = make_red_map(w, (char *)new_bits, diamond_width, 
+	    suit_r_map[i] = make_red_map(w, (char *)new_bits, diamond_width,
 					 diamond_height);
 	}
-    
+
 	free((char *)new_bits);
-    
+
 	new_bits = (unsigned char *) calloc(sizeof(diamond_sm_bits), 1);
-	flip_bits((unsigned char *)diamond_sm_bits, new_bits, 
+	flip_bits((unsigned char *)diamond_sm_bits, new_bits,
 		  diamond_sm_width, diamond_sm_height);
 	suit_sm_r_map[i] = XCreateBitmapFromData(dpy, RootWindow(dpy, screen),
-						 new_bits, diamond_sm_width, diamond_sm_height);
-    
+						 (char *) new_bits, diamond_sm_width, diamond_sm_height);
+
 	if (w->cards.color)	{
-	    suit_sm_map[i] = XCreateBitmapFromData(dpy, 
+	    suit_sm_map[i] = XCreateBitmapFromData(dpy,
 						   RootWindow(dpy, screen),
 						   diamond_sm_bits, diamond_sm_width, diamond_sm_height);
-	    suit_sm_r_map[i] = XCreateBitmapFromData(dpy, 
+	    suit_sm_r_map[i] = XCreateBitmapFromData(dpy,
 						     RootWindow(dpy, screen),
-						     new_bits, diamond_sm_width, diamond_sm_height);
+						     (char *) new_bits, diamond_sm_width, diamond_sm_height);
 	} else	{
-	    suit_sm_map[i] = make_red_map(w, diamond_sm_bits, diamond_sm_width, 
+	    suit_sm_map[i] = make_red_map(w, diamond_sm_bits, diamond_sm_width,
 					  diamond_height);
-	    suit_sm_r_map[i] = make_red_map(w, (char *)new_bits, 
+	    suit_sm_r_map[i] = make_red_map(w, (char *)new_bits,
 					    diamond_sm_width, diamond_sm_height);
 	}
 	free((char *)new_bits);
-    
+
 	suit_lg_map[i] = suit_map[i];
-    
+
 	if (w->cards.color)	{
-	    jack_map[i] = XCreateBitmapFromData(dpy, 
+	    jack_map[i] = XCreateBitmapFromData(dpy,
 						RootWindow(dpy, screen),
 						jack_d_bits, jack_d_width, jack_d_height);
-    
-	    queen_map[i] = XCreateBitmapFromData(dpy, 
+
+	    queen_map[i] = XCreateBitmapFromData(dpy,
 						 RootWindow(dpy, screen),
 						 queen_d_bits, queen_d_width, queen_d_height);
-    
-	    king_map[i] = XCreateBitmapFromData(dpy, 
+
+	    king_map[i] = XCreateBitmapFromData(dpy,
 						RootWindow(dpy, screen),
 						king_d_bits, king_d_width, king_d_height);
 	} else	{
-	    jack_map[i] = make_red_map(w, jack_d_bits, jack_d_width, 
+	    jack_map[i] = make_red_map(w, jack_d_bits, jack_d_width,
 				       jack_d_height);
-    
-	    queen_map[i] = make_red_map(w, queen_d_bits, queen_d_width, 
+
+	    queen_map[i] = make_red_map(w, queen_d_bits, queen_d_width,
 					queen_d_height);
-    
-	    king_map[i] = make_red_map(w, king_d_bits, king_d_width, 
+
+	    king_map[i] = make_red_map(w, king_d_bits, king_d_width,
 				       king_d_height);
 	}
-    
+
 	i = CardsSuitToInt(CardsClub);
 	/* make all the card bitmaps */
-	suit_map[i] = XCreateBitmapFromData(dpy, 
+	suit_map[i] = XCreateBitmapFromData(dpy,
 					    RootWindow(dpy, screen),
 					    club_bits, club_width, club_height);
-    
+
 	new_bits = (unsigned char *) calloc(sizeof(club_bits), 1);
-	flip_bits((unsigned char *)club_bits, new_bits, club_width, 
+	flip_bits((unsigned char *)club_bits, new_bits, club_width,
 		  club_height);
 	suit_r_map[i] = XCreateBitmapFromData(dpy, RootWindow(dpy, screen),
-					      new_bits, club_width, club_height);
+					      (char *) new_bits, club_width, club_height);
 	free((char *)new_bits);
-    
+
 	suit_sm_map[i] = XCreateBitmapFromData(dpy, RootWindow(dpy, screen),
 					       club_sm_bits, club_sm_width, club_sm_height);
-    
+
 	new_bits = (unsigned char *) calloc(sizeof(club_sm_bits), 1);
-	flip_bits((unsigned char *)club_sm_bits, new_bits, club_sm_width, 
+	flip_bits((unsigned char *)club_sm_bits, new_bits, club_sm_width,
 		  club_sm_height);
 	suit_sm_r_map[i] = XCreateBitmapFromData(dpy, RootWindow(dpy, screen),
-						 new_bits, club_sm_width, club_sm_height);
+						 (char *) new_bits, club_sm_width, club_sm_height);
 	free((char *)new_bits);
-    
+
 	suit_lg_map[i] = suit_map[i];
-    
-    
+
+
 	jack_map[i] = XCreateBitmapFromData(dpy, RootWindow(dpy, screen),
 					    jack_c_bits, jack_c_width, jack_c_height);
-    
+
 	queen_map[i] = XCreateBitmapFromData(dpy, RootWindow(dpy, screen),
 					     queen_c_bits, queen_c_width, queen_c_height);
-    
+
 	king_map[i] = XCreateBitmapFromData(dpy, RootWindow(dpy, screen),
 					    king_c_bits, king_c_width, king_c_height);
     }
@@ -986,7 +940,7 @@ make_card_maps(w)
     if (any_medium && !made_medium)
     {
 	made_medium = True;
-        for (i = 0; i < CARDS_PER_DECK; i++)	
+        for (i = 0; i < CARDS_PER_DECK; i++)
 	{
 	    XpmCreatePixmapFromData (dpy,
 				     RootWindow (dpy, screen),
@@ -997,11 +951,11 @@ make_card_maps(w)
     if (any_small && !made_small)
     {
 	made_small = True;
-	for (i = 0; i < CARDS_PER_DECK; i++)	
+	for (i = 0; i < CARDS_PER_DECK; i++)
 	{
-	    card_bitmaps[i] = XCreateBitmapFromData(dpy, 
+	    card_bitmaps[i] = XCreateBitmapFromData(dpy,
 						    RootWindow(dpy, screen),
-						    card_bits[i], 
+						    card_bits[i],
 						    SMALL_CARD_WIDTH, SMALL_CARD_HEIGHT);
 	}
     }
@@ -1011,134 +965,359 @@ make_card_maps(w)
  * paints individual card
  */
 
-static void paint_small_card (), paint_large_card (), paint_medium_card();
-static void draw_king (), draw_queen (), draw_jack ();
-static void draw_pip (), draw_did (), draw_eight_pips ();
-static void draw_center_pip ();
-static void draw_rank ();
-
 static void
-OutlineCard (w, x, y, clip)
-    CardsWidget	w;
-    int		x, y;
-    XRectangle	*clip;
+paint_small_card(CardsWidget w, int x, int y, CardsRank rank, CardsSuit suit, XRectangle *clip)
 {
     UsualSuspects(w);
-    int	width, height;
+    int	card_number = 0;
+    GC	cardgc;
 
-    width = CARD_WIDTH(w);
-    height = CARD_HEIGHT(w);
-    SetClip (dpy, w->cards.blackgc, clip, &w->cards.blackHasClip);
-    if (w->cards.round_cards && !w->cards.medium_cards && !w->cards.small_cards)
+    if (suit == CardsSpade || suit == CardsClub)
     {
-	XmuDrawRoundedRectangle (dpy, window, w->cards.blackgc,
-				 x + INSET/2, y + INSET/2,
-				 width - INSET, height - INSET,
-				 ROUND_W, ROUND_H);
+	cardgc = w->cards.blackgc;
+    }
+    else if (w->cards.color) {
+	cardgc = w->cards.redgc;
     }
     else
     {
-	XDrawRectangle (dpy, window, w->cards.blackgc,
-			x + INSET/2, y + INSET/2,
-			width - INSET, height - INSET);
+	cardgc = w->cards.whitegc;
     }
-}
 
-static void
-FillCard (w, x, y, gc, hasp, clip)
-    CardsWidget	w;
-    int		x, y;
-    GC		gc;
-    Boolean	*hasp;
-    XRectangle	*clip;
-{
-    UsualSuspects(w);
-    int	width, height;
-    
-    width = CARD_WIDTH(w);
-    height = CARD_HEIGHT(w);
-    SetClip (dpy, gc, clip, hasp);
-    if (w->cards.round_cards && !w->cards.medium_cards && !w->cards.small_cards)
+    /* this is messy cause these are just straight xsol cards */
+    switch (suit)
     {
-	XmuFillRoundedRectangle(dpy, window, gc,
-				x + INSET, y + INSET, 
-				width - 2*INSET, height - 2 * INSET,
-				ROUND_W, ROUND_H);
-    }
-    else
-    {
-	XFillRectangle(dpy, window, gc,
-		       x + INSET, y + INSET, 
-		       width - 2*INSET, height - 2*INSET);
-    }
-    OutlineCard (w, x, y, clip);
-}
-
-    
-static void
-DisplayCallback (gw, closure, data)
-    Widget	gw;
-    XtPointer	closure;
-    XtPointer	data;
-{
-    CardsWidget	    w = (CardsWidget) gw;
-    Display	    *dpy = XtDisplay (w);
-    Window	    window = XtWindow (w);
-    HandDisplayPtr  display = (HandDisplayPtr) data;
-    CardsCardPtr    card = (CardsCardPtr) display->private;
-    int		    x, y, width, height;
-    XRectangle	    *clip;
-    
-    x = display->x;
-    y = display->y;
-    width = CARD_WIDTH(w);
-    height = CARD_HEIGHT(w);
-    clip = NULL;
-    if (display->clipped)
-	clip = &display->clip;
-    switch (card->suit) {
-    case CardsEmpty:
-	FillCard (w, x, y, w->cards.emptygc, &w->cards.emptyHasClip, clip);
+    case CardsSpade:
+	card_number = 3 * NUM_RANKS;
 	break;
-    case CardsBack:
-	/* change the origin so cards will have the same back anywhere
-	 * on the table
-	 */
-	
-	XSetTSOrigin(dpy, w->cards.backgc, 
-		     x + w->cards.back_delta_x, y + w->cards.back_delta_y);
-	FillCard (w, x, y, w->cards.backgc, &w->cards.backHasClip, clip);
+    case CardsHeart:
+	card_number = 0;
 	break;
-    case CardsNone:
+    case CardsClub:
+	card_number = 2 * NUM_RANKS;
+	break;
+    case CardsDiamond:
+	card_number = NUM_RANKS;
 	break;
     default:
-	if (w->cards.medium_cards)
-	    paint_medium_card (w, x, y, card->rank, card->suit, clip); 
-	else if (w->cards.small_cards)
-	    paint_small_card (w, x, y, card->rank, card->suit, clip);
-	else
-	    paint_large_card (w, x, y, card->rank, card->suit, clip);
 	break;
     }
-    SetClip (dpy, w->cards.redgc, (XRectangle *) 0, &w->cards.redHasClip);
-    SetClip (dpy, w->cards.blackgc, (XRectangle *) 0, &w->cards.blackHasClip);
-    SetClip (dpy, w->cards.whitegc, (XRectangle *) 0, &w->cards.whiteHasClip);
-    SetClip (dpy, w->cards.emptygc, (XRectangle *) 0, &w->cards.emptyHasClip);
-    SetClip (dpy, w->cards.backgc, (XRectangle *) 0, &w->cards.backHasClip);
+    card_number += CardsRankToInt (rank);
+
+    CheckCopyPlane(dpy, card_bitmaps[card_number], window, cardgc,
+	       SMALL_CARD_WIDTH, SMALL_CARD_HEIGHT, x, y, clip);
 }
 
 static void
-paint_large_card(w, x, y, rank, suit, clip)
-    CardsWidget	w;
-    int		x,y;
-    CardsRank	rank;
-    CardsSuit	suit;
-    XRectangle	*clip;
+paint_medium_card(CardsWidget w, int x, int y, CardsRank rank, CardsSuit suit, XRectangle *clip)
 {
     UsualSuspects(w);
+    int	card_number = 0;
+    GC	cardgc;
 
+    if (suit == CardsSpade || suit == CardsClub)
+    {
+	cardgc = w->cards.blackgc;
+    }
+    else if (w->cards.color) {
+	cardgc = w->cards.redgc;
+    }
+    else
+    {
+	cardgc = w->cards.whitegc;
+    }
+
+    switch (suit)
+    {
+    case CardsSpade:
+	card_number = 3 * NUM_RANKS;
+	break;
+    case CardsHeart:
+	card_number = 2 * NUM_RANKS;
+	break;
+    case CardsDiamond:
+	card_number = NUM_RANKS;
+	break;
+    case CardsClub:
+	card_number = 0;
+	break;
+    default:
+	break;
+    }
+    card_number += CardsRankToInt (rank);
+
+    CheckCopyArea(dpy, medium_map[card_number], window, cardgc,
+	       MEDIUM_CARD_WIDTH, MEDIUM_CARD_HEIGHT, x, y, clip);
+}
+
+static void
+draw_rank(CardsWidget w, int x, int y, CardsRank rank, CardsSuit suit, XRectangle *clip)
+{
+    UsualSuspects(w);
+    int width = 0, height = 0;
+    int	r, s;
+    CardGC(w, suit);
+    Pixmap  top, bottom;
+
+    r = CardsRankToInt(rank);
+    s = CardsSuitToInt(suit);
+    if (suit == CardsHeart || suit == CardsDiamond)
+    {
+	top = rank_map_red[r];
+	bottom = rank_r_map_red[r];
+    }
+    else
+    {
+	top = rank_map[r];
+	bottom = rank_r_map[r];
+    }
+    CheckCopyPlane(dpy, top, window, cardgc,
+	       RANK_WIDTH, RANK_HEIGHT,
+	       x + RANK_LOC_X, y + RANK_LOC_Y, clip);
+
+    CheckCopyPlane(dpy, bottom, window, cardgc,
+	       RANK_WIDTH, RANK_HEIGHT,
+	       x + (LARGE_CARD_WIDTH - RANK_WIDTH - RANK_LOC_X),
+	       y + (LARGE_CARD_HEIGHT - RANK_HEIGHT - RANK_LOC_Y), clip);
+
+    switch (suit)
+    {
+    case CardsSpade:
+	width = spade_sm_width;
+	height = spade_sm_height;
+	break;
+    case CardsHeart:
+	width = heart_sm_width;
+	height = heart_sm_height;
+	break;
+    case CardsDiamond:
+	x++;	/* offset the smaller width */
+	width = diamond_sm_width;
+	height = diamond_sm_height;
+	break;
+    case CardsClub:
+	width = club_sm_width;
+	height = club_sm_height;
+	break;
+    default:
+	break;
+    }
+    CheckCopyPlane(dpy, suit_sm_map[s], window, cardgc,
+	       width, height,
+	       x + SMALL_LOC_X, y + SMALL_LOC_Y, clip);
+
+    CheckCopyPlane(dpy, suit_sm_r_map[s], window, cardgc,
+	       width, height,
+	       x + (LARGE_CARD_WIDTH - width - SMALL_LOC_X),
+	       y + (LARGE_CARD_HEIGHT - height - SMALL_LOC_Y), clip);
+}
+
+static void
+draw_jack(CardsWidget w, CardsSuit suit, int x, int y, XRectangle *clip)
+{
+    UsualSuspects(w);
+    CardGC(w, suit);
+    int	s = CardsSuitToInt(suit);
+
+    CheckCopyPlane(dpy, jack_map[s], window, cardgc,
+	       FACECARD_WIDTH, FACECARD_HEIGHT,
+	       x + (LARGE_CARD_WIDTH - FACECARD_WIDTH)/2,
+	       y + (LARGE_CARD_HEIGHT - FACECARD_HEIGHT)/2, clip);
+
+    SetClip (dpy, cardgc, clip, hasp);
+    XDrawRectangle(dpy, window, cardgc,
+		   x + (LARGE_CARD_WIDTH - FACECARD_WIDTH)/2,
+		   y + (LARGE_CARD_HEIGHT - FACECARD_HEIGHT)/2,
+		   FACECARD_WIDTH, FACECARD_HEIGHT);
+}
+
+static void
+draw_queen(CardsWidget w, CardsSuit suit, int x, int y, XRectangle *clip)
+{
+    UsualSuspects(w);
+    CardGC(w, suit);
+    int	s = CardsSuitToInt(suit);
+
+    CheckCopyPlane(dpy, queen_map[s], window, cardgc,
+	       FACECARD_WIDTH, FACECARD_HEIGHT,
+	       x + (LARGE_CARD_WIDTH - FACECARD_WIDTH)/2,
+	       y + (LARGE_CARD_HEIGHT - FACECARD_HEIGHT)/2, clip);
+
+    SetClip (dpy, cardgc, clip, hasp);
+    XDrawRectangle(dpy, window, cardgc,
+		   x + (LARGE_CARD_WIDTH - FACECARD_WIDTH)/2,
+		   y + (LARGE_CARD_HEIGHT - FACECARD_HEIGHT)/2,
+		   FACECARD_WIDTH, FACECARD_HEIGHT);
+}
+
+static void
+draw_king(CardsWidget w, CardsSuit suit, int x, int y, XRectangle *clip)
+{
+    UsualSuspects(w);
+    CardGC(w, suit);
+    int	s = CardsSuitToInt(suit);
+
+    CheckCopyPlane(dpy, king_map[s], window, cardgc,
+		   FACECARD_WIDTH, FACECARD_HEIGHT,
+		   x + (LARGE_CARD_WIDTH - FACECARD_WIDTH)/2,
+		   y + (LARGE_CARD_HEIGHT - FACECARD_HEIGHT)/2, clip);
+
+    SetClip (dpy, cardgc, clip, hasp);
+    XDrawRectangle(dpy, window, cardgc,
+		   x + (LARGE_CARD_WIDTH - FACECARD_WIDTH)/2,
+		   y + (LARGE_CARD_HEIGHT - FACECARD_HEIGHT)/2,
+		   FACECARD_WIDTH, FACECARD_HEIGHT);
+}
+
+/*
+ * NOTE -- for all the pip drawers except the one that actually plots the
+ * bits, the location is the card's location.  the drawer's take the
+ * pip's center as location.
+ */
+
+/*
+ * draws right-side-up pip
+ *
+ * location is for center of pip
+ */
+
+static void
+draw_pip(CardsWidget w, CardsSuit suit, int x, int y, XRectangle *clip)
+{
+    UsualSuspects (w);
+    CardGC (w, suit);
+    int	    width, height;
+    int	    s = CardsSuitToInt(suit);
+
+    switch(suit)
+    {
+    case CardsSpade:
+	width = spade_width;
+	height = spade_height;
+	break;
+    case CardsDiamond:
+	x++;
+	width = diamond_width;
+	height = diamond_height;
+	break;
+    case CardsHeart:
+	y++;
+	width = heart_width;
+	height = heart_height;
+	break;
+    case CardsClub:
+	y++;
+	width = club_width;
+	height = club_height;
+	break;
+    default:
+	return;
+    }
+    CheckCopyPlane(dpy, suit_map[s], window, cardgc,
+		   width, height,
+		   x - width/2, y - height/2, clip);
+}
+
+/*
+ * draws upside-down pip
+ *
+ * location is for center of pip
+ */
+
+static void
+draw_did(CardsWidget w, CardsSuit suit, int x, int y, XRectangle *clip)
+{
+    UsualSuspects (w);
+    CardGC (w,suit);
+    int	    width = 0, height = 0;
+    int	    s = CardsSuitToInt(suit);
+
+    switch(suit)
+    {
+    case CardsSpade:
+	width = spade_width;
+	height = spade_height;
+	break;
+    case CardsDiamond:
+	x++;
+	width = diamond_width;
+	height = diamond_height;
+	break;
+    case CardsHeart:
+	y++;
+	width = heart_width;
+	height = heart_height;
+	break;
+    case CardsClub:
+	y++;
+	width = club_width;
+	height = club_height;
+	break;
+    default:
+	break;
+    }
+    CheckCopyPlane(dpy, suit_r_map[s], window, cardgc,
+	       width, height, x - width/2, y - height/2, clip);
+}
+
+/*
+ * draws big center pip
+ */
+
+static void
+draw_center_pip(CardsWidget w, CardsSuit suit, int x, int y, XRectangle *clip)
+{
+    UsualSuspects(w);
+    int width = 0, height = 0;
+    CardGC(w,suit);
+    int	s = CardsSuitToInt(suit);
+
+    switch(suit)
+    {
+    case CardsSpade:
+	width = trademark_width;
+	height = trademark_height;
+	break;
+    case CardsDiamond:
+	width = diamond_width;
+	height = diamond_height;
+	break;
+    case CardsHeart:
+	width = heart_width;
+	height = heart_height;
+	break;
+    case CardsClub:
+	width = club_width;
+	height = club_height;
+	break;
+    default:
+	break;
+    }
+    CheckCopyPlane(dpy, suit_lg_map[s], window, cardgc,
+		   width, height, x - width/2, y - height/2, clip);
+}
+
+static void
+draw_eight_pips(CardsWidget w, CardsSuit suit, int x, int y, XRectangle *clip)
+{
+    draw_pip(w, suit, x + CARD_COL1_X, y + CARD_ROW1_Y, clip);
+
+    draw_pip(w, suit, x + CARD_COL3_X, y + CARD_ROW1_Y, clip);
+
+    draw_pip(w, suit, x + CARD_COL1_X, y + CARD_ROW2_Y, clip);
+    draw_did(w, suit, x + CARD_COL1_X, y + CARD_ROW4_Y, clip);
+    draw_did(w, suit, x + CARD_COL1_X, y + CARD_ROW5_Y, clip);
+
+    draw_pip(w, suit, x + CARD_COL3_X, y + CARD_ROW2_Y, clip);
+    draw_did(w, suit, x + CARD_COL3_X, y + CARD_ROW4_Y, clip);
+    draw_did(w, suit, x + CARD_COL3_X, y + CARD_ROW5_Y, clip);
+}
+
+static void
+paint_large_card(CardsWidget w, int x, int y, CardsRank rank, CardsSuit suit, XRectangle *clip)
+{
     FillCard (w, x, y, w->cards.whitegc, &w->cards.whiteHasClip, clip);
-    
+
     switch (rank)
     {
     case CardsKing:
@@ -1201,398 +1380,108 @@ paint_large_card(w, x, y, rank, suit, clip)
     case CardsAce:
 	draw_center_pip(w, suit, x + MID_CARD_X, y + MID_CARD_Y, clip);
 	break;
+    default:
+	break;
     }
 
     draw_rank(w, x, y, rank, suit, clip);
 }
 
-/*
- * NOTE -- for all the pip drawers except the one that actually plots the
- * bits, the location is the card's location.  the drawer's take the
- * pip's center as location.
- */
-
-/*
- * draws right-side-up pip
- *
- * location is for center of pip
- */
- 
 static void
-draw_pip(w, suit, x, y, clip)
-    CardsWidget w;
-    CardsSuit	suit;
-    int		x, y;
-    XRectangle	*clip;
+OutlineCard (CardsWidget w, int x, int y, XRectangle *clip)
 {
-    UsualSuspects (w);
-    CardGC (w, suit);
-    int	    width, height;
-    int	    s = CardsSuitToInt(suit);
+    UsualSuspects(w);
+    int	width, height;
 
-    switch(suit)	
+    width = CARD_WIDTH(w);
+    height = CARD_HEIGHT(w);
+    SetClip (dpy, w->cards.blackgc, clip, &w->cards.blackHasClip);
+    if (w->cards.round_cards && !w->cards.medium_cards && !w->cards.small_cards)
     {
-    case CardsSpade:
-	width = spade_width;
-	height = spade_height;
+	XmuDrawRoundedRectangle (dpy, window, w->cards.blackgc,
+				 x + INSET/2, y + INSET/2,
+				 width - INSET, height - INSET,
+				 ROUND_W, ROUND_H);
+    }
+    else
+    {
+	XDrawRectangle (dpy, window, w->cards.blackgc,
+			x + INSET/2, y + INSET/2,
+			width - INSET, height - INSET);
+    }
+}
+
+static void
+FillCard (CardsWidget w, int x, int y, GC gc, Boolean *hasp, XRectangle *clip)
+{
+    UsualSuspects(w);
+    int	width, height;
+
+    width = CARD_WIDTH(w);
+    height = CARD_HEIGHT(w);
+    SetClip (dpy, gc, clip, hasp);
+    if (w->cards.round_cards && !w->cards.medium_cards && !w->cards.small_cards)
+    {
+	XmuFillRoundedRectangle(dpy, window, gc,
+				x + INSET, y + INSET,
+				width - 2*INSET, height - 2 * INSET,
+				ROUND_W, ROUND_H);
+    }
+    else
+    {
+	XFillRectangle(dpy, window, gc,
+		       x + INSET, y + INSET,
+		       width - 2*INSET, height - 2*INSET);
+    }
+    OutlineCard (w, x, y, clip);
+}
+
+
+static void
+DisplayCallback (Widget gw, XtPointer closure, XtPointer data)
+{
+    CardsWidget	    w = (CardsWidget) gw;
+    Display	    *dpy = XtDisplay (w);
+    HandDisplayPtr  display = (HandDisplayPtr) data;
+    CardsCardPtr    card = (CardsCardPtr) display->private;
+    int		    x, y;
+    XRectangle	    *clip;
+
+    (void) closure;
+    x = display->x;
+    y = display->y;
+    clip = NULL;
+    if (display->clipped)
+	clip = &display->clip;
+    switch (card->suit) {
+    case CardsEmpty:
+	FillCard (w, x, y, w->cards.emptygc, &w->cards.emptyHasClip, clip);
 	break;
-    case CardsDiamond:
-	x++;
-	width = diamond_width;
-	height = diamond_height;
+    case CardsBack:
+	/* change the origin so cards will have the same back anywhere
+	 * on the table
+	 */
+
+	XSetTSOrigin(dpy, w->cards.backgc,
+		     x + w->cards.back_delta_x, y + w->cards.back_delta_y);
+	FillCard (w, x, y, w->cards.backgc, &w->cards.backHasClip, clip);
 	break;
-    case CardsHeart:
-	y++;
-	width = heart_width;
-	height = heart_height;
-	break;
-    case CardsClub:
-	y++;
-	width = club_width;
-	height = club_height;
+    case CardsNone:
 	break;
     default:
-	return;
-    }
-    CheckCopyPlane(dpy, suit_map[s], window, cardgc, 
-		   width, height,
-		   x - width/2, y - height/2, clip);
-}
-
-/*
- * draws upside-down pip
- *
- * location is for center of pip
- */
-
-static void
-draw_did(w, suit, x, y, clip)
-    CardsWidget	w;
-    CardsSuit	suit;
-    int		x,y;
-    XRectangle	*clip;
-{
-    UsualSuspects (w);
-    CardGC (w,suit);
-    int	    width, height;
-    int	    s = CardsSuitToInt(suit);
-
-    switch(suit)	
-    {
-    case CardsSpade:
-	width = spade_width;
-	height = spade_height;
-	break;
-    case CardsDiamond:
-	x++;
-	width = diamond_width;
-	height = diamond_height;
-	break;
-    case CardsHeart:
-	y++;
-	width = heart_width;
-	height = heart_height;
-	break;
-    case CardsClub:
-	y++;
-	width = club_width;
-	height = club_height;
+	if (w->cards.medium_cards)
+	    paint_medium_card (w, x, y, card->rank, card->suit, clip);
+	else if (w->cards.small_cards)
+	    paint_small_card (w, x, y, card->rank, card->suit, clip);
+	else
+	    paint_large_card (w, x, y, card->rank, card->suit, clip);
 	break;
     }
-    CheckCopyPlane(dpy, suit_r_map[s], window, cardgc, 
-	       width, height, x - width/2, y - height/2, clip);
-}
-
-/*
- * draws big center pip
- */
- 
-static void
-draw_center_pip(w, suit, x, y, clip)
-    CardsWidget	w;
-    CardsSuit	suit;
-    int	x,y;
-    XRectangle	*clip;
-{
-    UsualSuspects(w);
-    int	width, height;
-    CardGC(w,suit);
-    int	s = CardsSuitToInt(suit);
-
-    switch(suit)	
-    {
-    case CardsSpade:
-	width = trademark_width;
-	height = trademark_height;
-	break;
-    case CardsDiamond:
-	width = diamond_width;
-	height = diamond_height;
-	break;
-    case CardsHeart:
-	width = heart_width;
-	height = heart_height;
-	break;
-    case CardsClub:
-	width = club_width;
-	height = club_height;
-	break;
-    }
-    CheckCopyPlane(dpy, suit_lg_map[s], window, cardgc, 
-		   width, height, x - width/2, y - height/2, clip);
-}
-
-static void
-draw_eight_pips(w, suit, x, y, clip)
-    CardsWidget	w;
-    CardsSuit	suit;
-    int		x,y;
-    XRectangle	*clip;
-{
-    draw_pip(w, suit, x + CARD_COL1_X, y + CARD_ROW1_Y, clip);
-
-    draw_pip(w, suit, x + CARD_COL3_X, y + CARD_ROW1_Y, clip);
-
-    draw_pip(w, suit, x + CARD_COL1_X, y + CARD_ROW2_Y, clip);
-    draw_did(w, suit, x + CARD_COL1_X, y + CARD_ROW4_Y, clip);
-    draw_did(w, suit, x + CARD_COL1_X, y + CARD_ROW5_Y, clip);
-
-    draw_pip(w, suit, x + CARD_COL3_X, y + CARD_ROW2_Y, clip);
-    draw_did(w, suit, x + CARD_COL3_X, y + CARD_ROW4_Y, clip);
-    draw_did(w, suit, x + CARD_COL3_X, y + CARD_ROW5_Y, clip);
-}
-
-static void
-draw_jack(w, suit, x, y, clip)
-    CardsWidget	w;
-    CardsSuit	suit;
-    int		x,y;
-    XRectangle	*clip;
-{
-    UsualSuspects(w);
-    CardGC(w, suit);
-    int	s = CardsSuitToInt(suit);
-
-    CheckCopyPlane(dpy, jack_map[s], window, cardgc, 
-	       FACECARD_WIDTH, FACECARD_HEIGHT,
-	       x + (LARGE_CARD_WIDTH - FACECARD_WIDTH)/2, 
-	       y + (LARGE_CARD_HEIGHT - FACECARD_HEIGHT)/2, clip);
-
-    SetClip (dpy, cardgc, clip, hasp);
-    XDrawRectangle(dpy, window, cardgc,
-		   x + (LARGE_CARD_WIDTH - FACECARD_WIDTH)/2, 
-		   y + (LARGE_CARD_HEIGHT - FACECARD_HEIGHT)/2,
-		   FACECARD_WIDTH, FACECARD_HEIGHT);
-}
-
-static void
-draw_queen(w, suit, x, y, clip)
-    CardsWidget	w;
-    CardsSuit	suit;
-    int		x,y;
-    XRectangle	*clip;
-{
-    UsualSuspects(w);
-    CardGC(w, suit);
-    int	s = CardsSuitToInt(suit);
-    
-    CheckCopyPlane(dpy, queen_map[s], window, cardgc,
-	       FACECARD_WIDTH, FACECARD_HEIGHT,
-	       x + (LARGE_CARD_WIDTH - FACECARD_WIDTH)/2, 
-	       y + (LARGE_CARD_HEIGHT - FACECARD_HEIGHT)/2, clip);
-
-    SetClip (dpy, cardgc, clip, hasp);
-    XDrawRectangle(dpy, window, cardgc,
-		   x + (LARGE_CARD_WIDTH - FACECARD_WIDTH)/2, 
-		   y + (LARGE_CARD_HEIGHT - FACECARD_HEIGHT)/2,
-		   FACECARD_WIDTH, FACECARD_HEIGHT);
-}
-
-static void
-draw_king(w, suit, x, y, clip)
-    CardsWidget	w;
-    CardsSuit	suit;
-    int		x,y;
-    XRectangle	*clip;
-{
-    UsualSuspects(w);
-    CardGC(w, suit);
-    int	s = CardsSuitToInt(suit);
-	
-    CheckCopyPlane(dpy, king_map[s], window, cardgc,
-		   FACECARD_WIDTH, FACECARD_HEIGHT,
-		   x + (LARGE_CARD_WIDTH - FACECARD_WIDTH)/2, 
-		   y + (LARGE_CARD_HEIGHT - FACECARD_HEIGHT)/2, clip);
-
-    SetClip (dpy, cardgc, clip, hasp);
-    XDrawRectangle(dpy, window, cardgc,
-		   x + (LARGE_CARD_WIDTH - FACECARD_WIDTH)/2, 
-		   y + (LARGE_CARD_HEIGHT - FACECARD_HEIGHT)/2,
-		   FACECARD_WIDTH, FACECARD_HEIGHT);
-}
-
-static void
-draw_rank(w, x, y, rank, suit, clip)
-    CardsWidget	w;
-    int		x, y;
-    CardsRank	rank;
-    CardsSuit	suit;
-    XRectangle	*clip;
-{
-    UsualSuspects(w);
-    int	width, height;
-    int	r, s;
-    CardGC(w, suit);
-    Pixmap  top, bottom;
-
-    r = CardsRankToInt(rank);
-    s = CardsSuitToInt(suit);
-    if (suit == CardsHeart || suit == CardsDiamond)
-    {
-	top = rank_map_red[r];
-	bottom = rank_r_map_red[r];
-    }
-    else
-    {
-	top = rank_map[r];
-	bottom = rank_r_map[r];
-    }
-    CheckCopyPlane(dpy, top, window, cardgc,
-	       RANK_WIDTH, RANK_HEIGHT,
-	       x + RANK_LOC_X, y + RANK_LOC_Y, clip);
-
-    CheckCopyPlane(dpy, bottom, window, cardgc,
-	       RANK_WIDTH, RANK_HEIGHT,
-	       x + (LARGE_CARD_WIDTH - RANK_WIDTH - RANK_LOC_X), 
-	       y + (LARGE_CARD_HEIGHT - RANK_HEIGHT - RANK_LOC_Y), clip);
-    
-    switch (suit)	
-    {
-    case CardsSpade:
-	width = spade_sm_width;
-	height = spade_sm_height;
-	break;
-    case CardsHeart:
-	width = heart_sm_width;
-	height = heart_sm_height;
-	break;
-    case CardsDiamond:
-	x++;	/* offset the smaller width */
-	width = diamond_sm_width;
-	height = diamond_sm_height;
-	break;
-    case CardsClub:
-	width = club_sm_width;
-	height = club_sm_height;
-	break;
-    }
-    CheckCopyPlane(dpy, suit_sm_map[s], window, cardgc,
-	       width, height,
-	       x + SMALL_LOC_X, y + SMALL_LOC_Y, clip);
-
-    CheckCopyPlane(dpy, suit_sm_r_map[s], window, cardgc,
-	       width, height,
-	       x + (LARGE_CARD_WIDTH - width - SMALL_LOC_X), 
-	       y + (LARGE_CARD_HEIGHT - height - SMALL_LOC_Y), clip);
-}
-
-static void
-paint_small_card(w, x, y, rank, suit, clip)
-    CardsWidget	w;
-    int		x, y;
-    CardsRank	rank;
-    CardsSuit	suit;
-    XRectangle	*clip;
-{
-    UsualSuspects(w);
-    int	card_number;
-    GC	cardgc;
-    Boolean *hasp;
-
-    if (suit == CardsSpade || suit == CardsClub)
-    {
-	cardgc = w->cards.blackgc;
-	hasp = &w->cards.blackHasClip;
-    }
-    else if (w->cards.color) {
-	cardgc = w->cards.redgc;
-	hasp = &w->cards.redHasClip;
-    }
-    else
-    {
-	cardgc = w->cards.whitegc;
-	hasp = &w->cards.whiteHasClip;
-    }
-
-    /* this is messy cause these are just straight xsol cards */
-    switch (suit)	
-    {
-    case CardsSpade:
-	card_number = 3 * NUM_RANKS;
-	break;
-    case CardsHeart:
-	card_number = 0;
-	break;
-    case CardsClub:
-	card_number = 2 * NUM_RANKS;
-	break;
-    case CardsDiamond:
-	card_number = NUM_RANKS;
-	break;
-    }
-    card_number += CardsRankToInt (rank);
-
-    CheckCopyPlane(dpy, card_bitmaps[card_number], window, cardgc, 
-	       SMALL_CARD_WIDTH, SMALL_CARD_HEIGHT, x, y, clip);
-}
-
-static void
-paint_medium_card(w, x, y, rank, suit, clip)
-    CardsWidget	w;
-    int		x, y;
-    CardsRank	rank;
-    CardsSuit	suit;
-    XRectangle	*clip;
-{
-    UsualSuspects(w);
-    int	card_number;
-    GC	cardgc;
-    Boolean *hasp;
-
-    if (suit == CardsSpade || suit == CardsClub)
-    {
-	cardgc = w->cards.blackgc;
-	hasp = &w->cards.blackHasClip;
-    }
-    else if (w->cards.color) {
-	cardgc = w->cards.redgc;
-	hasp = &w->cards.redHasClip;
-    }
-    else
-    {
-	cardgc = w->cards.whitegc;
-	hasp = &w->cards.whiteHasClip;
-    }
-
-    switch (suit)	
-    {
-    case CardsSpade:
-	card_number = 3 * NUM_RANKS;
-	break;
-    case CardsHeart:
-	card_number = 2 * NUM_RANKS;
-	break;
-    case CardsDiamond:
-	card_number = NUM_RANKS;
-	break;
-    case CardsClub:
-	card_number = 0;
-	break;
-    }
-    card_number += CardsRankToInt (rank);
-
-    CheckCopyArea(dpy, medium_map[card_number], window, cardgc, 
-	       MEDIUM_CARD_WIDTH, MEDIUM_CARD_HEIGHT, x, y, clip);
+    SetClip (dpy, w->cards.redgc, (XRectangle *) 0, &w->cards.redHasClip);
+    SetClip (dpy, w->cards.blackgc, (XRectangle *) 0, &w->cards.blackHasClip);
+    SetClip (dpy, w->cards.whitegc, (XRectangle *) 0, &w->cards.whiteHasClip);
+    SetClip (dpy, w->cards.emptygc, (XRectangle *) 0, &w->cards.emptyHasClip);
+    SetClip (dpy, w->cards.backgc, (XRectangle *) 0, &w->cards.backHasClip);
 }
 
 static unsigned char _reverse_byte[0x100] = {
@@ -1634,9 +1523,7 @@ static unsigned char _reverse_byte[0x100] = {
 #define D(x,y) dst[(H-1-(y))*W+(x)]
 
 static void
-flip_bits(src, dst, W, H)
-    unsigned char   *src, *dst;
-    int		    W, H;
+flip_bits(unsigned char *src, unsigned char *dst, int W, int H)
 {
     int	x, y;
 
@@ -1649,9 +1536,7 @@ flip_bits(src, dst, W, H)
 }
 
 static void
-rot_180(src, dst, W, H)
-    unsigned char   *src, *dst;
-    int		    W, H;
+rot_180(unsigned char *src, unsigned char *dst, int W, int H)
 {
     int		    x, y;
     int		    width = W;
@@ -1671,10 +1556,59 @@ rot_180(src, dst, W, H)
 	for (x = 0; x < W*8; x++)	{
 	    bit = (*(dst + (x + (W*8 - width))/8 + y * W)
 		   & (1 << ((x + (W*8 - width)) % 8))) ? 1 : 0;
-	    *(new + x/8 + y*W) = (bit << (x%8)) | 
+	    *(new + x/8 + y*W) = (bit << (x%8)) |
 	    (*(new + x/8 + y*W) & ~(1 << (x%8)));
 	}
     }
     bcopy((char *)new, (char *)dst, W*H);
     free((char *)new);
 }
+
+CardsClassRec	cardsClassRec = {
+  { /* core fields */
+    /* superclass		*/	(WidgetClass) SuperClass,
+    /* class_name		*/	"Cards",
+    /* widget_size		*/	sizeof(CardsRec),
+    /* class_initialize		*/	ClassInitialize,
+    /* class_part_initialize	*/	NULL,
+    /* class_inited		*/	FALSE,
+    /* initialize		*/	Initialize,
+    /* initialize_hook		*/	NULL,
+    /* realize			*/	XtInheritRealize,
+    /* actions			*/	NULL,
+    /* num_actions		*/	0,
+    /* resources		*/	resources,
+    /* num_resources		*/	XtNumber(resources),
+    /* xrm_class		*/	NULLQUARK,
+    /* compress_motion		*/	TRUE,
+    /* compress_exposure	*/	TRUE,
+    /* compress_enterleave	*/	TRUE,
+    /* visible_interest		*/	FALSE,
+    /* destroy			*/	Destroy,
+    /* resize			*/	XtInheritResize,
+    /* expose			*/	XtInheritExpose,
+    /* set_values		*/	SetValues,
+    /* set_values_hook		*/	NULL,
+    /* set_values_almost	*/	NULL,
+    /* get_values_hook		*/	NULL,
+    /* accept_focus		*/	NULL,
+    /* version			*/	XtVersion,
+    /* callback_private		*/	NULL,
+    /* tm_table			*/	NULL,
+    /* query_geometry		*/	XtInheritQueryGeometry,
+    /* display_accelerator	*/	XtInheritDisplayAccelerator,
+    /* extension		*/	NULL
+  },
+  { /* simple fields */
+    /* change_sensitive		*/	XtInheritChangeSensitive,
+    /* extension		*/	NULL
+  },
+  { /* hand fields */
+    /* ignore                   */	0
+  },
+  { /* cards fields */
+    /* ignore			*/	0
+  },
+};
+
+WidgetClass cardsWidgetClass = (WidgetClass) &cardsClassRec;

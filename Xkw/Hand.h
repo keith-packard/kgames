@@ -78,6 +78,9 @@ HandReplaceCard (Widget gw, XtPointer card, XtPointer private, int offset);
 void
 HandRemoveAllCards (Widget gw);
 
+void
+HandUpdateDisplay (Widget gw);
+
 #define InsertRow -1
 #define InsertCol -1
 #define XkwHandDefaultOffset	-32767

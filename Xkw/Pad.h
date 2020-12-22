@@ -73,13 +73,13 @@ extern WidgetClass padWidgetClass;
 #define XkwPadBlink	    8
 #define XkwPadOutline	    16
 
-extern void XkwPadUpdate (/* Widget gw */);
-extern void XkwPadText (/* Widget gw, int row, int col, char *text, int len */);
-extern void XkwPadAttributes (/* Widget gw, int row, int col, char *attr, int len */);
-extern void XkwPadTextAndAttributes (/* Widget gw, int row, int col, char *text, char *attr, int len */);
-extern void XkwPadClearToEnd (/* Widget gw, int row, int col */);
-extern void XkwPadClear (/* Widget gw */);
-extern void XkwPadScroll (/* Widget gw, int start_row, int end_row, int dist */);
-extern void XkwPadXYToRowCol (/* Widget gw, int x, int y, int *rowp, int *colp */);
+extern void XkwPadUpdate (Widget gw);
+extern void XkwPadText (Widget gw, int row, int col, char *text, int len);
+extern void XkwPadAttributes (Widget gw, int row, int col, char *attr, int len);
+extern void XkwPadTextAndAttributes (Widget gw, int row, int col, char *text, char *attr, int len);
+extern void XkwPadClearToEnd (Widget gw, int row, int col);
+extern void XkwPadClear (Widget gw);
+extern void XkwPadScroll (Widget gw, int start_row, int end_row, int dist);
+extern void XkwPadXYToRowCol (Widget gw, int x, int y, int *rowp, int *colp);
 
 #endif /* _Pad_h */

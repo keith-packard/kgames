@@ -54,94 +54,20 @@ static XtResource resources[] = {
 
 #undef offset
 
-static void ClassInitialize(), Initialize();
-static void Resize();
-static Boolean SetValues();
-static XtGeometryResult GeometryManager();
-static void ChangeManaged();
-static void InsertChild();
-static XtGeometryResult QueryGeometry ();
-static Boolean ChildSetValues();
-static Widget Widg ();
-static void GetDesiredSize ();
-
-static void LayoutLayout ();
-static void LayoutGetNaturalSize ();
-static void LayoutFreeLayout ();
-
 #ifdef MOTIF
 #define SuperClass ((ConstraintWidgetClass)&xmManagerClassRec)
 #else
 #define SuperClass ((ConstraintWidgetClass)&constraintClassRec)
 #endif
 
-LayoutClassRec layoutClassRec = {
-   {
-/* core class fields */
-    /* superclass         */   (WidgetClass) SuperClass,
-    /* class name         */   "Layout",
-    /* size               */   sizeof(LayoutRec),
-    /* class_initialize   */   ClassInitialize,
-    /* class_part init    */   NULL,
-    /* class_inited       */   FALSE,
-    /* initialize         */   Initialize,
-    /* initialize_hook    */   NULL,
-    /* realize            */   XtInheritRealize,
-    /* actions            */   NULL,
-    /* num_actions        */   0,
-    /* resources          */   resources,
-    /* resource_count     */   XtNumber(resources),
-    /* xrm_class          */   NULLQUARK,
-    /* compress_motion    */   0,
-    /* compress_exposure  */   0,
-    /* compress_enterleave*/   0,
-    /* visible_interest   */   FALSE,
-    /* destroy            */   NULL,
-    /* resize             */   Resize,
-    /* expose             */   NULL,
-    /* set_values         */   SetValues,
-    /* set_values_hook    */   NULL,
-    /* set_values_almost  */   XtInheritSetValuesAlmost,
-    /* get_values_hook    */   NULL,
-    /* accept_focus       */   NULL,
-    /* version            */   XtVersion,
-    /* callback_private   */   NULL,
-    /* tm_table           */   NULL,
-    /* query_geometry	  */   QueryGeometry,
-    /* display_accelerator*/   XtInheritDisplayAccelerator,
-    /* extension          */   NULL
-   }, {
-/* composite class fields */
-    /* geometry_manager   */   GeometryManager,
-    /* change_managed     */   ChangeManaged,
-    /* insert_child       */   InsertChild,
-    /* delete_child       */   XtInheritDeleteChild,
-    /* extension          */   NULL
-   }, {
-/* constraint class fields */
-    /* subresources       */   NULL,
-    /* subresource_count  */   0,
-    /* constraint_size    */   sizeof(LayoutConstraintsRec),
-    /* initialize         */   NULL,
-    /* destroy            */   NULL,
-    /* set_values         */   NULL,
-    /* extension          */   NULL
-   },
-#ifdef MOTIF
-    /* manager class fields */
-    {
-	/* stolen from the one minute manager's Template.c */
-	XtInheritTranslations,                    /* translations          */
-	NULL,                                     /* syn_resources         */
-	0,                                        /* num_syn_resources     */
-	NULL,                                     /* syn_constraint_resources */
-	0,                                        /* num_syn_constraint_resources */    XmInheritParentProcess,                   /* parent_process        */
-	NULL,                                     /* extension             */
-   },
-#endif /* MOTIF */
-};
+static void
+LayoutFreeLayout (BoxPtr box);
 
-WidgetClass layoutWidgetClass = (WidgetClass) &layoutClassRec;
+static void
+LayoutLayout (LayoutWidget l, Bool attemptResize);
+
+static void
+LayoutGetNaturalSize (LayoutWidget l, Dimension *widthp, Dimension *heightp);
 
 /************************************************************
  *
@@ -157,13 +83,17 @@ WidgetClass layoutWidgetClass = (WidgetClass) &layoutClassRec;
 
 /*ARGSUSED*/
 static Boolean
-CvtStringToLayout (dpy, args, num_args, from, to, converter_data)
-    Display	*dpy;
-    XrmValue	*args;
-    Cardinal	*num_args;
-    XrmValue	*from, *to;
-    XtPointer	*converter_data;
+CvtStringToLayout (Display *dpy,
+		   XrmValue *args,
+		   Cardinal *num_args,
+		   XrmValue *from,
+		   XrmValue *to,
+		   XtPointer *converter_data)
 {
+    (void) dpy;
+    (void) args;
+    (void) num_args;
+    (void) converter_data;
     LayYYsetsource ((char *) from->addr);
     LayYYsetdest ((BoxPtr *) to->addr);
     if (LayYYparse () == 0)
@@ -172,36 +102,39 @@ CvtStringToLayout (dpy, args, num_args, from, to, converter_data)
 	return FALSE;
 }
 
-/*ARGSUSED*/
 static void
-DisposeLayout (app, to, data, args, num_args)
-    XtAppContext    app;
-    XrmValue	    *to;
-    XtPointer	    data;
-    XrmValuePtr	    args;
-    Cardinal	    *num_args;
+DisposeLayout (XtAppContext app,
+	       XrmValue *to,
+	       XtPointer data,
+	       XrmValuePtr args,
+	       Cardinal *num_args)
 {
+    (void) app;
+    (void) data;
+    (void) args;
+    (void) num_args;
     LayoutFreeLayout (* (LayoutPtr *) to->addr);
 }
 
 static void
-ClassInitialize()
+ClassInitialize(void)
 {
     XtSetTypeConverter ( XtRString, XtRLayout, CvtStringToLayout,
 		    NULL, (Cardinal)0, XtCacheNone,
  		    DisposeLayout );
 }
 
-/*ARGSUSED*/
-static XtGeometryResult GeometryManager(child, request, reply)
-    Widget		child;
-    XtWidgetGeometry	*request, *reply;
+static XtGeometryResult
+GeometryManager(Widget child,
+		XtWidgetGeometry *request,
+		XtWidgetGeometry *reply)
 {
     LayoutWidget    w = (LayoutWidget) XtParent(child);
     SubInfoPtr	    p = SubInfo(child);
     int		    bw;
     Bool	    changed, bwChanged;
 
+    (void) reply;
     bw = p->naturalBw;
     changed = FALSE;
     bwChanged = FALSE;
@@ -213,14 +146,14 @@ static XtGeometryResult GeometryManager(child, request, reply)
 	changed = TRUE;
 	bwChanged = TRUE;
     }
-    if (bwChanged || request->request_mode & CWWidth &&
-	request->width != child->core.width)
+    if (bwChanged || ((request->request_mode & CWWidth) &&
+		      request->width != child->core.width))
     {
 	p->naturalSize[LayoutHorizontal] = request->width + bw * 2;
 	changed = TRUE;
     }
-    if (bwChanged || request->request_mode & CWHeight &&
-	request->height != child->core.height)
+    if (bwChanged || ((request->request_mode & CWHeight) &&
+		      request->height != child->core.height))
     {
 	p->naturalSize[LayoutVertical] = request->height + bw * 2;
 	changed = TRUE;
@@ -248,27 +181,17 @@ static XtGeometryResult GeometryManager(child, request, reply)
     return XtGeometryDone;
 }
 
-/* ARGSUSED */
-static void Initialize(request, new)
-Widget request, new;
+static void
+Initialize(Widget request, Widget new, Arg *args, Cardinal *count)
 {
-/*    LayoutWidget w = (LayoutWidget)new; */
-}
-
-static void ChangeManaged(gw)
-   Widget gw;
-{
-    LayoutWidget	w = (LayoutWidget) gw;
-    Widget		*children;
-
-    ForAllChildren (w, children)
-	GetDesiredSize (*children);
-    LayoutLayout ((LayoutWidget) w, TRUE);
+    (void) request;
+    (void) new;
+    (void) args;
+    (void) count;
 }
 
 static void
-GetDesiredSize (child)
-    Widget  child;
+GetDesiredSize (Widget child)
 {
     XtWidgetGeometry	desired;
     SubInfoPtr		p;
@@ -281,47 +204,52 @@ GetDesiredSize (child)
     p->naturalSize[LayoutVertical] = desired.height + desired.border_width * 2;
 }
 
-static void InsertChild (child)
-    Widget  child;
+static void
+ChangeManaged(Widget gw)
 {
-    int		bw;
+    LayoutWidget	w = (LayoutWidget) gw;
+    Widget		*children;
 
+    ForAllChildren (w, children)
+	GetDesiredSize (*children);
+    LayoutLayout ((LayoutWidget) w, TRUE);
+}
+
+static void InsertChild (Widget child)
+{
     (*SuperClass->composite_class.insert_child) (child);
     GetDesiredSize (child);
 }
 
 static void
-Resize(gw)
-    Widget gw;
+Resize(Widget gw)
 {
     LayoutLayout ((LayoutWidget) gw, FALSE);
 }
 
-/* ARGSUSED */
 static Boolean
-SetValues(gold, greq, gnew)
-    Widget gold, greq, gnew;
+SetValues(Widget gold, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     LayoutWidget    old = (LayoutWidget) gold,
 		    req = (LayoutWidget) greq,
 		    new = (LayoutWidget) gnew;
-    Boolean	    refigure = FALSE;
 
+    (void) req;
+    (void) args;
+    (void) count;
     if (old->layout.layout != new->layout.layout)
 	LayoutLayout (new, TRUE);
     return FALSE;
 } /* SetValues */
 
 static XtGeometryResult
-QueryGeometry (gw, request, prefered_return)
-    Widget		gw;
-    XtWidgetGeometry	*request, *prefered_return;
+QueryGeometry (Widget gw, XtWidgetGeometry *request, XtWidgetGeometry *prefered_return)
 {
     LayoutWidget	w = (LayoutWidget) gw;
     XtGeometryResult	result;
     XtWidgetGeometry	prefered_size;
 
-    if (request && !(request->request_mode & CWWidth|CWHeight))
+    if (request && !(request->request_mode & (CWWidth|CWHeight)))
 	return XtGeometryYes;
     LayoutGetNaturalSize (w, &prefered_size.width, &prefered_size.height);
     prefered_return->request_mode = 0;
@@ -372,22 +300,20 @@ QueryGeometry (gw, request, prefered_return)
  */
 
 static void
-PrintGlue (g)
-    GlueRec g;
+PrintGlue (GlueRec g)
 {
     if (g.order == 0 || g.value != 1.0)
 	printf ("%g", g.value);
     if (g.order > 0)
     {
 	printf (" inf");
-	if (g.order > 1);
+	if (g.order > 1)
 	    printf (" %d", g.order);
     }
 }
 
 static void
-PrintDirection (dir)
-    LayoutDirection dir;
+PrintDirection (LayoutDirection dir)
 {
     switch (dir) {
     case LayoutHorizontal:
@@ -407,8 +333,7 @@ PrintDirection (dir)
 }
 
 static void
-TabTo(level)
-    int	level;
+TabTo(int level)
 {
     while (level--)
 	printf ("  ");
@@ -418,7 +343,6 @@ static void
 PrintBox (BoxPtr box, int level)
 {
     BoxPtr	child;
-    Widget	w;
 
     TabTo (level);
     switch (box->type) {
@@ -449,14 +373,12 @@ PrintBox (BoxPtr box, int level)
 	    PrintBox (child, level+1);
 }
 
-ExprPtr
-LookupVariable (child, quark)
-    BoxPtr	child;
-    XrmQuark	quark;
+static ExprPtr
+LookupVariable (BoxPtr child, XrmQuark quark)
 {
     BoxPtr	parent, box;
 
-    while (parent = child->parent)
+    while ((parent = child->parent))
     {
 	for (box = parent->u.box.firstChild;
 	     box != child;
@@ -471,11 +393,7 @@ LookupVariable (child, quark)
 }
 
 static double
-Evaluate (l, box, expr, natural)
-    LayoutWidget    l;
-    BoxPtr	    box;
-    ExprPtr	    expr;
-    double	    natural;
+Evaluate (LayoutWidget l, BoxPtr box, ExprPtr expr, double natural)
 {
     double	left, right, down;
     Widget	widget;
@@ -506,6 +424,8 @@ Evaluate (l, box, expr, natural)
 	    if (right > left)
 		return right;
 	    return left;
+	default:
+	    return left;
 	}
     case Unary:
 	down = Evaluate (l, box, expr->u.unary.down, natural);
@@ -516,6 +436,10 @@ Evaluate (l, box, expr, natural)
 	    return -down;
 	case Minimum:
 	case Maximum:
+	    return down;
+	case Plus:
+	    return down;
+	default:
 	    return down;
 	}
     case Width:
@@ -541,12 +465,13 @@ Evaluate (l, box, expr, natural)
 	    return 0.0;
 	}
 	return Evaluate (l, box, expr, natural);
+    default:
+	return 0.0;
     }
 }
 
 static void
-DisposeExpr (expr)
-    ExprPtr expr;
+DisposeExpr (ExprPtr expr)
 {
     if (!expr)
 	return;
@@ -564,7 +489,8 @@ DisposeExpr (expr)
 	break;
     case Height:
 	break;
-
+    default:
+	break;
     }
     Dispose (expr);
 }
@@ -586,17 +512,12 @@ DisposeExpr (expr)
 
 /* compute the natural sizes of a box */
 static void
-ComputeNaturalSizes (l, box, dir)
-    LayoutWidget    l;
-    BoxPtr	    box;
-    LayoutDirection dir;
+ComputeNaturalSizes (LayoutWidget l, BoxPtr box, LayoutDirection dir)
 {
     BoxPtr	child;
     Widget	w;
     SubInfoPtr	info;
     int		minStretchOrder, minShrinkOrder;
-    int		shrinkSize;
-    int		stretchSize;
     LayoutDirection thisDir;
 
     switch (box->type) {
@@ -757,6 +678,11 @@ ComputeNaturalSizes (l, box, dir)
 		}
 	    }
 	}
+	break;
+    case VariableBox:
+	box->natural[LayoutHorizontal] = 0;
+	box->natural[LayoutVertical] = 0;
+	break;
     }
 }
 
@@ -766,27 +692,25 @@ ComputeNaturalSizes (l, box, dir)
 					((dist >= 0) ? 0.5 : -0.5))) : 0)
 
 static Bool
-ComputeSizes (box)
-    BoxPtr	    box;
+ComputeSizes (BoxPtr box)
 {
     LayoutDirection dir;
     BoxPtr	    child;
     GlueRec	    stretch;
     GlueRec	    shrink;
     GlueRec	    totalGlue[2];
-    double	    remainingGlue;
+    double	    remainingGlue = 0.0;
     GluePtr	    glue;
-    int		    base;
     int		    size;
     int		    totalSizes;
     int		    finalSize[2];
     int		    totalChange[2];
     int		    change;
-    int		    remainingChange;
-    Bool	    shrinking;
+    int		    remainingChange = 0;
+    Bool	    shrinking = 0;
     Bool	    happy;
     int		    i;
-    int		    maxGlue;
+    int		    maxGlue = 0;
 
     happy = True;
     for (dir = LayoutHorizontal; dir <= LayoutVertical; dir++)
@@ -927,9 +851,7 @@ ComputeSizes (box)
 }
 
 static void
-SetSizes (box, x, y)
-    BoxPtr	box;
-    Position	x, y;
+SetSizes (BoxPtr box, Position x, Position y)
 {
     BoxPtr	child;
     int		width, height;
@@ -974,16 +896,19 @@ SetSizes (box, x, y)
 		y += child->size[LayoutVertical];
 	}
 	break;
+    case VariableBox:
+	break;
     }
 }
 
 static void
-LayoutFreeLayout (box)
-    BoxPtr  box;
+LayoutFreeLayout (BoxPtr box)
 {
     BoxPtr  child, next;
 
     switch (box->type) {
+    default:
+	break;
     case BoxBox:
 	for (child = box->u.box.firstChild; child; child = next)
 	{
@@ -1005,13 +930,9 @@ LayoutFreeLayout (box)
 
 
 static void
-LayoutGetNaturalSize (l, widthp, heightp)
-    LayoutWidget    l;
-    Dimension	    *widthp, *heightp;
+LayoutGetNaturalSize (LayoutWidget l, Dimension *widthp, Dimension *heightp)
 {
     BoxPtr		box;
-    Widget		child, *children;
-    XtWidgetGeometry	desired;
 
     box = l->layout.layout;
     if (box)
@@ -1028,12 +949,9 @@ LayoutGetNaturalSize (l, widthp, heightp)
 }
 
 static void
-LayoutLayout (l, attemptResize)
-    LayoutWidget    l;
-    Bool	    attemptResize;
+LayoutLayout (LayoutWidget l, Bool attemptResize)
 {
     BoxPtr		box;
-    Dimension		width, height;
     Dimension		prefered_width, prefered_height;
 
     box = l->layout.layout;
@@ -1073,3 +991,76 @@ LayoutLayout (l, attemptResize)
     if (l->layout.debug)
 	printf ("Layout widget done with %s\n", XtName((Widget) l));
 }
+
+LayoutClassRec layoutClassRec = {
+   {
+/* core class fields */
+    /* superclass         */   (WidgetClass) SuperClass,
+    /* class name         */   "Layout",
+    /* size               */   sizeof(LayoutRec),
+    /* class_initialize   */   ClassInitialize,
+    /* class_part init    */   NULL,
+    /* class_inited       */   FALSE,
+    /* initialize         */   Initialize,
+    /* initialize_hook    */   NULL,
+    /* realize            */   XtInheritRealize,
+    /* actions            */   NULL,
+    /* num_actions        */   0,
+    /* resources          */   resources,
+    /* resource_count     */   XtNumber(resources),
+    /* xrm_class          */   NULLQUARK,
+    /* compress_motion    */   0,
+    /* compress_exposure  */   0,
+    /* compress_enterleave*/   0,
+    /* visible_interest   */   FALSE,
+    /* destroy            */   NULL,
+    /* resize             */   Resize,
+    /* expose             */   NULL,
+    /* set_values         */   SetValues,
+    /* set_values_hook    */   NULL,
+    /* set_values_almost  */   XtInheritSetValuesAlmost,
+    /* get_values_hook    */   NULL,
+    /* accept_focus       */   NULL,
+    /* version            */   XtVersion,
+    /* callback_private   */   NULL,
+    /* tm_table           */   NULL,
+    /* query_geometry	  */   QueryGeometry,
+    /* display_accelerator*/   XtInheritDisplayAccelerator,
+    /* extension          */   NULL
+   }, {
+/* composite class fields */
+    /* geometry_manager   */   GeometryManager,
+    /* change_managed     */   ChangeManaged,
+    /* insert_child       */   InsertChild,
+    /* delete_child       */   XtInheritDeleteChild,
+    /* extension          */   NULL
+   }, {
+/* constraint class fields */
+    /* subresources       */   NULL,
+    /* subresource_count  */   0,
+    /* constraint_size    */   sizeof(LayoutConstraintsRec),
+    /* initialize         */   NULL,
+    /* destroy            */   NULL,
+    /* set_values         */   NULL,
+    /* extension          */   NULL
+   },
+#ifdef MOTIF
+    /* manager class fields */
+    {
+	/* stolen from the one minute manager's Template.c */
+	XtInheritTranslations,                    /* translations          */
+	NULL,                                     /* syn_resources         */
+	0,                                        /* num_syn_resources     */
+	NULL,                                     /* syn_constraint_resources */
+	0,                                        /* num_syn_constraint_resources */    XmInheritParentProcess,                   /* parent_process        */
+	NULL,                                     /* extension             */
+   },
+#endif /* MOTIF */
+    /* layout class fields */
+    {
+	0
+    },
+};
+
+WidgetClass layoutWidgetClass = (WidgetClass) &layoutClassRec;
+

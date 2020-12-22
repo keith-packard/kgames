@@ -42,3 +42,22 @@ SuitCardsInit (SuitCardsPtr	s,
 	       int		row,
 	       int		col,
 	       CardDisplay	display);
+
+void
+SuitCardsDisplay (SuitCardsPtr s);
+
+void
+SuitCardsMove (SuitCardsPtr	from_suit,
+	       CardPtr	    	card,
+	       SuitCardsPtr	to_suit,
+	       Boolean		remember);
+
+void
+SuitCardsMoveToStack (SuitCardsPtr	from_suit,
+		      CardPtr		card,
+		      CardStackPtr	to_stack,
+		      CardPtr		to_card,
+		      Boolean		remember);
+
+CardPtr
+SuitCardsHandInputToCard (SuitCardsPtr s, HandInputPtr input);

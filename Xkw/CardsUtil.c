@@ -1,6 +1,4 @@
 /*
- * $NCD$
- *
  * Copyright 1992 Network Computing Devices
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -17,7 +15,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
@@ -34,7 +32,7 @@
 typedef struct _CardHistory	*CardHistoryPtr;
 
 typedef enum {
-    HistoryMove, HistoryTurn, HistoryCallback, HistoryShuffle 
+    HistoryMove, HistoryTurn, HistoryCallback, HistoryShuffle
 } CardHistoryType;
 
 typedef struct _CardHistory {
@@ -54,8 +52,8 @@ typedef struct _CardHistory {
 	    CardPtr	    last;
 	} move;
 	struct {
-	    void    	    (*func)();
-	    char	    *closure;
+	    void    	    (*func)(void *closure);
+	    void	    *closure;
 	} callback;
 	struct {
 	    CardStackPtr    stack;
@@ -70,13 +68,12 @@ static int		historySerial;
 static Boolean		canAnimate = True;
 
 static void
-SetShoulds (stack)
-    CardStackPtr    stack;
+SetShoulds (CardStackPtr stack)
 {
     CardPtr card;
     if (!stack->first)
 	return;
-    
+
     switch (stack->display) {
     case CardDisplayTop:
 	card = stack->last;
@@ -98,26 +95,25 @@ SetShoulds (stack)
 	for (card = stack->first; card; card = card->next)
 	    card->shouldBeUp = False;
 	break;
+    default:
+	break;
     }
 }
 
 static void
-DisplayCards (stack, c)
-    CardStackPtr    stack;
-    CardPtr	    c;
+DisplayCards (CardStackPtr stack, CardPtr c)
 {
-    int		    row, col;
+    int		    row = 0, col = 0;
     int		    pos;
     CardsSuit	    suit;
     Boolean	    animated = !canAnimate;
-    int		    mode;
-    
+
     if (stack->horizontal)
 	row = stack->position;
     else
 	col = stack->position;
     pos = stack->basePosition;;
-    while (c) 
+    while (c)
     {
 	if (stack->horizontal)
 	    col = pos;
@@ -127,7 +123,7 @@ DisplayCards (stack, c)
 	    suit = CardsBack;
 	else
 	    suit = c->card.suit;
-	if (c->isUp && c->shouldBeUp && 
+	if (c->isUp && c->shouldBeUp &&
 	    c->widget == stack->widget &&
 	    row == c->row && col == c->col && c->data)
 	{
@@ -157,7 +153,6 @@ DisplayCards (stack, c)
 		c->row = row;
 		c->col = col;
 		c->widget = stack->widget;
-		mode = Below;
 		c->data = CardsAddCard (c->widget, &c->display, row, col);
 	    }
 	    c->isUp = c->shouldBeUp;
@@ -169,25 +164,22 @@ DisplayCards (stack, c)
 }
 
 Boolean
-CardIsInOrder (a, b)
-    CardPtr	a, b;
+CardIsInOrder (CardPtr a, CardPtr b)
 {
     return a->face == b->face &&
            a->card.rank + 1 == b->card.rank;
 }
 
 Boolean
-CardIsInSuitOrder (a, b)
-    CardPtr	a, b;
+CardIsInSuitOrder (CardPtr a, CardPtr b)
 {
     return a->face == b->face &&
-	   a->card.suit == b->card.suit && 
+	   a->card.suit == b->card.suit &&
 	   CardIsInOrder (a, b);
 }
 
 CardPtr
-CardInSuitOrder (card)
-    CardPtr	card;
+CardInSuitOrder (CardPtr card)
 {
     while (card->next && CardIsInSuitOrder (card->next, card))
 	card = card->next;
@@ -195,17 +187,15 @@ CardInSuitOrder (card)
 }
 
 CardPtr
-CardInOrder (card)
-    CardPtr	card;
+CardInOrder (CardPtr card)
 {
     while (card->next && CardIsInOrder (card->next, card))
 	card = card->next;
     return card;
 }
-    
+
 CardPtr
-CardInReverseSuitOrder (card)
-    CardPtr	card;
+CardInReverseSuitOrder (CardPtr card)
 {
     while (card->prev && CardIsInSuitOrder (card, card->prev))
 	card = card->prev;
@@ -213,8 +203,7 @@ CardInReverseSuitOrder (card)
 }
 
 CardPtr
-CardInReverseOrder (card)
-    CardPtr	card;
+CardInReverseOrder (CardPtr card)
 {
     while (card->prev && CardIsInOrder (card, card->prev))
 	card = card->prev;
@@ -222,24 +211,21 @@ CardInReverseOrder (card)
 }
 
 static Boolean
-IsAlternateSuit (a, b)
-    CardsSuit	a, b;
+IsAlternateSuit (CardsSuit a, CardsSuit b)
 {
-    return (a == CardsSpade || a == CardsClub) ^ 
+    return (a == CardsSpade || a == CardsClub) ^
 	   (b == CardsSpade || b == CardsClub);
 }
 
 Boolean
-CardIsInAlternatingSuitOrder (a, b)
-    CardPtr a, b;
+CardIsInAlternatingSuitOrder (CardPtr a, CardPtr b)
 {
-    return CardIsInOrder (a,b) && 
+    return CardIsInOrder (a,b) &&
 	   IsAlternateSuit (a->card.suit, b->card.suit);
 }
 
 CardPtr
-CardInAlternatingSuitOrder (card)
-    CardPtr card;
+CardInAlternatingSuitOrder (CardPtr card)
 {
     while (card->next && CardIsInAlternatingSuitOrder (card->next, card))
 	card = card->next;
@@ -247,8 +233,7 @@ CardInAlternatingSuitOrder (card)
 }
 
 CardPtr
-CardInReverseAlternatingSuitOrder (card)
-    CardPtr card;
+CardInReverseAlternatingSuitOrder (CardPtr card)
 {
     while (card->prev && CardIsInAlternatingSuitOrder (card, card->prev))
 	card = card->prev;
@@ -256,17 +241,15 @@ CardInReverseAlternatingSuitOrder (card)
 }
 
 void
-CardSetAnimate (animate)
-    Boolean animate;
+CardSetAnimate (Boolean animate)
 {
     canAnimate = animate;
 }
 
 void
-CardDisplayStack (stack)
-    CardStackPtr    stack;
+CardDisplayStack (CardStackPtr stack)
 {
-    stack->empty.shouldBeUp = stack->first || 
+    stack->empty.shouldBeUp = stack->first ||
 			stack->empty.card.suit == CardsNone ? False : True;
     SetShoulds (stack);
     DisplayCards (stack, stack->first);
@@ -274,15 +257,12 @@ CardDisplayStack (stack)
 }
 
 void
-CardTurn (card, face, remember)
-    CardPtr	card;
-    CardFace	face;
-    Boolean	remember;
+CardTurn (CardPtr card, CardFace face, Boolean remember)
 {
     if (remember)
     {
 	CardHistoryPtr	h = New(CardHistoryRec);
-	
+
 	h->u.turn.card = card;
 	h->u.turn.face = card->face;
 	h->type = HistoryTurn;
@@ -294,20 +274,17 @@ CardTurn (card, face, remember)
     card->face = face;
 }
 
-void 
-CardMove (from_stack, from_card, to_stack, remember)
-    CardStackPtr    from_stack;
-    CardPtr	    from_card;
-    CardStackPtr    to_stack;
-    Boolean	    remember;
+void
+CardMove (CardStackPtr    from_stack,
+	  CardPtr	    from_card,
+	  CardStackPtr    to_stack,
+	  Boolean	    remember)
 {
     CardMoveCards (from_stack, from_card, from_stack->last, to_stack, to_stack->last, remember);
 }
 
 static void
-RemoveStack (stack, first, last)
-    CardStackPtr    stack;
-    CardPtr	    first, last;
+RemoveStack (CardStackPtr stack, CardPtr first, CardPtr last)
 {
     if (first->prev)
 	first->prev->next = last->next;
@@ -322,12 +299,8 @@ RemoveStack (stack, first, last)
 }
 
 static void
-AddStack (stack, first, last, before)
-    CardStackPtr    stack;
-    CardPtr	    first, last, before;
+AddStack (CardStackPtr stack, CardPtr first, CardPtr last, CardPtr before)
 {
-    CardPtr after;
-    
     first->prev = before;
     if (before)
     {
@@ -346,12 +319,13 @@ AddStack (stack, first, last, before)
 }
 
 void
-CardMoveCards (from_stack, first_card, last_card, to_stack, to_card, remember)
-    CardStackPtr    from_stack;
-    CardPtr	    first_card, last_card;
-    CardStackPtr    to_stack;
-    CardPtr	    to_card;
-    Boolean	    remember;
+CardMoveCards (
+	CardStackPtr    from_stack,
+	CardPtr		first_card,
+	CardPtr		last_card,
+	CardStackPtr    to_stack,
+	CardPtr	    	to_card,
+	Boolean	    	remember)
 {
     if (remember)
     {
@@ -372,13 +346,12 @@ CardMoveCards (from_stack, first_card, last_card, to_stack, to_card, remember)
 }
 
 void
-CardInitStack (stack, widget, emptySuit, horizontal, position, display)
-    CardStackPtr    stack;
-    Widget	    widget;
-    CardsSuit	    emptySuit;
-    Boolean	    horizontal;
-    int		    position;
-    CardDisplay	    display;
+CardInitStack (CardStackPtr stack,
+	       Widget widget,
+	       CardsSuit emptySuit,
+	       Boolean horizontal,
+	       int position,
+	       CardDisplay display)
 {
     CardPtr   empty;
 
@@ -403,15 +376,14 @@ CardInitStack (stack, widget, emptySuit, horizontal, position, display)
 }
 
 void
-CardGenerateStandardDeck (card)
-    CardPtr	card;
+CardGenerateStandardDeck (CardPtr card)
 {
     CardsSuit	suit;
     CardsRank	rank;
 
-    for (suit = CardsClub; suit <= CardsSpade; suit++) 
+    for (suit = CardsClub; suit <= CardsSpade; suit++)
     {
-	for (rank = CardsAce; rank <= CardsKing; rank++) 
+	for (rank = CardsAce; rank <= CardsKing; rank++)
 	{
 	    card->next = card + 1;
 	    card->prev = card - 1;
@@ -427,18 +399,6 @@ CardGenerateStandardDeck (card)
     }
     card[-1].next = 0;
     card[-52].prev = 0;
-}
-
-typedef struct _CardShuffle {
-    int		value;
-    CardPtr	card;
-} CardShuffleRec, *CardShufflePtr;
-
-static int
-ShuffleCompare (a,b)
-    CardShufflePtr  a,b;
-{
-    return a->value - b->value;
 }
 
 int
@@ -472,16 +432,14 @@ CardRandom (void)
 }
 
 void
-CardShuffle (stack, remember)
-    CardStackPtr    stack;
-    Boolean	    remember;
+CardShuffle (CardStackPtr stack, Boolean remember)
 {
     CardPtr	    card, *save;
     int		    numCards;
     CardPtr	    *shuffle, *shuf;
     int		    i;
     int		    r;
-    
+
     numCards = 0;
     for (card = stack->first; card; card = card->next)
 	++numCards;
@@ -489,7 +447,7 @@ CardShuffle (stack, remember)
     if (remember)
     {
 	CardHistoryPtr	h = New(CardHistoryRec);
-	
+
 	h->u.shuffle.stack = stack;
 	h->u.shuffle.cards = Some (CardPtr, numCards);
 	h->u.shuffle.numCards = numCards;
@@ -535,10 +493,7 @@ CardShuffle (stack, remember)
 }
 
 static void
-Unshuffle (stack, cards, numCards)
-    CardStackPtr    stack;
-    CardPtr	    *cards;
-    int		    numCards;
+Unshuffle (CardStackPtr stack, CardPtr *cards, int numCards)
 {
     int	    i;
 
@@ -572,12 +527,10 @@ CardInitHistory ()
 }
 
 void
-CardRecordHistoryCallback (func, closure)
-    void    (*func) ();
-    char    *closure;
+CardRecordHistoryCallback (void (*func)(void *closure), void *closure)
 {
     CardHistoryPtr	h = New(CardHistoryRec);
-    
+
     h->u.callback.func = func;
     h->u.callback.closure = closure;
     h->type = HistoryCallback;
@@ -598,7 +551,7 @@ CardUndo ()
     for (h = history; h && h->serial == serial; h = p)
     {
 	p = h->prev;
-	    
+
 	switch (h->type)
 	{
 	case HistoryMove:

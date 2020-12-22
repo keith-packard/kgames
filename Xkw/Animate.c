@@ -245,6 +245,7 @@ compute_position (Widget w, int row, int col, Widget animate, int *xp, int *yp)
     Position	x, y;
     Arg		args[2];
 
+    (void) animate;
     HandRectangleForPos (w, row, col, &r);
     XtSetArg (args[0], XtNx, &x);
     XtSetArg (args[1], XtNy, &y);

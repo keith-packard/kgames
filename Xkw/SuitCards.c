@@ -45,6 +45,7 @@ SuitCardsInit (SuitCardsPtr	s,
     CardsSuit	    suit;
     CardStackPtr    stack;
 
+    (void) under;
     if (horizontal)
     {
 	position = col;
@@ -58,10 +59,9 @@ SuitCardsInit (SuitCardsPtr	s,
     for (suit = CardsClub; suit <= CardsSpade; suit++)
     {
 	stack = &s->suits[CardsSuitToInt(suit)];
-	CardInitStack (stack, under, widget, emptySuit, 
+	CardInitStack (stack, widget, emptySuit,
 		       !horizontal, position, display);
 	stack->basePosition = basePosition;
-	under = stack;
 	position++;
     }
     s->aceHigh = True;
@@ -73,9 +73,9 @@ SuitRankGreater (CardsRank a, CardsRank b, Boolean aceHigh)
     if (a == b)
 	return False;
     if (a == CardsAce)
-	return True;
+	return aceHigh;
     if (b == CardsAce)
-	return False;
+	return !aceHigh;
     return a > b;
 }
 
@@ -142,9 +142,7 @@ SuitCardsDisplay (SuitCardsPtr s)
 }
 
 CardPtr
-SuitCardsHandInputToCard (s, input)
-    SuitCardsPtr    s;
-    HandInputPtr    input;
+SuitCardsHandInputToCard (SuitCardsPtr s, HandInputPtr input)
 {
     CardsSuit	    suit;
     int		    suitPosition;

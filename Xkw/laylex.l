@@ -123,7 +123,9 @@ void
 yyerror(char *s)
 {
     char    *t;
-    
+
+    (void) input;
+    (void) yyunput;
     fprintf (stderr, "%s\n", s);
     t = yysource - 50;
     if (t < yysourcebase)

@@ -66,57 +66,8 @@ static XtResource resources[] = {
 #undef offset
 };
 
-static void	Initialize(), Destroy (), Redisplay ();
-static Boolean	SetValues ();
-
-ThermoClassRec thermoClassRec = {
-  { /* core fields */
-    /* superclass		*/	(WidgetClass) &widgetClassRec,
-    /* class_name		*/	"Thermo",
-    /* widget_size		*/	sizeof(ThermoRec),
-    /* class_initialize		*/	NULL,
-    /* class_part_initialize	*/	NULL,
-    /* class_inited		*/	FALSE,
-    /* initialize		*/	Initialize,
-    /* initialize_hook		*/	NULL,
-    /* realize			*/	XtInheritRealize,
-    /* actions			*/	NULL,
-    /* num_actions		*/	0,
-    /* resources		*/	resources,
-    /* num_resources		*/	XtNumber(resources),
-    /* xrm_class		*/	NULLQUARK,
-    /* compress_motion		*/	TRUE,
-    /* compress_exposure	*/	TRUE,
-    /* compress_enterleave	*/	TRUE,
-    /* visible_interest		*/	FALSE,
-    /* destroy			*/	Destroy,
-    /* resize			*/	NULL,
-    /* expose			*/	Redisplay,
-    /* set_values		*/	SetValues,
-    /* set_values_hook		*/	NULL,
-    /* set_values_almost	*/	XtInheritSetValuesAlmost,
-    /* get_values_hook		*/	NULL,
-    /* accept_focus		*/	NULL,
-    /* version			*/	XtVersion,
-    /* callback_private		*/	NULL,
-    /* tm_table			*/	NULL,
-    /* query_geometry		*/	XtInheritQueryGeometry,
-    /* display_accelerator	*/	XtInheritDisplayAccelerator,
-    /* extension		*/	NULL
-  },
-  { /* simple fields */
-    /* empty			*/	0
-  },
-  { /* thermo fields */
-    /* empty			*/	0
-  }
-};
-
-WidgetClass thermoWidgetClass = (WidgetClass)&thermoClassRec;
-
 static int
-NumberLength (n)
-    int	n;
+NumberLength (int n)
 {
     int	l;
     if (n < 0)
@@ -131,9 +82,7 @@ NumberLength (n)
 }
 
 static void
-getSize (w, widthp, heightp)
-    ThermoWidget    w;
-    Dimension	    *widthp, *heightp;
+getSize (ThermoWidget w, Dimension *widthp, Dimension *heightp)
 {
     int	size;
 
@@ -157,8 +106,7 @@ getSize (w, widthp, heightp)
 }
 
 static int
-NiceValue (num, den)
-    int	num, den;
+NiceValue (int num, int den)
 {
     int	v;
     int	l;
@@ -190,8 +138,7 @@ NiceValue (num, den)
 }
 
 static void
-setDefaults (req, new)
-    ThermoWidget    req, new;
+setDefaults (ThermoWidget req, ThermoWidget new)
 {
     int	minTextLen, maxTextLen;
 
@@ -246,13 +193,15 @@ setDefaults (req, new)
 	new->thermo.minorTickLen = req->thermo.reqMinorTickLen;
 }
 
-static void Initialize (greq, gnew)
-    Widget  greq, gnew;
+static void
+Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     ThermoWidget	req = (ThermoWidget) greq,
 			new = (ThermoWidget) gnew;
     XGCValues		gcv;
 
+    (void) args;
+    (void) count;
     setDefaults (req, new);
     getSize (new, &new->core.width, &new->core.height);
     gcv.foreground = new->thermo.mercuryColor;
@@ -265,8 +214,7 @@ static void Initialize (greq, gnew)
 }
 
 static void
-Destroy (gw)
-    Widget  gw;
+Destroy (Widget gw)
 {
     ThermoWidget    w = (ThermoWidget) gw;
 
@@ -375,6 +323,8 @@ Redisplay (Widget  gw,
     ThermoWidget    w = (ThermoWidget) gw;
     int		    v;
 
+    (void) event;
+    (void) region;
     drawMercury (w, w->thermo.minimum, w->thermo.current);
     for (v = w->thermo.minorStart; v <= w->thermo.maximum; v += w->thermo.minorStep)
 	drawTick (w, v, w->thermo.minorTickLen);
@@ -386,7 +336,7 @@ Redisplay (Widget  gw,
 }
 
 static Boolean
-SetValues (Widget gcur, Widget greq, Widget gnew)
+SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     ThermoWidget    cur = (ThermoWidget) gcur,
 		    req = (ThermoWidget) greq,
@@ -395,6 +345,8 @@ SetValues (Widget gcur, Widget greq, Widget gnew)
     Boolean	    redraw = FALSE;
     Dimension	    width, height;
 
+    (void) args;
+    (void) count;
     if (req->thermo.mercuryColor != cur->thermo.mercuryColor)
     {
 	XtReleaseGC (gcur, cur->thermo.mercuryGC);
@@ -442,3 +394,49 @@ SetValues (Widget gcur, Widget greq, Widget gnew)
     }
     return redraw;
 }
+
+ThermoClassRec thermoClassRec = {
+  { /* core fields */
+    /* superclass		*/	(WidgetClass) &widgetClassRec,
+    /* class_name		*/	"Thermo",
+    /* widget_size		*/	sizeof(ThermoRec),
+    /* class_initialize		*/	NULL,
+    /* class_part_initialize	*/	NULL,
+    /* class_inited		*/	FALSE,
+    /* initialize		*/	Initialize,
+    /* initialize_hook		*/	NULL,
+    /* realize			*/	XtInheritRealize,
+    /* actions			*/	NULL,
+    /* num_actions		*/	0,
+    /* resources		*/	resources,
+    /* num_resources		*/	XtNumber(resources),
+    /* xrm_class		*/	NULLQUARK,
+    /* compress_motion		*/	TRUE,
+    /* compress_exposure	*/	TRUE,
+    /* compress_enterleave	*/	TRUE,
+    /* visible_interest		*/	FALSE,
+    /* destroy			*/	Destroy,
+    /* resize			*/	NULL,
+    /* expose			*/	Redisplay,
+    /* set_values		*/	SetValues,
+    /* set_values_hook		*/	NULL,
+    /* set_values_almost	*/	XtInheritSetValuesAlmost,
+    /* get_values_hook		*/	NULL,
+    /* accept_focus		*/	NULL,
+    /* version			*/	XtVersion,
+    /* callback_private		*/	NULL,
+    /* tm_table			*/	NULL,
+    /* query_geometry		*/	XtInheritQueryGeometry,
+    /* display_accelerator	*/	XtInheritDisplayAccelerator,
+    /* extension		*/	NULL
+  },
+  { /* simple fields */
+    /* empty			*/	0
+  },
+  { /* thermo fields */
+    /* empty			*/	0
+  }
+};
+
+WidgetClass thermoWidgetClass = (WidgetClass)&thermoClassRec;
+

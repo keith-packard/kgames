@@ -68,8 +68,17 @@ typedef struct {
 
 /* define exposed functions */
 
-extern XtPointer    CardsAddCard(/* Widget, CardsCardPtr, int row, int col */);
-extern void	    CardsReplaceCard(/* Widget, XtPointer, CardsCardPtr */);
+XtPointer
+CardsAddCard(Widget, CardsCardPtr, int row, int col);
+
+void
+CardsReplaceCard(Widget, XtPointer, CardsCardPtr);
+
+char *
+CardsRankName (CardsRank r);
+
+char *
+CardsSuitName (CardsSuit s);
 
 /* Add aliases to stuff which is simply inherited from the Hand widget */
 
