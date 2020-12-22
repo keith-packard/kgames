@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
@@ -28,21 +28,17 @@
 
 
 static void
-WriteIndent (file, level)
-    FILE    *file;
-    int	    level;
+WriteIndent (FILE *file, int level)
 {
     while (level--)
 	putc (' ', file);
 }
 
 static void
-WriteDomino (file, d, level)
-    FILE	*file;
-    DominoPtr	d;
+WriteDomino (FILE *file, DominoPtr d, int level)
 {
     Direction	dir;
-    
+
     WriteIndent (file, level);
     fprintf (file, "(");
     if (d)
@@ -56,10 +52,9 @@ WriteDomino (file, d, level)
     }
     fprintf (file, ")\n");
 }
-	     
-WriteDominos (file, d)
-    FILE	*file;
-    DominoPtr	d;
+
+void
+WriteDominos (FILE *file, DominoPtr d)
 {
     WriteDomino (file, d, 0);
 }
@@ -79,7 +74,7 @@ static char DominoToken[MAX_TOKEN];
 int	    DominoErrno;
 
 static void
-syntax ()
+syntax (void)
 {
     if (!DominoErrno)
 	FileError ("Syntax error in file");
@@ -87,8 +82,7 @@ syntax ()
 }
 
 static int
-LexDomino (file)
-    FILE    *file;
+LexDomino (FILE *file)
 {
     int	    c;
     int	    state = STATE_BEGIN;
@@ -126,6 +120,7 @@ LexDomino (file)
 	    case '\t':
 	    case '\n':
 		ungetc (c, file);
+		/* fall through */
 	    case EOF:
 		*tokenp = '\0';
 		return TOKEN_NUMBER;
@@ -147,8 +142,7 @@ LexDomino (file)
 }
 
 static DominoPtr
-ReadDomino (file)
-    FILE    *file;
+ReadDomino (FILE *file)
 {
     DominoPtr	d = 0;
     Direction	dir;
@@ -170,6 +164,7 @@ ReadDomino (file)
 	case TOKEN_CP:
 	    if (i == 0)
 		return 0;
+	    /* fall through */
 	default:
 	    syntax ();
 	    return 0;
@@ -198,17 +193,14 @@ ReadDomino (file)
 }
 
 DominoPtr
-ReadDominos (file)
-    FILE    *file;
+ReadDominos (FILE *file)
 {
     DominoErrno = 0;
     return ReadDomino (file);
 }
 
-WriteScores (file, scores, num)
-    FILE    *file;
-    int	    *scores;
-    int	    num;
+void
+WriteScores (FILE *file, int *scores, int num)
 {
     int	    i;
 
@@ -217,10 +209,8 @@ WriteScores (file, scores, num)
     fprintf (file, "\n");
 }
 
-ReadScores (file, scores, num)
-    FILE    *file;
-    int	    *scores;
-    int	    num;
+int
+ReadScores (FILE *file, int *scores, int num)
 {
     int	    i;
 
@@ -238,16 +228,14 @@ ReadScores (file, scores, num)
     return num;
 }
 
-WriteInt (file, i)
-    FILE    *file;
-    int	    i;
+void
+WriteInt (FILE *file, int i)
 {
     fprintf (file, "%d\n", i);
 }
 
-ReadInt (file, i)
-    FILE    *file;
-    int	    *i;
+int
+ReadInt (FILE *file, int *i)
 {
     switch (LexDomino (file)) {
     case TOKEN_NUMBER:

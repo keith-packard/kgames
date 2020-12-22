@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
@@ -27,15 +27,12 @@
 
 typedef struct _findRec {
     DominoPtr	domino;
-    int		(*func)();
+    int		(*func)(DominoPtr, DominoPtr, Direction, Direction, pointer);
     pointer	data;
 } FindRec, *FindPtr;
 
 static int
-ForEachEdge (d, dir, f)
-    DominoPtr	d;
-    Direction	dir;
-    FindPtr	f;
+ForEachEdge (DominoPtr d, Direction dir, FindPtr f)
 {
     Direction	orientation;
 
@@ -47,13 +44,10 @@ ForEachEdge (d, dir, f)
 }
 
 static int
-FindEdge (d, search_dir, f)
-    DominoPtr	d;
-    Direction	search_dir;
-    FindPtr	f;
+FindEdge (DominoPtr d, Direction search_dir, FindPtr f)
 {
     Direction	dir;
-    
+
     if (IsDouble (d))
     {
 	for (dir = North; dir <= West; dir++)
@@ -80,11 +74,11 @@ FindEdge (d, search_dir, f)
     }
 }
 
-FindPlays (board, domino, func, data)
-    DominoPtr	board;
-    DominoPtr	domino;
-    int		(*func)();
-    pointer	data;
+int
+FindPlays (DominoPtr board,
+	   DominoPtr domino,
+	   int (*func)(DominoPtr, DominoPtr, Direction, Direction, pointer),
+	   pointer data)
 {
     FindRec	f;
     Direction	dir;

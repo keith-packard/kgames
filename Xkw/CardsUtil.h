@@ -23,6 +23,11 @@
  * Author:  Keith Packard, Network Computing Devices
  */
 
+#ifndef _CARDS_UTIL_H_
+#define _CARDS_UTIL_H_
+#include "Xkw/Animate.h"
+#include "Xkw/Cards.h"
+
 typedef struct _Card *CardPtr;
 
 typedef enum _CardFace { CardFaceUp, CardFaceDown } CardFace;
@@ -61,33 +66,29 @@ typedef struct _CardStack {
 #define Some(t,n)   (t*) malloc(sizeof(t) * n)
 #define More(p,t,n) ((p)? (t *) realloc((char *) p, sizeof(t)*n):Some(t,n))
 
-extern Boolean	CardIsInOrder (/* CardPtr, CardPtr */);
-extern Boolean	CardIsInSuitOrder (/* CardPtr, CardPtr */);
-extern Boolean	CardIsInAlternatingSuitOrder (/* CardPtr, CardPtr */);
-extern CardPtr	CardInOrder (/* CardPtr */);
-extern CardPtr	CardInSuitOrder (/* CardPtr */);
-extern CardPtr	CardInAlternatingSuitOrder (/* CardPtr */);
+Boolean	CardIsInOrder (CardPtr, CardPtr);
+Boolean	CardIsInSuitOrder (CardPtr, CardPtr);
+Boolean	CardIsInAlternatingSuitOrder (CardPtr, CardPtr);
+CardPtr	CardInOrder (CardPtr);
+CardPtr	CardInSuitOrder (CardPtr);
+CardPtr	CardInAlternatingSuitOrder (CardPtr);
 
-extern CardPtr	CardInReverseOrder (/* CardPtr */);
-extern CardPtr	CardInReverseSuitOrder (/* CardPtr */);
-extern CardPtr	CardInReverseAlternatingSuitOrder (/* CardPtr */);
+CardPtr	CardInReverseOrder (CardPtr);
+CardPtr	CardInReverseSuitOrder (CardPtr);
+CardPtr	CardInReverseAlternatingSuitOrder (CardPtr);
 
-extern void	CardDisplayStack (/* CardStackPtr */);
+void	CardDisplayStack (CardStackPtr);
 
-extern void	CardTurn (/* CardPtr, CardFace, Boolean */);
-extern void	CardMove (/* CardStackPtr, CardPtr, CardStackPtr, Boolean */);
-extern void	CardMoveCards (/* CardStackPtr, CardPtr, CardPtr, CardStackPtr, CardPtr, Boolean */);
-extern void	CardRecordHistoryCallback (/* void (*)(), char * */);
-extern Boolean	CardUndo (/* void */);
+void	CardTurn (CardPtr, CardFace, Boolean);
+void	CardMove (CardStackPtr, CardPtr, CardStackPtr, Boolean);
+void	CardMoveCards (CardStackPtr, CardPtr, CardPtr, CardStackPtr, CardPtr, Boolean);
+void	CardRecordHistoryCallback (void (*)(), char *);
+Boolean	CardUndo (void);
 
-extern void	CardInitStack (/* CardStackPtr, Widget, CardsSuit, Boolean, Boolean, int */);
-extern void	CardGenerateStandardDeck (/* CardPtr */);
-extern void	CardShuffle (/* CardStackPtr */);
-extern void	CardInitHistory (/* void */);
-extern int	CardNextHistory (/* void */);
+void	CardInitStack (CardStackPtr, Widget, CardsSuit, Boolean, Boolean, int);
+void	CardGenerateStandardDeck (CardPtr);
+void	CardShuffle (CardStackPtr);
+void	CardInitHistory (void);
+int	CardNextHistory (void);
 
-void
-AnimateSetSpeed (int i);
-
-void
-Animate (Widget srcWidget, int srcRow, int srcCol, Widget dstWidget, int dstRow, int dstCol);
+#endif /* _CARDS_UTIL_H_ */

@@ -28,10 +28,11 @@
 int	PlayLevel = 10;
 
 int
-MakeFirstPlay (source, target, dir, orientation, data)
-    DominoPtr	source, target;
-    Direction	dir, orientation;
-    pointer	data;
+MakeFirstPlay (DominoPtr source,
+	       DominoPtr target,
+	       Direction dir,
+	       Direction orientation,
+	       pointer data)
 {
     PlayPtr	play = (PlayPtr) data;
 
@@ -43,9 +44,7 @@ MakeFirstPlay (source, target, dir, orientation, data)
 }
 
 int
-FindPlay (player, play)
-    DominoPtr	*player;
-    PlayPtr	play;
+FindPlay (DominoPtr *player, PlayPtr play)
 {
     DominoPtr	source;
     int		ret = FALSE;

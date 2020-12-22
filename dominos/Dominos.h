@@ -29,7 +29,8 @@
 
 /* define exposed functions */
 
-extern void	    DominosSetDominos(/* Widget, DominosPtr * */);
+void
+DominosSetDominos(Widget, DominoPtr *);
 
 typedef struct _DominosRec *DominosWidget;
 typedef struct _DominosClassRec *DominosWidgetClass;

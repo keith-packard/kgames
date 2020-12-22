@@ -26,6 +26,8 @@
 #ifndef _DOMINOS_H_
 #define _DOMINOS_H_
 
+#include <stdio.h>
+
 #ifndef TRUE
 #define TRUE	1
 #define FALSE	0
@@ -88,16 +90,104 @@ typedef struct _Undo {
 
 extern UndoPtr	    undoList;
 
-extern DominoPtr    MakeDomino ();
-extern DominoPtr    InitDominos ();
-extern DominoPtr    MixDominos ();
-extern DominoPtr    PickDomino ();
+DominoPtr
+MakeDomino(Pips a, Pips b);
 
-extern DominoPtr    ReadDominos ();
-extern int	    WriteDominos ();
+DominoPtr
+InitDominos (Pips max);
+
+DominoPtr
+MixDominos (DominoPtr dominos);
+
+DominoPtr
+PickDomino (DominoPtr *dominos);
+
+void
+DisposeDominos (DominoPtr domino);
+
+DominoPtr
+ReadDominos (FILE *file);
+
+void
+WriteDominos (FILE *file, DominoPtr d);
+
+void
+WriteScores (FILE *file, int *scores, int num);
+
+int
+ReadScores (FILE *file, int *scores, int num);
+
+void
+WriteInt (FILE *file, int i);
+
+int
+ReadInt (FILE *file, int *i);
+
+void
+FileError (char *s);
 
 extern int	    DominoErrno;
 
-extern int	    TraverseDominos ();
+int
+TraverseDominos (DominoPtr d, int (*func)(DominoPtr, pointer), pointer data);
+
+int
+FindPlays (DominoPtr board,
+	   DominoPtr domino,
+	   int (*func)(DominoPtr, DominoPtr, Direction, Direction, pointer),
+	   pointer data);
+
+void
+DisposeGame (void);
+
+void
+ResetGame (void);
+
+int
+PlayerDraw(DominoPtr *p, int remember);
+
+DominoPtr *
+PlayerExtract (DominoPtr *p, DominoPtr source);
+
+int
+PlayerMove (DominoPtr *p,
+	    DominoPtr source,
+	    DominoPtr target,
+	    Direction dir,
+	    Direction orientation);
+
+void
+PlayerFirstMove (DominoPtr *p, DominoPtr source);
+
+int
+PlayerUndo (void);
+
+void
+DisposeUndoList (void);
+
+int
+IsDouble(DominoPtr d);
+
+Direction
+OtherDir (Direction dir);
+
+int
+CanUseEdge (DominoPtr d, Direction dir, Direction orientation);
+
+Pips
+EdgePips (DominoPtr d, Direction dir, Direction orientation);
+
+int
+CanPlay (DominoPtr source, DominoPtr target, Direction dir, Direction orientation);
+
+int
+MakeFirstPlay (DominoPtr source,
+	       DominoPtr target,
+	       Direction dir,
+	       Direction orientation,
+	       pointer data);
+
+int
+FindPlay (DominoPtr *player, PlayPtr play);
 
 #endif /* _DOMINOS_H_ */

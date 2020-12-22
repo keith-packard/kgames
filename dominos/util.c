@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
@@ -26,8 +26,7 @@
 #include "dominos.h"
 
 DominoPtr
-MakeDomino(a, b)
-    Pips    a, b;
+MakeDomino(Pips a, Pips b)
 {
     DominoPtr	domino;
 
@@ -43,8 +42,7 @@ MakeDomino(a, b)
 }
 
 DominoPtr
-InitDominos (max)
-    Pips    max;
+InitDominos (Pips max)
 {
     Pips	r, c;
     DominoPtr	dominos, d, *prev;
@@ -67,21 +65,21 @@ typedef struct _DominoMix {
 } DominoMixRec, *DominoMixPtr;
 
 static int
-MixCompare (a,b)
-    DominoMixPtr    a, b;
+MixCompare (const void *av, const void *bv)
 {
+    const DominoMixRec *a = av;
+    const DominoMixRec *b = bv;
     return a->value - b->value;
 }
 
 DominoPtr
-MixDominos (dominos)
-    DominoPtr	dominos;
+MixDominos (DominoPtr dominos)
 {
     int		    numDominos;
     DominoPtr	    d;
     DominoMixPtr    mix, m;
     int		    i;
-    
+
     numDominos = 0;
     for (d = dominos; d; d = d->peer[LinkPeer])
 	numDominos++;
@@ -107,9 +105,8 @@ MixDominos (dominos)
     return dominos;
 }
 
-DominoPtr   
-PickDomino (dominos)
-    DominoPtr	*dominos;
+DominoPtr
+PickDomino (DominoPtr *dominos)
 {
     DominoPtr	d;
 
@@ -122,11 +119,11 @@ PickDomino (dominos)
     return d;
 }
 
-DisposeDominos (domino)
-    DominoPtr	domino;
+void
+DisposeDominos (DominoPtr domino)
 {
     Direction	dir;
-    
+
     for (dir = North; dir <= West; dir++)
 	if (domino->peer[dir])
 	    DisposeDominos(domino->peer[dir]);
@@ -134,13 +131,10 @@ DisposeDominos (domino)
 }
 
 int
-TraverseDominos (d, func, data)
-    DominoPtr	d;
-    int		(*func)();
-    pointer	data;
+TraverseDominos (DominoPtr d, int (*func)(DominoPtr, pointer), pointer data)
 {
     Direction	dir;
-    
+
     if (!(*func) (d, data))
 	return FALSE;
     for (dir = North; dir <= West; dir++)

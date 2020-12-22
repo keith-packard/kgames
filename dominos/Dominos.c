@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
@@ -28,6 +28,7 @@
 #include <X11/Xmu/Converters.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <math.h>
 #include "DominosP.h"
 
 #define offset(field)	XtOffsetOf(DominosRec, dominos.field)
@@ -55,64 +56,7 @@ static XtResource resources[] = {
 static char defaultTranslations[] =
 "<BtnDown>: select()";
 
-static void ActionSelect();
-static XtActionsRec actions[] = {
-    { "select", ActionSelect },		    /* select card */
-};
-
 #define SuperClass  ((SimpleWidgetClass)&simpleClassRec)
-
-static void Realize ();
-static void ClassInitialize (), Initialize (), Destroy (), Redisplay ();
-static Boolean	SetValues ();
-
-static int PeerX();
-static int PeerY();
-
-DominosClassRec	dominosClassRec = {
-  { /* core fields */
-    /* superclass		*/	(WidgetClass) SuperClass,
-    /* class_name		*/	"Dominos",
-    /* widget_size		*/	sizeof(DominosRec),
-    /* class_initialize		*/	ClassInitialize,
-    /* class_part_initialize	*/	NULL,
-    /* class_inited		*/	FALSE,
-    /* initialize		*/	Initialize,
-    /* initialize_hook		*/	NULL,
-    /* realize			*/	Realize,
-    /* actions			*/	actions,
-    /* num_actions		*/	XtNumber(actions),
-    /* resources		*/	resources,
-    /* num_resources		*/	XtNumber(resources),
-    /* xrm_class		*/	NULLQUARK,
-    /* compress_motion		*/	TRUE,
-    /* compress_exposure	*/	TRUE,
-    /* compress_enterleave	*/	TRUE,
-    /* visible_interest		*/	FALSE,
-    /* destroy			*/	Destroy,
-    /* resize			*/	XtInheritResize,
-    /* expose			*/	Redisplay,
-    /* set_values		*/	SetValues,
-    /* set_values_hook		*/	NULL,
-    /* set_values_almost	*/	XtInheritSetValuesAlmost,
-    /* get_values_hook		*/	NULL,
-    /* accept_focus		*/	NULL,
-    /* version			*/	XtVersion,
-    /* callback_private		*/	NULL,
-    /* tm_table			*/	defaultTranslations,
-    /* query_geometry		*/	XtInheritQueryGeometry,
-    /* display_accelerator	*/	XtInheritDisplayAccelerator,
-    /* extension		*/	NULL
-  },
-  { /* simple fields */
-    /* change_sensitive		*/	XtInheritChangeSensitive
-  },
-  { /* dominos fields */
-    /* ignore			*/	0
-  },
-};
-
-WidgetClass dominosWidgetClass = (WidgetClass) &dominosClassRec;
 
 #define	ROUND_W(w)	((w)->dominos.size / 12)
 #define	ROUND_H(w)	ROUND_W(w)
@@ -129,14 +73,12 @@ WidgetClass dominosWidgetClass = (WidgetClass) &dominosClassRec;
 #define DOMINO_MAJOR_HEIGHT(w) DOMINO_MAJOR_SIZE(w)
 #define DOMINO_MINOR_WIDTH(w)  DOMINO_MINOR_SIZE(w)
 #define DOMINO_MINOR_HEIGHT(w) DOMINO_MINOR_SIZE(w)
-			    
+
 #define DominoUpright(d)    ((d)->orientation == North || \
 			     (d)->orientation == South)
 
 static int
-DominoWidth (w, d)
-    DominosWidget   w;
-    DominoPtr	    d;
+DominoWidth (DominosWidget w, DominoPtr d)
 {
     if (DominoUpright(d))
 	return DOMINO_MINOR_WIDTH(w);
@@ -145,9 +87,7 @@ DominoWidth (w, d)
 }
 
 static int
-DominoHeight (w, d)
-    DominosWidget   w;
-    DominoPtr	    d;
+DominoHeight (DominosWidget w, DominoPtr d)
 {
     if (DominoUpright(d))
 	return DOMINO_MAJOR_HEIGHT(w);
@@ -159,25 +99,24 @@ DominoHeight (w, d)
 #define DominoY(w,d)	    (DominoHeight (w, d) / 2)
 
 #define ScreenNo(w) XScreenNumberOfScreen (XtScreen (w))
-			    
+
 static void
-ClassInitialize()
+ClassInitialize(void)
 {
 }
 
 #define UsualSuspects(w)	Display *dpy = XtDisplay ((Widget) w); \
 				Window	window = XtWindow ((Widget) w); \
 				Pixmap tmp_map = (w)->dominos.tmp_map
-				
+
 #define GetScreen(w)		int screen = ScreenNo(w)
-    			    
+
 static void
-GetGCs (w)
-    DominosWidget	w;
+GetGCs (DominosWidget w)
 {
     XGCValues	gcv;
     XtGCMask	mask;
-    
+
     mask = GCForeground | GCGraphicsExposures;
     gcv.graphics_exposures = False;
     /* pips GC */
@@ -192,8 +131,7 @@ GetGCs (w)
 }
 
 static void
-ReleaseGCs (w)
-    DominosWidget	w;
+ReleaseGCs (DominosWidget w)
 {
     XtReleaseGC ((Widget) w, w->dominos.pips_gc);
     XtReleaseGC ((Widget) w, w->dominos.face_gc);
@@ -201,8 +139,7 @@ ReleaseGCs (w)
 }
 
 static void
-GetTmpMap (w)
-    DominosWidget	w;
+GetTmpMap (DominosWidget w)
 {
     Display *dpy = XtDisplay(w);
     GetScreen(w);
@@ -214,19 +151,20 @@ GetTmpMap (w)
 }
 
 static void
-ReleaseTmpMap (w)
-    DominosWidget	w;
+ReleaseTmpMap (DominosWidget w)
 {
     XFreePixmap (XtDisplay(w), w->dominos.tmp_map);
 }
 
 /*ARGSUSED*/
-static void 
-Initialize (greq, gnew)
-    Widget  greq, gnew;
+static void
+Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     DominosWidget	new = (DominosWidget) gnew;
-    
+
+    (void) greq;
+    (void) args;
+    (void) count;
     if (!new->core.width)
 	new->core.width = DOMINO_MAJOR_WIDTH(new);
     if (!new->core.height)
@@ -244,17 +182,15 @@ Initialize (greq, gnew)
 	EnterWindowMask | LeaveWindowMask | \
 	PointerMotionHintMask | KeymapStateMask | \
 	MotionMask )
-	    
-static void Realize (widget, value_mask, attributes)
-    Widget		 widget;
-    XtValueMask		 *value_mask;
-    XSetWindowAttributes *attributes;
+
+static void
+Realize (Widget widget, XtValueMask *value_mask, XSetWindowAttributes *attributes)
 {
     unsigned int    event_mask = 0;
 #define MAX_BUT	256
     unsigned char   mapping[MAX_BUT];
     int	    i, max;
-    
+
     (*SuperClass->core_class.realize)(widget, value_mask, attributes);
     if (*value_mask & CWEventMask)
 	event_mask = attributes->event_mask;
@@ -271,9 +207,8 @@ static void Realize (widget, value_mask, attributes)
     }
 }
 
-static void 
-Destroy (gw)
-    Widget  gw;
+static void
+Destroy (Widget gw)
 {
     DominosWidget	w = (DominosWidget) gw;
 
@@ -282,13 +217,15 @@ Destroy (gw)
 }
 
 static Boolean
-SetValues (gcur, greq, gnew)
-    Widget  gcur, greq, gnew;
+SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     DominosWidget	cur = (DominosWidget) gcur,
 			req = (DominosWidget) greq,
 			new = (DominosWidget) gnew;
     Boolean		ret = FALSE;
+
+    (void) args;
+    (void) count;
     if (cur->dominos.pips_pixel !=
 	req->dominos.pips_pixel ||
 	cur->dominos.face_pixel !=
@@ -311,10 +248,8 @@ SetValues (gcur, greq, gnew)
 }
 
 static int
-i_sqrt (a)
-    int	a;
+i_sqrt (int a)
 {
-    extern double   sqrt ();
     double	    d_a;
 
     d_a = (double) a;
@@ -322,13 +257,49 @@ i_sqrt (a)
     return (int) d_a;
 }
 
+static int
+PeerX(DominosWidget w, DominoPtr d, Direction dir)
+{
+    switch (dir) {
+    default:
+    case North:
+    case South:
+	return 0;
+    case West:
+	return -DominoX(w, d) - DominoWidth(w, d->peer[dir]) + DominoX(w, d->peer[dir]);
+    case East:
+	return -DominoX(w, d) + DominoWidth(w, d) + DominoX(w, d->peer[dir]);
+    }
+    /*NOTREACHED*/
+}
+
+static int
+PeerY(DominosWidget w, DominoPtr d, Direction dir)
+{
+    switch (dir) {
+    default:
+    case East:
+    case West:
+	return 0;
+    case North:
+	return -DominoY(w, d) - DominoHeight(w, d->peer[dir]) +
+	        DominoY(w, d->peer[dir]);
+    case South:
+	return -DominoY(w, d) + DominoHeight(w, d) +
+	        DominoY(w, d->peer[dir]);
+    }
+    /*NOTREACHED*/
+}
+
 static DominoPtr
-XYInDomino (w, b, x, y, test_x, test_y, distp, dirp)
-    DominosWidget   w;
-    DominoPtr	    b;
-    int		    x, y;
-    int		    *distp;
-    Direction	    *dirp;
+XYInDomino (DominosWidget w,
+	    DominoPtr b,
+	    int x,
+	    int y,
+	    int test_x,
+	    int test_y,
+	    int *distp,
+	    Direction *dirp)
 {
     RectRec	r;
     Direction	dir;
@@ -387,7 +358,7 @@ XYInDomino (w, b, x, y, test_x, test_y, distp, dirp)
 	{
 	    if (b->peer[dir])
 	    {
-		peer = XYInDomino (w, b->peer[dir], 
+		peer = XYInDomino (w, b->peer[dir],
 				   x + PeerX(w, b, dir), y + PeerY(w, b, dir),
 				   test_x, test_y, &sub_dist, &sub_dir);
 		if (sub_dist < to_dist)
@@ -407,32 +378,28 @@ XYInDomino (w, b, x, y, test_x, test_y, distp, dirp)
 }
 
 static DominoPtr
-XYToDomino (w, x, y, distp, dirp)
-    DominosWidget   w;
-    int		    x, y;
-    int		    *distp;
-    Direction	    *dirp;
+XYToDomino (DominosWidget w,
+	    int x,
+	    int y,
+	    int *distp,
+	    Direction *dirp)
 {
     if (w->dominos.board && *w->dominos.board)
-	return XYInDomino (w, *w->dominos.board, 
+	return XYInDomino (w, *w->dominos.board,
 			   w->dominos.x_off, w->dominos.y_off, x, y,
 			   distp, dirp);
     return NULL;
 }
 
 static void
-ActionSelect (gw, event, params, num_params)
-    Widget  gw;
-    XEvent  *event;
-    String  *params;
-    Cardinal	*num_params;
+ActionSelect (Widget gw, XEvent *event, String *params, Cardinal *num_params)
 {
     DominosWidget   w = (DominosWidget) gw;
     DominoPtr	    d;
     DominosInputRec input;
     Direction	    dir;
     int		    dist;
-    
+
     d = XYToDomino (w, event->xbutton.x, event->xbutton.y, &dist, &dir);
     input.w = gw;
     input.domino = d;
@@ -444,38 +411,8 @@ ActionSelect (gw, event, params, num_params)
     XtCallCallbackList (gw, w->dominos.input_callback, (XtPointer) &input);
 }
 
-/*ARGSUSED*/
 static void
-Redisplay (gw, event, region)
-    Widget  gw;
-    XEvent  *event;
-    Region  region;
-{
-    DominosWidget   w = (DominosWidget) gw;
-
-    if (w->dominos.board && *w->dominos.board)
-	DrawBoard (w, *(w->dominos.board), FALSE);
-}
-
-void
-DominosSetDominos (gw, boardp)
-    Widget	gw;
-    DominoPtr	*boardp;
-{
-    DominosWidget   w = (DominosWidget) gw;
-
-    w->dominos.board = boardp;
-    if (XtIsRealized ((Widget) w))
-	XClearWindow (XtDisplay(w), XtWindow(w));
-    if (w->dominos.board && *w->dominos.board)
-	DrawBoard (w, *(w->dominos.board), TRUE);
-}
-
-static void
-OutlineDomino (w, d, x, y)
-    DominosWidget	w;
-    DominoPtr		d;
-    int			x, y;
+OutlineDomino (DominosWidget w, DominoPtr d, int x, int y)
 {
     Display *dpy = XtDisplay(w);
     Pixmap  tmp_map = w->dominos.tmp_map;
@@ -507,77 +444,32 @@ OutlineDomino (w, d, x, y)
 }
 
 static void
-FillDomino (w, d, x, y)
-    DominosWidget   w;
-    DominoPtr	    d;
-    int		    x, y;
+FillDomino (DominosWidget w, DominoPtr d, int x, int y)
 {
     Display *dpy = XtDisplay(w);
     Pixmap  tmp_map = w->dominos.tmp_map;
     int	width, height;
-    
+
     width = DominoWidth(w, d);
     height = DominoHeight(w, d);
     if (w->dominos.round_dominos)
     {
 	XmuFillRoundedRectangle(dpy, tmp_map, w->dominos.face_gc,
-				x + INSET(w), y + INSET(w), 
+				x + INSET(w), y + INSET(w),
 				width - 2*INSET(w), height - 2 * INSET(w),
 				ROUND_W(w), ROUND_H(w));
     }
     else
     {
 	XFillRectangle(dpy, tmp_map, w->dominos.face_gc,
-		       x + INSET(w), y + INSET(w), 
+		       x + INSET(w), y + INSET(w),
 		       width - 2*INSET(w), height - 2*INSET(w));
     }
     OutlineDomino (w, d, x, y);
 }
 
-static int
-PeerX(w, d, dir)
-    DominosWidget   w;
-    DominoPtr	    d;
-    Direction	    dir;
-{
-    switch (dir) {
-    case North:
-    case South:
-	return 0;
-    case West:
-	return -DominoX(w, d) - DominoWidth(w, d->peer[dir]) + DominoX(w, d->peer[dir]);
-    case East:
-	return -DominoX(w, d) + DominoWidth(w, d) + DominoX(w, d->peer[dir]);
-    }
-    /*NOTREACHED*/
-}
-
-static int
-PeerY(w, d, dir)
-    DominosWidget   w;
-    DominoPtr	    d;
-    Direction	    dir;
-{
-    switch (dir) {
-    case East:
-    case West:
-	return 0;
-    case North:
-	return -DominoY(w, d) - DominoHeight(w, d->peer[dir]) + 
-	        DominoY(w, d->peer[dir]);
-    case South:
-	return -DominoY(w, d) + DominoHeight(w, d) + 
-	        DominoY(w, d->peer[dir]);
-    }
-    /*NOTREACHED*/
-}
-
-static int
-BoardSize (w, b, r, x, y)
-    DominosWidget   w;
-    DominoPtr	    b;
-    RectPtr	    r;
-    int		    x, y;
+static void
+BoardSize (DominosWidget w, DominoPtr b, RectPtr r, int x, int y)
 {
     RectRec	sub;
     Direction	dir;
@@ -590,7 +482,7 @@ BoardSize (w, b, r, x, y)
     {
 	if (b->peer[dir])
 	{
-	    BoardSize (w, b->peer[dir], &sub, 
+	    BoardSize (w, b->peer[dir], &sub,
 		       x + PeerX(w, b, dir), y + PeerY(w, b, dir));
 	    if (sub.x1 < r->x1)
 		r->x1 = sub.x1;
@@ -603,66 +495,59 @@ BoardSize (w, b, r, x, y)
 	}
     }
 }
-    
+
 static void
-DrawDominos (w, b, x, y)
-    DominosWidget   w;
-    DominoPtr	    b;
-    int		    x, y;
+DrawPip (DominosWidget w, int x, int y)
 {
-    Direction	dir;
-
-    DrawDomino (w, b, x, y);
-    for (dir = North; dir <= West; dir++)
-	if (b->peer[dir])
-	    DrawDominos (w, b->peer[dir], 
-			 x + PeerX(w, b, dir), y + PeerY(w, b, dir));
+    XFillArc (XtDisplay (w), w->dominos.tmp_map,
+	      w->dominos.pips_gc,
+	      x - PIP_SIZE(w) / 2, y - PIP_SIZE(w) / 2, PIP_SIZE(w), PIP_SIZE(w), 0,
+	      64 * 360);
 }
 
-DrawBoard (w, b, ok_resize)
-    DominosWidget   w;
-    DominoPtr	    b;
-    Boolean	    ok_resize;
+static void
+DrawPips (DominosWidget w, Pips p, int x, int y, int flip)
 {
-    RectRec	size;
-    int		xoff, yoff;
-    Dimension	prefered_width, prefered_height, width, height;
-    XtGeometryResult	result;
+    int	off_x, off_y;
+    int	half_x, half_y;
 
-    BoardSize (w, b, &size, 0, 0);
-    prefered_width = size.x2 - size.x1;
-    prefered_height = size.y2 - size.y1;
-    if (prefered_width < DOMINO_MAJOR_WIDTH(w))
-	prefered_width = DOMINO_MAJOR_WIDTH(w);
-    if (prefered_height < DOMINO_MAJOR_HEIGHT(w))
-	prefered_height = DOMINO_MAJOR_HEIGHT(w);
-    if (ok_resize && (XtIsRealized (w) || 
-		      w->core.width < prefered_width ||
-		      w->core.height < prefered_height) && 
-	(prefered_width != w->core.width || 
-	prefered_height != w->core.height))
+    off_x = PIP_OFF(w);
+    off_y = PIP_OFF(w);
+    half_x = 0;
+    half_y = off_y;
+    if (flip)
     {
-	result = XtMakeResizeRequest ((Widget) w,
-				      prefered_width, prefered_height,
-				      &width, &height);
-	if (result == XtGeometryAlmost)
-	    result = XtMakeResizeRequest ((Widget) w,
-					  width, height, NULL, NULL);
+	half_x = off_x;
+	half_y = 0;
+	off_x = -off_x;
     }
-    if (XtIsRealized (w))
+
+    if (p & 1)
     {
-	xoff = (w->core.width - prefered_width) / 2 - size.x1;
-	yoff = (w->core.height- prefered_height) / 2 - size.y1;
-	w->dominos.x_off = xoff;
-	w->dominos.y_off = yoff;
-	DrawDominos (w, b, xoff, yoff);
+	DrawPip (w, x, y);
+	p = p - 1;
+    }
+    switch (p) {
+    case 8:
+	DrawPip (w, x - half_x, y - half_y);
+	DrawPip (w, x + half_x, y + half_y);
+	/* fall through */
+    case 6:
+	DrawPip (w, x - half_y, y - half_x);
+	DrawPip (w, x + half_y, y + half_x);
+	/* fall through */
+    case 4:
+	DrawPip (w, x + off_x, y - off_y);
+	DrawPip (w, x - off_x, y + off_y);
+	/* fall through */
+    case 2:
+	DrawPip (w, x - off_x, y - off_y);
+	DrawPip (w, x + off_x, y + off_y);
     }
 }
 
-DrawDomino(w, d, x, y)
-    DominosWidget   w;
-    DominoPtr	    d;
-    int		    x, y;
+static void
+DrawDomino(DominosWidget w, DominoPtr d, int x, int y)
 {
     UsualSuspects(w);
     int	off_x, off_y;
@@ -694,56 +579,125 @@ DrawDomino(w, d, x, y)
 	       x - DominoX(w, d),  y - DominoY(w, d));
 }
 
-DrawPip (w, x, y)
-    DominosWidget   w;
-    int		    x, y;
+static void
+DrawDominos (DominosWidget w, DominoPtr b, int x, int y)
 {
-    XFillArc (XtDisplay (w), w->dominos.tmp_map,
-	      w->dominos.pips_gc,
-	      x - PIP_SIZE(w) / 2, y - PIP_SIZE(w) / 2, PIP_SIZE(w), PIP_SIZE(w), 0,
-	      64 * 360);
+    Direction	dir;
+
+    DrawDomino (w, b, x, y);
+    for (dir = North; dir <= West; dir++)
+	if (b->peer[dir])
+	    DrawDominos (w, b->peer[dir],
+			 x + PeerX(w, b, dir), y + PeerY(w, b, dir));
 }
 
-DrawPips (w, p, x, y, flip)
-    DominosWidget   w;
-    Pips	    p;
-    int		    x, y;
-    int		    flip;
+static void
+DrawBoard (DominosWidget w, DominoPtr b, Boolean ok_resize)
 {
-    int	off_x, off_y;
-    int	half_x, half_y;
-    
-    off_x = PIP_OFF(w);
-    off_y = PIP_OFF(w);
-    half_x = 0;
-    half_y = off_y;
-    if (flip)
+    RectRec	size;
+    int		xoff, yoff;
+    Dimension	prefered_width, prefered_height, width, height;
+    XtGeometryResult	result;
+
+    BoardSize (w, b, &size, 0, 0);
+    prefered_width = size.x2 - size.x1;
+    prefered_height = size.y2 - size.y1;
+    if (prefered_width < DOMINO_MAJOR_WIDTH(w))
+	prefered_width = DOMINO_MAJOR_WIDTH(w);
+    if (prefered_height < DOMINO_MAJOR_HEIGHT(w))
+	prefered_height = DOMINO_MAJOR_HEIGHT(w);
+    if (ok_resize && (XtIsRealized ((Widget) w) ||
+		      w->core.width < prefered_width ||
+		      w->core.height < prefered_height) &&
+	(prefered_width != w->core.width ||
+	prefered_height != w->core.height))
     {
-	half_x = off_x;
-	half_y = 0;
-	off_x = -off_x;
+	result = XtMakeResizeRequest ((Widget) w,
+				      prefered_width, prefered_height,
+				      &width, &height);
+	if (result == XtGeometryAlmost)
+	    result = XtMakeResizeRequest ((Widget) w,
+					  width, height, NULL, NULL);
     }
-	
-    if (p & 1)
+    if (XtIsRealized ((Widget) w))
     {
-	DrawPip (w, x, y);
-	p = p - 1;
-    }
-    switch (p) {
-    case 8:
-	DrawPip (w, x - half_x, y - half_y);
-	DrawPip (w, x + half_x, y + half_y);
-	/* fall through */
-    case 6:
-	DrawPip (w, x - half_y, y - half_x);
-	DrawPip (w, x + half_y, y + half_x);
-	/* fall through */
-    case 4:
-	DrawPip (w, x + off_x, y - off_y);
-	DrawPip (w, x - off_x, y + off_y);
-	/* fall through */
-    case 2:
-	DrawPip (w, x - off_x, y - off_y);
-	DrawPip (w, x + off_x, y + off_y);
+	xoff = (w->core.width - prefered_width) / 2 - size.x1;
+	yoff = (w->core.height- prefered_height) / 2 - size.y1;
+	w->dominos.x_off = xoff;
+	w->dominos.y_off = yoff;
+	DrawDominos (w, b, xoff, yoff);
     }
 }
+
+void
+DominosSetDominos (Widget gw, DominoPtr *boardp)
+{
+    DominosWidget   w = (DominosWidget) gw;
+
+    w->dominos.board = boardp;
+    if (XtIsRealized ((Widget) w))
+	XClearWindow (XtDisplay(w), XtWindow(w));
+    if (w->dominos.board && *w->dominos.board)
+	DrawBoard (w, *(w->dominos.board), TRUE);
+}
+
+static void
+Redisplay (Widget gw, XEvent *event, Region region)
+{
+    DominosWidget   w = (DominosWidget) gw;
+
+    (void) event;
+    (void) region;
+    if (w->dominos.board && *w->dominos.board)
+	DrawBoard (w, *(w->dominos.board), FALSE);
+}
+
+static XtActionsRec actions[] = {
+    { "select", ActionSelect },		    /* select card */
+};
+
+DominosClassRec	dominosClassRec = {
+  { /* core fields */
+    /* superclass		*/	(WidgetClass) SuperClass,
+    /* class_name		*/	"Dominos",
+    /* widget_size		*/	sizeof(DominosRec),
+    /* class_initialize		*/	ClassInitialize,
+    /* class_part_initialize	*/	NULL,
+    /* class_inited		*/	FALSE,
+    /* initialize		*/	Initialize,
+    /* initialize_hook		*/	NULL,
+    /* realize			*/	Realize,
+    /* actions			*/	actions,
+    /* num_actions		*/	XtNumber(actions),
+    /* resources		*/	resources,
+    /* num_resources		*/	XtNumber(resources),
+    /* xrm_class		*/	NULLQUARK,
+    /* compress_motion		*/	TRUE,
+    /* compress_exposure	*/	TRUE,
+    /* compress_enterleave	*/	TRUE,
+    /* visible_interest		*/	FALSE,
+    /* destroy			*/	Destroy,
+    /* resize			*/	XtInheritResize,
+    /* expose			*/	Redisplay,
+    /* set_values		*/	SetValues,
+    /* set_values_hook		*/	NULL,
+    /* set_values_almost	*/	XtInheritSetValuesAlmost,
+    /* get_values_hook		*/	NULL,
+    /* accept_focus		*/	NULL,
+    /* version			*/	XtVersion,
+    /* callback_private		*/	NULL,
+    /* tm_table			*/	defaultTranslations,
+    /* query_geometry		*/	XtInheritQueryGeometry,
+    /* display_accelerator	*/	XtInheritDisplayAccelerator,
+    /* extension		*/	NULL
+  },
+  { /* simple fields */
+    /* change_sensitive		*/	XtInheritChangeSensitive,
+    /* extension                */      NULL
+  },
+  { /* dominos fields */
+    /* ignore			*/	0
+  },
+};
+
+WidgetClass dominosWidgetClass = (WidgetClass) &dominosClassRec;

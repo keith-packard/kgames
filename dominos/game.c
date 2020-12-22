@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
@@ -31,10 +31,11 @@ DominoPtr   player[MAX_PLAYERS];
 DominoPtr   board;
 UndoPtr	    undoList;
 
-DisposeGame ()
+void
+DisposeGame (void)
 {
     Player	p;
-    
+
     if (pile)
     {
 	DisposeDominos(pile);
@@ -55,11 +56,12 @@ DisposeGame ()
 	DisposeUndoList ();
 }
 
-ResetGame ()
+void
+ResetGame (void)
 {
     Player	p;
     int		i;
-    
+
     DisposeGame ();
     pile = InitDominos(MAX_DOMINO_PIP);
     pile = MixDominos(pile);
@@ -69,9 +71,7 @@ ResetGame ()
 }
 
 int
-PlayerDraw(p, remember)
-    DominoPtr	*p;
-    int		remember;
+PlayerDraw(DominoPtr *p, int remember)
 {
     DominoPtr	d;
     DominoPtr	*prev;
@@ -101,9 +101,7 @@ PlayerDraw(p, remember)
 }
 
 DominoPtr *
-PlayerExtract (p, source)
-    DominoPtr	*p;
-    DominoPtr	source;
+PlayerExtract (DominoPtr *p, DominoPtr source)
 {
     while (*p != source)
 	p = &(*p)->peer[LinkPeer];
@@ -113,10 +111,11 @@ PlayerExtract (p, source)
 }
 
 int
-PlayerMove (p, source, target, dir, orientation)
-    DominoPtr	*p, source, target;
-    Direction	dir;
-    Direction	orientation;
+PlayerMove (DominoPtr *p,
+	    DominoPtr source,
+	    DominoPtr target,
+	    Direction dir,
+	    Direction orientation)
 {
     UndoPtr undo;
 
@@ -141,9 +140,8 @@ PlayerMove (p, source, target, dir, orientation)
     return TRUE;
 }
 
-PlayerFirstMove (p, source)
-    DominoPtr	*p;
-    DominoPtr	source;
+void
+PlayerFirstMove (DominoPtr *p, DominoPtr source)
 {
     UndoPtr undo;
 
@@ -161,7 +159,8 @@ PlayerFirstMove (p, source)
     source->orientation = East;
 }
 
-PlayerUndo ()
+int
+PlayerUndo (void)
 {
     UndoPtr undo;
 
@@ -177,41 +176,39 @@ PlayerUndo ()
     return TRUE;
 }
 
-DisposeUndoList ()
+void
+DisposeUndoList (void)
 {
     UndoPtr	undo;
-    
-    while (undoList) 
+
+    while (undoList)
     {
 	undo = undoList;
 	undoList = undo->next;
 	Dispose (undo);
     }
 }
-		    
+
 int
-IsDouble(d)
-    DominoPtr	d;
+IsDouble(DominoPtr d)
 {
     return d->pips[0] == d->pips[1];
 }
 
-OtherDir (dir)
-    Direction	dir;
+Direction
+OtherDir (Direction dir)
 {
     switch (dir) {
     case North: return South;
     case South: return North;
     case East: return West;
+    default:
     case West: return East;
     }
-    /*NOTREACHED*/
 }
 
 int
-CanUseEdge (d, dir, orientation)
-    DominoPtr	d;
-    Direction	dir, orientation;
+CanUseEdge (DominoPtr d, Direction dir, Direction orientation)
 {
     if (IsDouble (d))
 	return TRUE;
@@ -221,9 +218,7 @@ CanUseEdge (d, dir, orientation)
 }
 
 Pips
-EdgePips (d, dir, orientation)
-    DominoPtr	d;
-    Direction	dir;
+EdgePips (DominoPtr d, Direction dir, Direction orientation)
 {
     if (IsDouble (d))
 	return d->pips[0];
@@ -235,9 +230,7 @@ EdgePips (d, dir, orientation)
 }
 
 int
-CanPlay (source, target, dir, orientation)
-    DominoPtr	source, target;
-    Direction	dir, orientation;
+CanPlay (DominoPtr source, DominoPtr target, Direction dir, Direction orientation)
 {
     if (target->peer[dir])
 	return FALSE;
@@ -250,4 +243,3 @@ CanPlay (source, target, dir, orientation)
 	return FALSE;
     return TRUE;
 }
-

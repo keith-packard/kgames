@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
@@ -41,6 +41,8 @@
 # include	<X11/Xaw/Scrollbar.h>
 # include	"Dominos.h"
 # include	<Xkw/Layout.h>
+# include 	<Xkw/Message.h>
+# include	<Xkw/Animate.h>
 # include	<X11/Xutil.h>
 # include	"dominos.h"
 # include	<stdio.h>
@@ -70,6 +72,24 @@ int	    last_score[MAX_PLAYERS];
 char	    *player_names[MAX_PLAYERS] = { "You", "I" };
 int	    game_over;
 
+static void
+ComputerMove (void);
+
+static void
+MakeLastPlayerVisible (void);
+
+static void
+GameOver (void);
+
+static void
+UndoGameOver (void);
+
+static int
+YesOrNo (Widget original, char *prompt);
+
+static int
+MakeFirstMove (void);
+
 typedef struct _dominosResources {
     int		animationSpeed;
     String	saveFile;
@@ -77,8 +97,8 @@ typedef struct _dominosResources {
 
 DominosResources dominosResources;
 
-Count (domino)
-    DominoPtr	domino;
+static int
+Count (DominoPtr domino)
 {
     int	c = 0;
 
@@ -91,11 +111,11 @@ Count (domino)
 #define DISPLAY_PLAYER	    2
 #define DISPLAY_COMPUTER	    4
 
-DisplayDominos (changes)
-    int	changes;
+static void
+DisplayDominos (int changes)
 {
     int	count;
-    
+
     if (changes & DISPLAY_PLAYER)
 	DominosSetDominos (player_w, &player[0]);
     if (changes & DISPLAY_COMPUTER)
@@ -108,10 +128,12 @@ DisplayDominos (changes)
 	DominosSetDominos (board_w, &board);
 }
 
-MakeMove (player, source, target, dir, orientation)
-    DominoPtr	*player;
-    DominoPtr	source, target;
-    Direction	dir, orientation;
+static void
+MakeMove (DominoPtr *player,
+	  DominoPtr source,
+	  DominoPtr target,
+	  Direction dir,
+	  Direction orientation)
 {
     if (game_over)
 	return;
@@ -120,9 +142,8 @@ MakeMove (player, source, target, dir, orientation)
 	GameOver ();
 }
 
-int
-MakeDraw (player)
-    DominoPtr	*player;
+static int
+MakeDraw (DominoPtr *player)
 {
     if (game_over)
 	return FALSE;
@@ -134,11 +155,12 @@ MakeDraw (player)
     return TRUE;
 }
 
-PlayEdgeFunc (source, target, dir, orientation, data)
-    DominoPtr	source;
-    DominoPtr	target;
-    Direction	dir, orientation;
-    pointer	data;
+static int
+PlayEdgeFunc (DominoPtr source,
+	      DominoPtr target,
+	      Direction dir,
+	      Direction orientation,
+	      pointer data)
 {
     PlayPtr play = (PlayPtr) data;
 
@@ -152,15 +174,15 @@ PlayEdgeFunc (source, target, dir, orientation, data)
     return TRUE;
 }
 
-Play (player, domino, target, dir, dist)
-    DominoPtr	*player;
-    DominoPtr	domino;
-    DominoPtr	target;
-    Direction	dir;
-    int		dist;
+static void
+Play (DominoPtr *player,
+      DominoPtr domino,
+      DominoPtr target,
+      Direction dir,
+      int dist)
 {
     PlayRec play;
-    
+
     if (!board)
     {
 	PlayerFirstMove (player, domino);
@@ -185,10 +207,11 @@ Play (player, domino, target, dir, dist)
     }
 }
 
-ComputerMove ()
+static void
+ComputerMove (void)
 {
     PlayRec play;
-    
+
     if (game_over)
 	return;
     MessageStart ();
@@ -199,7 +222,7 @@ ComputerMove ()
 	    MessageAppend ("I play %dx%d.", play.source->pips[0],
 			   play.source->pips[1]);
 	    MessageEnd (message);
-	    MakeMove (&player[1], play.source, play.target, 
+	    MakeMove (&player[1], play.source, play.target,
 		      play.dir, play.orientation);
 	    DisplayDominos (DISPLAY_COMPUTER|DISPLAY_BOARD);
 	    break;
@@ -215,19 +238,21 @@ ComputerMove ()
     }
 }
 
-DisplayScores ()
+static void
+DisplayScores (void)
 {
     int	    i;
-    
+
     for (i = 0; i < NumPlayers; i++)
     {
-	Message (score_w[i], "%s have %d point%s.", 
-		 player_names[i], total_score[i], 
+	Message (score_w[i], "%s have %d point%s.",
+		 player_names[i], total_score[i],
 		 total_score[i] == 1 ? "" : "s");
     }
 }
 
-Score ()
+static void
+Score (void)
 {
     int		scores[MAX_PLAYERS];
     int		i;
@@ -263,17 +288,19 @@ Score ()
     DisplayScores ();
 }
 
-Draw ()
+static void
+Draw (void)
 {
     MakeDraw (&player[0]);
     DisplayDominos (DISPLAY_PLAYER);
     MakeLastPlayerVisible ();
 }
 
-Hint ()
+static void
+Hint (void)
 {
     PlayRec play;
-    
+
     if (game_over)
     {
 	Message (message, "Game over.");
@@ -289,17 +316,19 @@ Hint ()
 	Message (message, "Draw.");
     }
 }
-	
-GameOver ()
+
+static void
+GameOver (void)
 {
     game_over = TRUE;
     Score ();
 }
 
-UndoGameOver ()
+static void
+UndoGameOver (void)
 {
     int	    i;
-    
+
     if (!game_over)
 	return;
     game_over = FALSE;
@@ -308,7 +337,8 @@ UndoGameOver ()
     DisplayScores ();
 }
 
-NewGame ()
+static void
+NewGame (void)
 {
     if (!game_over)
     {
@@ -322,7 +352,8 @@ NewGame ()
     game_over = FALSE;
 }
 
-Save ()
+static void
+Save (void)
 {
     FILE    *f;
     int	    i;
@@ -340,9 +371,9 @@ Save ()
     WriteInt (f, game_over);
     fclose (f);
 }
-    
-int
-Restore ()
+
+static int
+Restore (void)
 {
     FILE    *f;
     int	    i;
@@ -403,19 +434,18 @@ Restore ()
     return TRUE;
 }
 
-GetSize (widget, w, h)
-    Widget	widget;
-    Dimension	*w, *h;
+static void
+GetSize (Widget widget, Dimension *w, Dimension *h)
 {
     Arg		args[2];
-    
+
     XtSetArg (args[0], XtNwidth, w);
     XtSetArg (args[1], XtNheight, h);
     XtGetValues (widget, args, 2);
 }
 
-Center (original, new)
-    Widget  original, new;
+static void
+Center (Widget original, Widget new)
 {
     Arg		args[2];
     Dimension	center_width, center_height;
@@ -433,35 +463,36 @@ Center (original, new)
     XtSetArg (args[1], XtNy, dest_y);
     XtSetValues (new, args, 2);
 }
-    
+
 static int  yn_done, yn_answer;
 
-/*ARGSUSED*/
-static void YesFunc (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+static void
+YesFunc (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     yn_answer = 1;
     yn_done = 1;
 }
 
-/*ARGSUSED*/
-static void NoFunc (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+static void
+NoFunc (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     yn_answer = 0;
     yn_done = 1;
 }
 
-YesOrNo (original, prompt)
-    Widget  original;
-    char    *prompt;
+static int
+YesOrNo (Widget original, char *prompt)
 {
     Arg	    args[3];
     XEvent  event;
     Widget  shell, dialog, label;
-    
+
     XtSetArg (args[0], XtNmappedWhenManaged, FALSE);
     shell = XtCreateApplicationShell ("yesOrNo", transientShellWidgetClass,
 				      args, ONE);
@@ -484,7 +515,7 @@ YesOrNo (original, prompt)
     {
 	Dimension   prompt_width, prompt_height;
 	Position    x, y;
-	
+
 	GetSize (shell, &prompt_width, &prompt_height);
 	x = (XtScreen (shell)->width - (int) prompt_width) / 2;
 	y = (XtScreen (shell)->height - (int) prompt_height) / 3;
@@ -503,8 +534,8 @@ YesOrNo (original, prompt)
     return yn_answer;
 }
 
-FileError (s)
-    char    *s;
+void
+FileError (char *s)
 {
     char    label[1024];
 
@@ -512,14 +543,16 @@ FileError (s)
     YesOrNo (toplevel, label);
 }
 
-Quit ()
+static void
+Quit (void)
 {
     if (YesOrNo (toplevel, "Save game?"))
 	Save ();
     exit (0);
 }
 
-Undo ()
+static void
+Undo (void)
 {
     DominoPtr	*p;
 
@@ -540,8 +573,8 @@ Undo ()
     DisplayDominos (DISPLAY_COMPUTER|DISPLAY_PLAYER|DISPLAY_BOARD);
 }
 
-int
-MakeFirstMove ()
+static int
+MakeFirstMove (void)
 {
     DominoPtr	max_domino;
     DominoPtr	domino;
@@ -589,16 +622,14 @@ MakeFirstMove ()
  *	Returns: none.
  */
 
-/* ARGSUSED */
-void 
-PannerCallback(w, closure, report_ptr)
-Widget w;
-XtPointer closure, report_ptr;
+static void
+PannerCallback(Widget w, XtPointer closure, XtPointer report_ptr)
 {
     Arg args[2];
     XawPannerReport *report = (XawPannerReport *) report_ptr;
     Widget child = (Widget) closure;
 
+    (void) w;
     XtSetArg (args[0], XtNx, -report->slider_x);
     XtSetArg (args[1], XtNy, -report->slider_y);
 
@@ -607,24 +638,22 @@ XtPointer closure, report_ptr;
 
 /*	Function Name: PortholeCallback
  *	Description: called when the porthole or its child has
- *                   changed 
+ *                   changed
  *	Arguments: porthole - the porthole widget.
  *                 panner_ptr - the panner widget.
  *                 report_ptr - the porthole record.
  *	Returns: none.
  */
 
-/* ARGSUSED */
-void 
-PortholeCallback(w, panner_ptr, report_ptr)
-Widget w;
-XtPointer panner_ptr, report_ptr;
+static void
+PortholeCallback(Widget w, XtPointer panner_ptr, XtPointer report_ptr)
 {
     Arg args[10];
     Cardinal n = 0;
     XawPannerReport *report = (XawPannerReport *) report_ptr;
     Widget panner = (Widget) panner_ptr;
 
+    (void) w;
     XtSetArg (args[n], XtNsliderX, report->slider_x); n++;
     XtSetArg (args[n], XtNsliderY, report->slider_y); n++;
     if (report->changed != (XawPRSliderX | XawPRSliderY)) {
@@ -636,11 +665,8 @@ XtPointer panner_ptr, report_ptr;
     XtSetValues (panner, args, n);
 }
 
-/* ARGSUSED */
-void
-PlayerScrollbarCallback (w, closure, data)
-    Widget  w;
-    XtPointer	closure, data;
+static void
+PlayerScrollbarCallback (Widget w, XtPointer closure, XtPointer data)
 {
     Widget	player_w = (Widget) closure;
     float	pos = *((float *) data);
@@ -649,6 +675,7 @@ PlayerScrollbarCallback (w, closure, data)
     Dimension	player_width;
     Position	player_x;
 
+    (void) w;
     n = 0;
     XtSetArg (args[n], XtNwidth, &player_width); n++;
     XtGetValues (player_w, args, n);
@@ -658,22 +685,21 @@ PlayerScrollbarCallback (w, closure, data)
     XtSetValues (player_w, args, n);
 }
 
-/*ARGSUSED*/
-void
-PlayerPortholeCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+static void
+PlayerPortholeCallback (Widget w, XtPointer closure, XtPointer data)
 {
     float  top, shown;
     XawPannerReport *report = (XawPannerReport *) data;
     Widget scrollbar = (Widget) closure;
 
+    (void) w;
     top = ((float) report->slider_x) / ((float) report->canvas_width);
     shown = ((float) report->slider_width) / ((float) report->canvas_width);
     XawScrollbarSetThumb (scrollbar, top, shown);
 }
 
-MakeLastPlayerVisible ()
+static void
+MakeLastPlayerVisible (void)
 {
     Arg		args[10];
     Cardinal	n;
@@ -695,66 +721,66 @@ MakeLastPlayerVisible ()
     }
 }
 
-/*ARGSUSED*/
 static void
-NewGameCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+NewGameCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     NewGame ();
 }
 
-/*ARGSUSED*/
 static void
-QuitCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+QuitCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     Quit ();
 }
 
-/*ARGSUSED*/
 static void
-UndoCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+UndoCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     Undo ();
 }
 
-/*ARGSUSED*/
 static void
-DrawCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+DrawCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     Draw ();
 }
 
-/*ARGSUSED*/
 static void
-HintCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+HintCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     Hint ();
 }
 
-/*ARGSUSED*/
 static void
-RestoreCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+RestoreCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     Restore ();
 }
 
-/*ARGSUSED*/
 static void
-SaveCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+SaveCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     Save ();
 }
 
@@ -763,12 +789,12 @@ static DominoPtr    selected_domino;
 
 /*ARGSUSED*/
 static void
-BoardCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+BoardCallback (Widget w, XtPointer closure, XtPointer data)
 {
     DominosInputPtr input = (DominosInputPtr) data;
 
+    (void) w;
+    (void) closure;
     if (strcmp (*input->params, "dest") != 0)
     {
 	selected_domino = 0;
@@ -777,18 +803,17 @@ BoardCallback (w, closure, data)
     }
     if (!selected_domino)
 	return;
-    Play (&player[selected_player], selected_domino, 
+    Play (&player[selected_player], selected_domino,
 	  input->domino, input->direction, input->distance);
 }
 
-/*ARGSUSED*/
 static void
-PlayerCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+PlayerCallback (Widget w, XtPointer closure, XtPointer data)
 {
     DominosInputPtr input = (DominosInputPtr) data;
 
+    (void) w;
+    (void) closure;
     selected_domino = 0;
     selected_player = 0;
     if (strcmp (*input->params, "source") != 0)
@@ -800,128 +825,123 @@ PlayerCallback (w, closure, data)
     }
 }
 
-    
-/*ARGSUSED*/
-static void UndoAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+static void
+UndoAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     Undo ();
 }
-    
-/*ARGSUSED*/
-static void NewGameAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+
+static void
+NewGameAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     NewGame ();
 }
-    
-/*ARGSUSED*/
-static void QuitAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+
+static void
+QuitAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     Quit ();
 }
 
-/*ARGSUSED*/
-static void HintAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+static void
+HintAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     Hint ();
 }
 
-/*ARGSUSED*/
-static void RestoreAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+static void
+RestoreAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     Restore ();
 }
 
-/*ARGSUSED*/
-static void SaveAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+static void
+SaveAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     Save ();
 }
 
-/*ARGSUSED*/
-static void DrawAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+static void
+DrawAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     Draw ();
 }
 
-/*ARGSUSED*/
-static void YesAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+static void
+YesAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     yn_answer = 1;
     yn_done = 1;
 }
 
-/*ARGSUSED*/
-static void NoAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+static void
+NoAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     yn_answer = 0;
     yn_done = 0;
 }
 
 XtActionsRec	actions[] = {
-    "dominosUndo",	UndoAction,
-    "dominosNewGame",	NewGameAction,
-    "dominosQuit",	QuitAction,
-    "dominosHint",	HintAction,
-    "dominosRestore",	RestoreAction,
-    "dominosSave",	SaveAction,
-    "dominosDraw",	DrawAction,
-    "dominosYes",	YesAction,
-    "dominosNo",	NoAction,
+    { "dominosUndo",	UndoAction, },
+    { "dominosNewGame",	NewGameAction, },
+    { "dominosQuit",	QuitAction, },
+    { "dominosHint",	HintAction, },
+    { "dominosRestore",	RestoreAction, },
+    { "dominosSave",	SaveAction, },
+    { "dominosDraw",	DrawAction, },
+    { "dominosYes",	YesAction, },
+    { "dominosNo",	NoAction, },
 };
 
 struct menuEntry {
     char    *name;
-    void    (*function)();
+    void    (*function)(Widget, XtPointer, XtPointer);
 };
 
 struct menuEntry fileMenuEntries[] = {
-    "restore", RestoreCallback,
-    "save", SaveCallback,
-    "quit", QuitCallback,
+    { "restore", RestoreCallback, },
+    { "save", SaveCallback, },
+    { "quit", QuitCallback, },
 };
-    
-Widget
-CreateMenu (parent, name, entries, count)
-    Widget  parent;
-    char    *name;
-    struct menuEntry	*entries;
-    int	    count;
+
+static Widget
+CreateMenu (Widget parent, char *name, struct menuEntry *entries, int count)
 {
     Widget  menu;
     Widget  entry;
@@ -947,10 +967,11 @@ XtResource resources[] = {
 };
 
 XrmOptionDescRec options[] = {
-    "-squareCards",	"*Cards.roundCards",	XrmoptionNoArg, "False",
+    { "-squareCards",	"*Cards.roundCards",	XrmoptionNoArg, "False", },
 };
 
-makeDefaultSaveFile ()
+static void
+makeDefaultSaveFile (void)
 {
     if (!dominosResources.saveFile || !*dominosResources.saveFile)
     {
@@ -962,34 +983,33 @@ makeDefaultSaveFile ()
     }
 }
 
-main (argc, argv)
-    int	    argc;
-    char    **argv;
+int
+main (int argc, char **argv)
 {
     Atom	wm_delete_window;
     int		i;
-    
+
     toplevel = XtInitialize (argv[0], "Dominos", options, XtNumber(options),
 			     &argc, argv);
-    
+
     XtGetApplicationResources (toplevel, (XtPointer)&dominosResources, resources,
 			       XtNumber (resources), NULL, 0);
-    
+
     makeDefaultSaveFile ();
 
     AnimateSetSpeed (dominosResources.animationSpeed);
-    
+
     XtAddActions (actions, XtNumber(actions));
 
-    XtOverrideTranslations 
-	(toplevel, 
+    XtOverrideTranslations
+	(toplevel,
 	 XtParseTranslationTable ("<Message>WM_PROTOCOLS: dominosQuit()"));
     frame = XtCreateManagedWidget ("frame", layoutWidgetClass, toplevel, NULL, 0);
     menuBar = XtCreateManagedWidget ("menuBar", layoutWidgetClass, frame, NULL, 0);
     fileMenuButton = XtCreateManagedWidget ("fileMenuButton",
 					    menuButtonWidgetClass,
 					    menuBar, NULL, ZERO);
-    fileMenu = CreateMenu (fileMenuButton, "fileMenu", 
+    fileMenu = CreateMenu (fileMenuButton, "fileMenu",
 			   fileMenuEntries, XtNumber (fileMenuEntries));
     newGame = XtCreateManagedWidget ("newGame", commandWidgetClass,
 				     menuBar, NULL, ZERO);
@@ -1015,50 +1035,50 @@ main (argc, argv)
     }
     porthole = XtCreateManagedWidget("porthole", portholeWidgetClass,
 				     frame, NULL, ZERO);
-    
+
     panner = XtCreateManagedWidget("panner", pannerWidgetClass,
 				   frame, NULL, ZERO);
-    
+
     board_w = XtCreateManagedWidget ("board", dominosWidgetClass, porthole, NULL, 0);
 
     XtAddCallback (board_w, XtNinputCallback, BoardCallback, NULL);
-    
+
     XtAddCallback(porthole, XtNreportCallback, PortholeCallback,
 		  (XtPointer) panner);
 
     XtAddCallback(panner, XtNreportCallback, PannerCallback,
 		  (XtPointer) board_w);
-    
+
     player_porthole = XtCreateManagedWidget("player_porthole", portholeWidgetClass,
 					  frame, NULL, ZERO);
 
     player_scrollbar = XtCreateManagedWidget("player_scrollbar", scrollbarWidgetClass,
 					     frame, NULL, ZERO);
 
-    player_w = XtCreateManagedWidget ("player", dominosWidgetClass, 
+    player_w = XtCreateManagedWidget ("player", dominosWidgetClass,
 				      player_porthole, NULL, 0);
-    
+
     XtAddCallback (player_porthole, XtNreportCallback, PlayerPortholeCallback,
 		   (XtPointer) player_scrollbar);
 
     XtAddCallback (player_scrollbar, XtNjumpProc, PlayerScrollbarCallback,
 		   (XtPointer) player_w);
-    
+
     XtAddCallback(player_w, XtNinputCallback, PlayerCallback, NULL);
 
     message = XtCreateManagedWidget ("message", labelWidgetClass, frame, NULL, 0);
-    
+
     computerCount = XtCreateManagedWidget ("computerCount", labelWidgetClass, frame, NULL, ZERO);
-    
+
     srandom (getpid () ^ time ((long *) 0));
-    
+
     Message (message, "Keith's Dominos, Version 1.0");
     if (!Restore ())
     {
 	NewGame ();
 	DisplayScores ();
     }
-    
+
     XtRealizeWidget (toplevel);
     wm_delete_window = XInternAtom(XtDisplay(toplevel), "WM_DELETE_WINDOW",
 				   False);
