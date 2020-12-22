@@ -4,10 +4,6 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)score.c	5.1 (Berkeley) 5/30/85";
-#endif not lint
-
 #include	<stdio.h>
 #include	"deck.h"
 #include	"cribbage.h"
@@ -72,12 +68,8 @@ static  int		pairpoints, runpoints;	/* globals from pairuns */
  *	Score the given hand of n cards and the starter card.
  *	n must be <= 4
  */
-scorehand(hand, starter, n, crb, do_explain)
-register CARD		hand[];
-CARD			starter;
-int			n;
-BOOLEAN			crb;		/* true if scoring crib */
-BOOLEAN			do_explain;	/* true if must explain this hand */
+int
+scorehand(CARD *hand, CARD starter, int n, BOOLEAN crb, BOOLEAN do_explain)
 {
 	CARD			h[(CINHAND + 1)];
 	register int		i, k;
@@ -101,7 +93,7 @@ BOOLEAN			do_explain;	/* true if must explain this hand */
 	}
 
 	if (flag && n >= CINHAND) {
-	    if (do_explain && expl[0] != NULL)
+	    if (do_explain && expl[0] != '\0')
 		strcat(expl, ", ");
 	    if (starter.suit == k) {
 		score += 5;
@@ -110,29 +102,30 @@ BOOLEAN			do_explain;	/* true if must explain this hand */
 	    }
 	    else if (!crb) {
 		score += 4;
-		if (do_explain && expl[0] != NULL)
+		if (do_explain && expl[0] != '\0')
 		    strcat(expl, ", Four-flush");
 		else
 		    strcpy(expl, "Four-flush");
 	    }
 	}
 
-	if (do_explain && expl[0] != NULL)
+	if (do_explain && expl[0] != '\0')
 	    strcat(expl, ", ");
 	h[n] = starter;
 	sorthand(h, n + 1);			/* sort by rank */
 	i = 2 * fifteens(h, n + 1);
 	score += i;
-	if (do_explain)
+	if (do_explain) {
 	    if (i > 0) {
 		sprintf(buf, "%d points in fifteens", i);
 		strcat(expl, buf);
 	    }
 	    else
 		strcat(expl, "No fifteens");
+	}
 	i = pairuns(h, n + 1);
 	score += i;
-	if (do_explain)
+	if (do_explain) {
 	    if (i > 0) {
 		sprintf(buf, ", %d points in pairs, %d in runs", pairpoints,
 		    runpoints);
@@ -140,6 +133,7 @@ BOOLEAN			do_explain;	/* true if must explain this hand */
 	    }
 	    else
 		strcat(expl, ", No pairs/runs");
+	}
 	return score;
 }
 
@@ -147,9 +141,8 @@ BOOLEAN			do_explain;	/* true if must explain this hand */
  * fifteens:
  *	Return number of fifteens in hand of n cards
  */
-fifteens(hand, n)
-register CARD		hand[];
-int			n;
+int
+fifteens(CARD *hand, int n)
 {
 	register int		*sp, *np;
 	register int		i;
@@ -192,10 +185,8 @@ int			n;
  * sets the globals pairpoints and runpoints appropriately
  */
 
-pairuns( h, n )
-
-    CARD		h[];
-    int			n;
+int
+pairuns( CARD *h, int n )
 {
 	register  int		i;
 	int			runlength, runmult, lastmult, curmult;
@@ -267,11 +258,8 @@ pairuns( h, n )
  * the n cards in tbl during pegging
  */
 
-pegscore( crd, tbl, n, sum )
-
-    CARD		crd,  tbl[];
-    int			n;
-    int			sum;
+int
+pegscore( CARD crd, CARD *tbl, int n, int sum )
 {
 	BOOLEAN			got[ RANKS ];
 	register  int		i, j, scr;
@@ -310,13 +298,13 @@ pegscore( crd, tbl, n, sum )
  * points such a crib will get.
  */
 
-adjust( cb, tnv )
-
-    CARD		cb[], tnv;
+int
+adjust( CARD *cb, CARD tnv )
 {
 	int			i,  c0,  c1;
 	long			scr;
 
+	(void) tnv;
 	c0 = cb[0].rank;
 	c1 = cb[1].rank;
 	if(  c0 > c1  )  {

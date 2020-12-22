@@ -18,15 +18,15 @@ WINDOW	*Tablewin;			/* table window */
 #define CNTL(c)	((c) & 0x37)
 
 static void
-bye ()
+bye (int sig)
 {
+    (void) sig;
     signal (SIGINT, SIG_IGN);
     quit (1);
 }
 
-UIInit (argc, argv)
-    int	    argc;
-    char    **argv;
+void
+UIInit (int argc, char **argv)
 {
     initscr();
     signal(SIGINT, bye);

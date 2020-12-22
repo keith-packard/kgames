@@ -4,10 +4,6 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)support.c	5.1 (Berkeley) 5/30/85";
-#endif not lint
-
 #include	"deck.h"
 #include	"cribbage.h"
 
@@ -22,11 +18,8 @@ int		tv[ NTV ]	= { 8, 7, 9, 6, 11, 12, 13, 14, 10, 5 };
  * only called if no playable card will score points
  */
 
-cchose( h, n, s )
-
-    CARD		h[];
-    int			n;
-    int			s;
+int
+cchose( CARD *h, int n, int s )
 {
 	register  int		i, j, l;
 
@@ -82,9 +75,8 @@ cchose( h, n, s )
  * plyrhand:
  *	Evaluate and score a player hand or crib
  */
-plyrhand(hand, s)
-CARD		hand[];
-char		*s;
+BOOLEAN
+plyrhand(CARD *hand, char *s)
 {
     register int	i, j;
     register BOOLEAN	win;
@@ -119,9 +111,8 @@ char		*s;
  * comphand:
  *	Handle scoring and displaying the computers hand
  */
-comphand(h, s)
-CARD		h[];
-char		*s;
+BOOLEAN
+comphand(CARD *h, char *s)
 {
 	register int		j;
 
@@ -139,8 +130,8 @@ char		*s;
 
 int	Lastscore[2] = {-1, -1};
 
-chkscr(scr, inc)
-int		*scr, inc;
+BOOLEAN
+chkscr(int *scr, int inc)
 {
 	int	who;
 	if (scr == &cscore)
@@ -162,9 +153,8 @@ int		*scr, inc;
  * the crib and puts the best two cards at the end
  */
 
-cdiscard( mycrib )
-
-    BOOLEAN		mycrib;
+void
+cdiscard( BOOLEAN mycrib )
 {
 	CARD			d[ CARDS ],  h[ FULLHAND ],  cb[ 2 ];
 	register  int		i, j, k;
@@ -210,11 +200,8 @@ cdiscard( mycrib )
  * returns true if some card in hand can be played without exceeding 31
  */
 
-anymove( hand, n, sum )
-
-    CARD		hand[];
-    int			n;
-    int			sum;
+BOOLEAN
+anymove( CARD *hand, int n, int sum )
 {
 	register  int		i, j;
 
@@ -233,11 +220,8 @@ anymove( hand, n, sum )
  * the s up to t, or -1 if there is none
  */
 
-anysumto( hand, n, s, t )
-
-    CARD		hand[];
-    int			n;
-    int			s,  t;
+int
+anysumto( CARD *hand, int n, int s, int t )
 {
 	register  int		i;
 
@@ -254,11 +238,8 @@ anysumto( hand, n, s, t )
  * return the number of cards in h having the given rank value
  */
 
-numofval( h, n, v )
-
-    CARD		h[];
-    int			n;
-    int			v;
+int
+numofval( CARD *h, int n, int v )
 {
 	register  int		i, j;
 
@@ -275,10 +256,8 @@ numofval( h, n, v )
  * makeknown remembers all n cards in h for future recall
  */
 
-makeknown( h, n )
-
-    CARD		h[];
-    int			n;
+void
+makeknown( CARD *h, int n )
 {
 	register  int		i;
 

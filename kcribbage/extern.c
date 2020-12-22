@@ -4,10 +4,6 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)extern.c	5.1 (Berkeley) 5/30/85";
-#endif not lint
-
 # include	"deck.h"
 # include	"cribbage.h"
 

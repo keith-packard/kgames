@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
@@ -38,9 +38,10 @@ typedef enum _CardsRank {
     Cards8 = 8,
     Cards9 = 9,
     Cards10 = 10,
-    CardsJack = 11, 
-    CardsQueen = 12, 
-    CardsKing = 13
+    CardsJack = 11,
+    CardsQueen = 12,
+    CardsKing = 13,
+    CardsRankEmpty = 14
 } CardsRank;
 
 typedef enum _CardsOverlap {
@@ -54,7 +55,7 @@ typedef enum _CardsOverlap {
 #define IntToCardsRank(i)   ((CardsRank) ((i) + 1))
 
 typedef enum _CardsSuit {
-    CardsClub, CardsDiamond, CardsHeart, CardsSpade, 
+    CardsClub, CardsDiamond, CardsHeart, CardsSpade,
     CardsBack, CardsEmpty, CardsNone
 } CardsSuit;
 

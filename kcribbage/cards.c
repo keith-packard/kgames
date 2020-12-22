@@ -4,28 +4,23 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)cards.c	5.1 (Berkeley) 5/30/85";
-#endif not lint
-
 #include	<stdio.h>
 #include	"deck.h"
+#include	"cribbage.h"
 
 
 /*
  * initialize a deck of cards to contain one of each type
  */
 
-makedeck( d )
-
-    CARD	d[];
+void
+makedeck( CARD *d )
 {
 	register  int		i, j, k;
-	long			time();
 
 	i = time( (long *) 0 );
 	i = ( (i&0xff) << 8 ) | ( (i >> 8)&0xff ) | 1;
-	srand( i );
+	srandom( i );
 	k = 0;
 	for( i = 0; i < RANKS; i++ )  {
 	    for( j = 0; j < SUITS; j++ )  {
@@ -42,9 +37,8 @@ makedeck( d )
  * see Knuth, vol. 2, page 125
  */
 
-shuffle( d )
-
-    CARD	d[];
+void
+shuffle( CARD *d )
 {
 	register  int		j, k;
 	CARD			c;
@@ -63,9 +57,8 @@ shuffle( d )
  * return true if the two cards are equal...
  */
 
-eq( a, b )
-
-    CARD		a, b;
+BOOLEAN
+eq( CARD a, CARD b )
 {
 	return(  ( a.rank == b.rank )  &&  ( a.suit == b.suit )  );
 }
@@ -76,10 +69,8 @@ eq( a, b )
  * isone returns TRUE if a is in the set of cards b
  */
 
-isone( a, b, n )
-
-    CARD		a, b[];
-    int			n;
+BOOLEAN
+isone( CARD a, CARD *b, int n )
 {
 	register  int		i;
 
@@ -95,10 +86,8 @@ isone( a, b, n )
  * remove the card a from the deck d of n cards
  */
 
-remove_card( a, d, n )
-
-    CARD		a, d[];
-    int			n;
+void
+remove_card( CARD a, CARD *d, int n )
 {
 	register  int		i, j;
 
@@ -115,9 +104,8 @@ remove_card( a, d, n )
  * sorthand:
  *	Sort a hand of n cards
  */
-sorthand(h, n)
-register CARD		h[];
-int			n;
+void
+sorthand(CARD *h, int n)
 {
 	register CARD		*cp, *endp;
 	CARD			c;

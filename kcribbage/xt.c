@@ -1,4 +1,27 @@
+/*
+ * Copyright © 2020 Keith Packard
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that copyright
+ * notice and this permission notice appear in supporting documentation, and
+ * that the name of the copyright holders not be used in advertising or
+ * publicity pertaining to distribution of the software without specific,
+ * written prior permission.  The copyright holders make no representations
+ * about the suitability of this software for any purpose.  It is provided "as
+ * is" without express or implied warranty.
+ *
+ * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ */
+
 # include	<stdio.h>
+# include	<ctype.h>
 # include	"deck.h"
 # include	"cribbage.h"
 # include	<X11/Intrinsic.h>
@@ -21,6 +44,7 @@
 # include	<Xkw/Thermo.h>
 # include	<Xkw/Layout.h>
 # include	<Xkw/Pad.h>
+# include	<Xkw/Message.h>
 # include	"CribBoard.h"
 # include	<X11/Xutil.h>
 
@@ -68,61 +92,64 @@ static CribbageCardRec	compcribCards[NUM_CARDS];
 static char textbuf[CHAR_BUF];
 static int  text_in, text_out;
 
-static void key_action (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+static void
+key_action (Widget  w,
+	    XEvent  *e,
+	    String  *p,
+	    Cardinal*n)
 {
     int	    len;
     KeySym  keysym;
     XComposeStatus  status;
 
-    len = XLookupString (e, textbuf + text_in, CHAR_BUF - text_in, &keysym, &status);
+    (void) w;
+    (void) p;
+    (void) n;
+    len = XLookupString ((XKeyEvent *) e, textbuf + text_in, CHAR_BUF - text_in, &keysym, &status);
     text_in += len;
 }
 
 XtActionsRec	actions[] = {
-    "cribbageKey", key_action,
+    { "cribbageKey", key_action, }
 };
 
 static void
-QuitCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+QuitCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    quit ();
+    (void) w;
+    (void) closure;
+    (void) data;
+    quit (0);
 }
 
 static int	selectedCard;
 static Boolean	cardSelected;
 
 static void
-PlayerCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+PlayerCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
     CardsInputPtr   input = (CardsInputPtr) data;
-    
+
     selectedCard = input->row;
     cardSelected = True;
 }
 
 struct menuEntry {
     char    *name;
-    void    (*function)();
+    void    (*function)(Widget w, XtPointer closure, XtPointer data);
 };
 
 struct menuEntry fileMenuEntries[] = {
-    "quit", QuitCallback,
+    { "quit", QuitCallback, },
 };
-    
-Widget
-CreateMenu (parent, name, entries, count)
-    Widget  parent;
-    char    *name;
-    struct menuEntry	*entries;
-    int	    count;
+
+static Widget
+CreateMenu (Widget  parent,
+	    char    *name,
+	    struct menuEntry	*entries,
+	    int	    count)
 {
     Widget  menu;
     Widget  entry;
@@ -152,27 +179,23 @@ XtResource resources[] = {
 };
 
 XrmOptionDescRec options[] = {
-    "-smallCards",	"*Cards.smallCards",	XrmoptionNoArg, "True",
-    "-squareCards",	"*Cards.roundCards",	XrmoptionNoArg, "False",
-    "-noanimate",	".animationSpeed",	XrmoptionNoArg, "0",
-    "-animationSpeed",	".animationSpeed",	XrmoptionSepArg, NULL,
-    "-explain",		".explain",		XrmoptionNoArg,	 "True",
-    "-quiet",		".quiet",		XrmoptionNoArg,	 "True",
-    "-random",		".random",		XrmoptionNoArg,	 "True",
+    { "-smallCards",	"*Cards.smallCards",	XrmoptionNoArg, "True", },
+    { "-squareCards",	"*Cards.roundCards",	XrmoptionNoArg, "False", },
+    { "-noanimate",	".animationSpeed",	XrmoptionNoArg, "0", },
+    { "-animationSpeed",	".animationSpeed",	XrmoptionSepArg, NULL, },
+    { "-explain",		".explain",		XrmoptionNoArg,	 "True", },
+    { "-quiet",		".quiet",		XrmoptionNoArg,	 "True", },
+    { "-random",		".random",		XrmoptionNoArg,	 "True", },
 };
 
-UIInit (argc, argv)
-    int	    argc;
-    char    **argv;
+void
+UIInit (int argc, char **argv)
 {
-    Arg		    args[10];
-    Cardinal	    n;
-
     toplevel = XtInitialize (argv[0], "Cribbage", options, XtNumber(options), &argc, argv);
-    
+
     XtGetApplicationResources (toplevel, (XtPointer)&cribbageResources, resources,
 			       XtNumber (resources), NULL, 0);
-    
+
     explain = cribbageResources.explain;
     quiet = cribbageResources.quiet;
     rflag = cribbageResources.random;
@@ -183,7 +206,7 @@ UIInit (argc, argv)
     fileMenuButton = XtCreateManagedWidget ("fileMenuButton",
 					    menuButtonWidgetClass,
 					    menuBar, NULL, 0);
-    fileMenu = CreateMenu (fileMenuButton, "fileMenu", 
+    fileMenu = CreateMenu (fileMenuButton, "fileMenu",
 			   fileMenuEntries, XtNumber (fileMenuEntries));
     player = XtCreateManagedWidget ("player", cardsWidgetClass, layout, NULL, 0);
     XtAddCallback (player, XtNinputCallback, PlayerCallback, NULL);
@@ -198,24 +221,26 @@ UIInit (argc, argv)
     XtRealizeWidget (toplevel);
 }
 
-UISuspend ()
+void
+UISuspend (void)
 {
 }
 
-UIResume ()
+void
+UIResume (void)
 {
 }
 
-UIFinish ()
+void
+UIFinish (void)
 {
 }
 
 static int compPegs[2];
 static int playPegs[2];
 
-resetPegs (w, pegs)
-    Widget  w;
-    int	    *pegs;
+static void
+resetPegs (Widget w, int *pegs)
 {
     int	    i;
 
@@ -226,14 +251,18 @@ resetPegs (w, pegs)
     }
 }
 
-UIInitBoard ()
+void
+UIInitBoard (void)
 {
     resetPegs (compScore, compPegs);
     resetPegs (playScore, playPegs);
 }
 
-UIGameScore (who, num)
+void
+UIGameScore (int who, int num)
 {
+    (void) who;
+    (void) num;
 #ifdef NOTDEF
     char    buf[100];
     sprintf (buf, "Games: %3d", num);
@@ -241,7 +270,8 @@ UIGameScore (who, num)
 #endif
 }
 
-UIRefresh ()
+void
+UIRefresh (void)
 {
     XkwPadUpdate (message);
     HandUpdateDisplay (computer);
@@ -251,10 +281,11 @@ UIRefresh ()
     HandUpdateDisplay (compcrib);
 }
 
-UIWait ()
+void
+UIWait (void)
 {
     XEvent  event;
-    
+
     UIMessage ("--More--", FALSE);
     UIRefresh ();
     for (;;)
@@ -274,29 +305,29 @@ UIWait ()
 }
 
 static Widget
-widget (who)
-    int	who;
+widget (int who)
 {
     switch (who) {
     case PLAYER:    return player;
     case COMPUTER:  return computer;
+    default:
     case TABLE:	    return table;
     }
-}    
+}
 
 static CribbageCardPtr
-Cards (who)
-    int	who;
+Cards (int who)
 {
     switch (who) {
     case PLAYER:    return playerCards;
     case COMPUTER:  return computerCards;
+    default:
     case TABLE:	    return tableCards;
     }
-}    
+}
 
-UIEraseHand (who)
-    int	who;
+void
+UIEraseHand (int who)
 {
     Widget  w = widget (who);
 
@@ -304,7 +335,8 @@ UIEraseHand (who)
     HandUpdateDisplay (w);
 }
 
-UIClearHand (who)
+void
+UIClearHand (int who)
 {
     CribbageCardPtr    cards = Cards(who);
     int		    i;
@@ -319,28 +351,23 @@ UIClearHand (who)
     HandRemoveAllCards (widget (who));
 }
 
-static CardsSuit CardsSuitMap[] = {
-    CardsSpade, CardsHeart, CardsDiamond, CardsClub 
+static const CardsSuit CardsSuitMap[] = {
+    CardsSpade, CardsHeart, CardsDiamond, CardsClub
 };
 
-static CardsRank CardsRankMap[] = {
+static const CardsRank CardsRankMap[] = {
     CardsAce, Cards2, Cards3, Cards4, Cards5, Cards6, Cards7,
-    Cards8, Cards9, Cards10, CardsJack, CardsQueen, CardsKing, CardsEmpty
+    Cards8, Cards9, Cards10, CardsJack, CardsQueen, CardsKing, CardsRankEmpty
 };
 
-static
-updateCards (w, h, n, cards, blank)
-    Widget	    w;
-    CARD	    h[];
-    int		    n;
-    CribbageCardPtr cards;
-    BOOLEAN	    blank;
+static void
+updateCards (Widget w, CARD *h, int n, CribbageCardPtr cards, BOOLEAN blank)
 {
     int		    i;
     CardsSuit	    suit;
     CardsRank	    rank;
 
-    for (i = 0; i < n; i++) 
+    for (i = 0; i < n; i++)
     {
 	if (h[i].rank == EMPTY)
 	{
@@ -384,24 +411,18 @@ updateCards (w, h, n, cards, blank)
     }
 }
 
-UIPrintHand (h, n, who, blank)
-    CARD    h[];
-    int	    n;
-    int	    who;
-    BOOLEAN blank;
+void
+UIPrintHand (CARD *h, int n, int who, BOOLEAN blank)
 {
     updateCards (widget (who), h, n, Cards(who), blank);
 }
 
-UIPrintCrib (who, card, blank)
-    int	    who;
-    CARD    *card;
-    BOOLEAN blank;
+void
+UIPrintCrib (int who, CARD *card, BOOLEAN blank)
 {
     Widget	    w, ow;
-    CARD	    h;
     CribbageCardPtr cards, ocards;
-    
+
     if (who == COMPUTER)
     {
 	w = compcrib;
@@ -416,21 +437,20 @@ UIPrintCrib (who, card, blank)
 	ow = compcrib;
 	ocards = compcribCards;
     }
-    
+
     updateCards (w, card, 1, cards, blank);
     updateCards (ow, NULL, 0, ocards, blank);
 }
 
-UITableScore (score, n)
-    int	score;
+void
+UITableScore (int score, int n)
 {
+    (void) n;
     Message (tableScore, "Score: %d", score);
 }
 
-UIPrintPeg (score, on, who)
-    int	    score;
-    BOOLEAN on;
-    int	    who;
+void
+UIPrintPeg (int score, BOOLEAN on, int who)
 {
     Widget	w;
     int		*pegs;
@@ -446,7 +466,7 @@ UIPrintPeg (score, on, who)
 	w = playScore;
 	pegs = playPegs;
     }
-    
+
     if (score <= 0)
 	score = CribBoardUnset;
 
@@ -472,31 +492,34 @@ UIPrintPeg (score, on, who)
 static int  msgLine, msgCol;
 static int  curLine, curCol;
 
-ShowCursor ()
+void
+ShowCursor (void)
 {
     char    attr[1];
-    
+
     curLine = msgLine;
     curCol = msgCol;
     attr[0] = XkwPadInverse;
     XkwPadAttributes (message, curLine, curCol, attr, 1);
 }
 
-HideCursor ()
+void
+HideCursor (void)
 {
     char    attr[1];
-    
+
     attr[0] = XkwPadNormal;
     if (curLine >= 0)
 	XkwPadAttributes (message, curLine, curCol, attr, 1);
     curLine = -1;
 }
 
-UIReadChar ()
+int
+UIReadChar (void)
 {
     int	    c;
     XEvent  event;
-    
+
     ShowCursor ();
     UIRefresh ();
     while (text_in == text_out) {
@@ -513,21 +536,21 @@ UIReadChar ()
 }
 
 
-UIEchoChar (c)
-    char    c;
+void
+UIEchoChar (char c)
 {
     XkwPadText (message, msgLine, msgCol, &c, 1);
     msgCol++;
 }
 
-UIReadLine (buf, len)
-    char    *buf;
+void
+UIReadLine (char *buf, int len)
 {
     int	    ox, oy;
     char    *sp;
     int	    c;
     char    str[2];
-    
+
     /*
      * loop reading in the string, and put it in a temporary buffer
      */
@@ -538,8 +561,6 @@ UIReadLine (buf, len)
 	    continue;
 	else if (c == '\b') {	/* process erase character */
 	    if (sp > buf) {
-		register int i;
-
 		sp--;
 		--msgCol;
 		XkwPadText (message, msgLine, msgCol, " ", 1);
@@ -560,7 +581,7 @@ UIReadLine (buf, len)
 	    if (islower(c))
 		c = toupper(c);
 	    *sp++ = c;
-	    
+
 	    str[0] = c;
 	    str[1] = '\0';
 	    UIMessage (str, FALSE);
@@ -570,7 +591,8 @@ UIReadLine (buf, len)
     *sp = '\0';
 }
 
-static CheckScroll ()
+static void
+CheckScroll (void)
 {
     Arg	arg[1];
     Dimension	rows;
@@ -585,9 +607,8 @@ static CheckScroll ()
     }
 }
 
-UIMessage (str, newline)
-    char    *str;
-    int	    newline;
+void
+UIMessage (char *str, int newline)
 {
     int	    len = strlen (str);
     if (newline)
@@ -600,7 +621,8 @@ UIMessage (str, newline)
     msgCol += len;
 }
 
-UIGetMessageSize ()
+int
+UIGetMessageSize (void)
 {
     Arg	arg;
     Dimension	cols;
@@ -610,24 +632,23 @@ UIGetMessageSize ()
     return cols;
 }
 
-UIClearMsg ()
+void
+UIClearMsg (void)
 {
     XkwPadClear (message);
     msgLine = 0;
     msgCol = 0;
 }
 
-UIGetPlayerCard (hand, n, prompt)
-    CARD    hand[];
-    int	    n;
-    char    *prompt;
+int
+UIGetPlayerCard (CARD *hand, int n, char *prompt)
 {
     XEvent  event;
     for (;;) {
 	msg (prompt);
 	UIRefresh ();
 	cardSelected = False;
-	while (!cardSelected) 
+	while (!cardSelected)
 	{
 	    XtNextEvent (&event);
 	    XtDispatchEvent (&event);

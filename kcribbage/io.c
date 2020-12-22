@@ -4,10 +4,6 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)io.c	5.1 (Berkeley) 5/30/85";
-#endif
-
 # include	<ctype.h>
 # include	<stdarg.h>
 # include	<stdio.h>
@@ -32,20 +28,12 @@ char            *suitname[ SUITS ]      = { "SPADES", "HEARTS", "DIAMONDS",
 char            *suitchar[ SUITS ]      = { "S", "H", "D", "C" };
 
 
-void
-msg(char *fmt, ...);
-
-void
-addmsg(char *fmt, ...);
-
-
 /*
  * msgcard:
  *	Call msgcrd in one of two forms
  */
-msgcard(c, brief)
-CARD		c;
-BOOLEAN		brief;
+int
+msgcard(CARD c, BOOLEAN brief)
 {
 	if (brief)
 		return msgcrd(c, TRUE, (char *) NULL, TRUE);
@@ -59,10 +47,8 @@ BOOLEAN		brief;
  * msgcrd:
  *	Print the value of a card in ascii
  */
-msgcrd(c, brfrank, mid, brfsuit)
-CARD		c;
-char		*mid;
-BOOLEAN		brfrank,  brfsuit;
+int
+msgcrd(CARD c, BOOLEAN brfrank, char *mid, BOOLEAN brfsuit)
 {
 	if (c.rank == EMPTY || c.suit == EMPTY)
 	    return FALSE;
@@ -83,7 +69,8 @@ BOOLEAN		brfrank,  brfsuit;
  * getuchar:
  *	Reads and converts to upper case
  */
-getuchar()
+int
+getuchar(void)
 {
 	register int		c;
 
@@ -99,11 +86,9 @@ getuchar()
  *	Reads in a decimal number and makes sure it is between "lo" and
  *	"hi" inclusive.
  */
-number(lo, hi, prompt)
-int		lo, hi;
-char		*prompt;
+int
+number(int lo, int hi, char *prompt)
 {
-	char			*getline();
 	register char		*p;
 	register int		sum;
 
@@ -176,8 +161,8 @@ addmsg(char *fmt, ...)
  *	Display a new msg.
  */
 
-endmsg(newline)
-BOOLEAN newline;
+void
+endmsg(BOOLEAN newline)
 {
     int		linelen, msglen, len;
     char	*mp;
@@ -210,9 +195,8 @@ BOOLEAN newline;
  * doadd:
  *	Perform an add onto the message buffer
  */
-doadd(fmt, args)
-char	*fmt;
-va_list    args;
+void
+doadd(char *fmt, va_list args)
 {
     vsprintf (&Msgbuf[Newpos], fmt, args);
     Newpos = strlen(Msgbuf);
@@ -224,7 +208,7 @@ va_list    args;
  *	compressed to one space; a space is inserted before a ','
  */
 char *
-getline()
+getline(void)
 {
     UIReadLine (linebuf, LINESIZE);
     return linebuf;
@@ -234,9 +218,10 @@ getline()
  * quit:
  *	Leave the program, cleaning things up as we go.
  */
- 
-quit()
+
+void
+quit(int status)
 {
     UIFinish ();
-    exit(0);
+    exit(status);
 }

@@ -77,4 +77,7 @@ typedef struct _CribBoardRec*	    CribBoardWidget;
 
 extern WidgetClass cribBoardWidgetClass;
 
+void
+XkwCribBoardSetPeg (Widget gw, int i, int v);
+
 #endif /* _CribBoard_h */

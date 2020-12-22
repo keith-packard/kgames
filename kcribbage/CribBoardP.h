@@ -24,6 +24,7 @@
 #ifndef _CribBoardP_h
 #define _CribBoardP_h
 
+#include <stdlib.h>
 #include "CribBoard.h"
 /* include superclass private header file */
 #include <X11/Xaw/SimpleP.h>

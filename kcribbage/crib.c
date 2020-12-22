@@ -4,36 +4,20 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifndef lint
-char copyright[] =
-"@(#) Copyright (c) 1980 Regents of the University of California.\n\
- All rights reserved.\n";
-#endif
-
-#ifndef lint
-static char sccsid[] = "@(#)crib.c	5.1 (Berkeley) 5/30/85";
-#endif
-
 # include	<stdio.h>
 # include	<signal.h>
 # include	"deck.h"
 # include	"cribbage.h"
 
-char		*getline();
-
 # define	LOGFILE		"/usr/games/lib/criblog"
 # define	INSTRCMD	"ul /usr/games/lib/crib.instr | more -f"
 
-main(argc, argv)
-int	argc;
-char	*argv[];
+int
+main(int argc, char **argv)
 {
-	register  char		*p;
 	BOOLEAN			playing;
-	char			*s;		/* for reading arguments */
-	char			bust;		/* flag for arg reader */
 	FILE			*f;
-	int			bye();
+	int			bye(void);
 
 	UIInit (argc, argv);
 	playing = TRUE;
@@ -61,7 +45,8 @@ char	*argv[];
  * makeboard:
  *	Print out the initial board on the screen
  */
-makeboard()
+void
+makeboard(void)
 {
     UIInitBoard ();
     gamescore ();
@@ -71,7 +56,8 @@ makeboard()
  * gamescore:
  *	Print out the current game score
  */
-gamescore()
+void
+gamescore(void)
 {
     extern int	Lastscore[];
 
@@ -88,7 +74,8 @@ gamescore()
  *	Play one game up to glimit points.  Actually, we only ASK the
  *	player what card to turn.  We do a random one, anyway.
  */
-game()
+void
+game(void)
 {
 	register int		i, j;
 	BOOLEAN			flag;
@@ -106,7 +93,7 @@ game()
 			"Cut to see whose crib it is -- low card wins? ");
 		    getline();
 		}
-		i = (rand() >> 4) % CARDS;		/* random cut */
+		i = (random() >> 4) % CARDS;		/* random cut */
 		do {					/* comp cuts deck */
 		    j = (rand() >> 4) % CARDS;
 		} while (j == i);
@@ -179,11 +166,10 @@ game()
  * playhand:
  *	Do up one hand of the game
  */
-playhand(mycrib)
-BOOLEAN		mycrib;
+BOOLEAN
+playhand(BOOLEAN mycrib)
 {
 	register int		deckpos;
-	extern char		Msgbuf[];
 
 	UIClearHand (COMPUTER);
 	knownum = 0;
@@ -209,7 +195,8 @@ BOOLEAN		mycrib;
  * deal cards to both players from deck
  */
 
-deal( mycrib )
+int
+deal(int mycrib)
 {
 	register  int		i, j;
 
@@ -232,8 +219,8 @@ deal( mycrib )
  *	Handle players discarding into the crib...
  * Note: we call cdiscard() after prining first message so player doesn't wait
  */
-discard(mycrib)
-BOOLEAN		mycrib;
+void
+discard(BOOLEAN mycrib)
 {
 	register char	*prompt;
 	CARD		crd;
@@ -260,11 +247,10 @@ BOOLEAN		mycrib;
  *	Cut the deck and set turnover.  Actually, we only ASK the
  *	player what card to turn.  We do a random one, anyway.
  */
-cut(mycrib, pos)
-BOOLEAN		mycrib;
-int		pos;
+BOOLEAN
+cut(BOOLEAN mycrib, int pos)
 {
-	register int		i, cardx;
+	register int		i;
 	BOOLEAN			win = FALSE;
 
 	if (mycrib) {
@@ -308,15 +294,15 @@ static CARD		Table[14];
 
 static int		Tcnt;
 
-peg(mycrib)
-BOOLEAN		mycrib;
+BOOLEAN
+peg(BOOLEAN mycrib)
 {
 	static CARD		ch[CINHAND], ph[CINHAND];
 	CARD			crd;
 	register int		i, j, k;
 	register int		l;
 	register int		cnum, pnum, sum;
-	register BOOLEAN	myturn, mego, ugo, last, played;
+	register BOOLEAN	myturn, mego, ugo, last, played = FALSE;
 
 	cnum = pnum = CINHAND;
 	for (i = 0; i < CINHAND; i++) {		/* make copies of hands */
@@ -437,7 +423,7 @@ BOOLEAN		mycrib;
 	UIPrintHand (ph, pnum, PLAYER, FALSE);
 	UIPrintHand (ch, cnum, COMPUTER, TRUE);
 	prtable(sum);
-	if (last)
+	if (last) {
 	    if (played) {
 		msg(quiet ? "I get one for last" : "I get one point for last");
 		UIWait();
@@ -450,6 +436,7 @@ BOOLEAN		mycrib;
 		if (chkscr(&pscore, 1))
 		    return TRUE;
 	    }
+	}
 	return FALSE;
 }
 
@@ -457,8 +444,8 @@ BOOLEAN		mycrib;
  * prtable:
  *	Print out the table with the current score
  */
-prtable(score)
-int	score;
+void
+prtable(int score)
 {
     UIPrintHand (Table, Tcnt, TABLE, FALSE);
     UITableScore (score, Tcnt);
@@ -468,8 +455,8 @@ int	score;
  * score:
  *	Handle the scoring of the hands
  */
-score(mycrib)
-BOOLEAN		mycrib;
+BOOLEAN
+score(BOOLEAN mycrib)
 {
 	sorthand(crib, CINHAND);
 	if (mycrib) {
