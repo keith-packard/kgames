@@ -17,12 +17,13 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
  */
 
+# include	<stdlib.h>
 # include	<X11/Intrinsic.h>
 # include	<X11/StringDefs.h>
 # include	<X11/Shell.h>
@@ -40,6 +41,7 @@
 # include	<Xkw/Layout.h>
 # include	<X11/Xutil.h>
 # include	<Xkw/CardsUtil.h>
+# include	<Xkw/Message.h>
 
 Widget	    toplevel;
 Widget	    frame;
@@ -76,11 +78,11 @@ typedef struct _ktowersResources {
 
 KtowersResources ktowersResources;
 
-InitStacks ()
+static void
+InitStacks (void)
 {
     int		    col;
-    CardDisplay	    display;
-    
+
     for (col = 0; col < NUM_STACKS; col++)
     {
 	CardInitStack (&stackStacks[col],
@@ -98,7 +100,8 @@ InitStacks ()
     }
 }
 
-GenerateCards ()
+static void
+GenerateCards (void)
 {
     CardGenerateStandardDeck (rawcards);
     suitStacks[0].first = &rawcards[0];
@@ -107,13 +110,14 @@ GenerateCards ()
 
 #define FIRST_ROWS  5
 
-FirstDeal ()
+static void
+FirstDeal (void)
 {
     int	    row, col;
-    
-    for (row = 0; row < FIRST_ROWS; row++) 
+
+    for (row = 0; row < FIRST_ROWS; row++)
     {
-	for (col = 0; col < NUM_STACKS; col++) 
+	for (col = 0; col < NUM_STACKS; col++)
 	{
 	    CardMove (&suitStacks[0], suitStacks[0].last, &stackStacks[col], False);
 	    CardTurn (stackStacks[col].last, CardFaceUp, False);
@@ -128,8 +132,8 @@ FirstDeal ()
     }
 }
 
-int
-ComputeScore ()
+static int
+ComputeScore (void)
 {
     int	    col;
     int	    score;
@@ -148,17 +152,18 @@ ComputeScore ()
     }
     return score;
 }
-    
-DisplayStacks ()
+
+static void
+DisplayStacks (void)
 {
     int		    col;
-    
+
     for (col = 0; col < NUM_SUITS; col++)
 	CardDisplayStack (&suitStacks[col]);
-    
+
     for (col = 0; col < NUM_PILES; col++)
 	CardDisplayStack (&pileStacks[col]);
-    
+
     for (col = 0; col < NUM_STACKS; col++)
 	CardDisplayStack (&stackStacks[col]);
     CardsUpdateDisplay (suits);
@@ -168,8 +173,8 @@ DisplayStacks ()
 
 /* User interface functions */
 
-void
-NewGame ()
+static void
+NewGame (void)
 {
     CardsRemoveAllCards (suits);
     CardsRemoveAllCards (piles);
@@ -184,39 +189,36 @@ NewGame ()
     DisplayStacks ();
 }
 
-void
-Undo ()
+static void
+Undo (void)
 {
     if (!CardUndo ())
 	Message (message, "Nothing to undo.");
     DisplayStacks ();
 }
 
-void
-Score ()
+static void
+Score (void)
 {
-    Message (message, "Current position scores %d out of 340.", 
+    Message (message, "Current position scores %d out of 340.",
 	     ComputeScore ());
 }
 
-void
-Quit ()
+static void
+Quit (void)
 {
     exit (0);
 }
 
-Boolean
-IsLegalSuitPlay (from_stack, from_card, to_stack)
-    CardStackPtr    from_stack;
-    CardPtr	    from_card;
-    CardStackPtr    to_stack;
+static Boolean
+IsLegalSuitPlay (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 {
     if (from_card->card.rank == CardsAce)
     {
 	if (to_stack->last == NULL)
 	    return True;
-    } 
-    else 
+    }
+    else
     {
 	if (to_stack->last != NULL &&
 	    CardIsInSuitOrder (to_stack->last, from_card))
@@ -225,14 +227,12 @@ IsLegalSuitPlay (from_stack, from_card, to_stack)
     return False;
 }
 
-CardStackPtr
-FindSuitPlay (from_stack, from_card)
-    CardStackPtr    from_stack;
-    CardPtr	    from_card;
+static CardStackPtr
+FindSuitPlay (CardStackPtr from_stack, CardPtr from_card)
 {
     int		    i;
     CardStackPtr    to_stack;
-    
+
     for (i = 0; i < NUM_SUITS; i++)
     {
 	to_stack = &suitStacks[i];
@@ -242,25 +242,20 @@ FindSuitPlay (from_stack, from_card)
     return NULL;
 }
 
-Boolean
-IsLegalPilePlay (from_stack, from_card, to_stack)
-    CardStackPtr    from_stack;
-    CardPtr	    from_card;
-    CardStackPtr    to_stack;
+static Boolean
+IsLegalPilePlay (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 {
     if (to_stack->last == NULL)
 	return True;
     return False;
 }
 
-CardStackPtr
-FindPilePlay (from_stack, from_card)
-    CardStackPtr    from_stack;
-    CardPtr	    from_card;
+static CardStackPtr
+FindPilePlay (CardStackPtr from_stack, CardPtr from_card)
 {
     int		    i;
     CardStackPtr    to_stack;
-    
+
     for (i = 0; i < NUM_PILES; i++)
     {
 	to_stack = &pileStacks[i];
@@ -270,11 +265,8 @@ FindPilePlay (from_stack, from_card)
     return NULL;
 }
 
-Boolean
-IsLegalRegularPlay (from_stack, from_card, to_stack)
-    CardStackPtr    from_stack;
-    CardPtr	    from_card;
-    CardStackPtr    to_stack;
+static Boolean
+IsLegalRegularPlay (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 {
     CardPtr to_card;
 
@@ -284,14 +276,12 @@ IsLegalRegularPlay (from_stack, from_card, to_stack)
     return False;
 }
 
-CardStackPtr
-FindRegularPlay (from_stack, from_card)
-    CardStackPtr    from_stack;
-    CardPtr	    from_card;
+static CardStackPtr
+FindRegularPlay (CardStackPtr from_stack, CardPtr from_card)
 {
     int		    i;
     CardStackPtr    to_stack;
-    
+
     for (i = 0; i < NUM_STACKS; i++)
     {
 	to_stack = &stackStacks[i];
@@ -301,26 +291,20 @@ FindRegularPlay (from_stack, from_card)
     return NULL;
 }
 
-Boolean
-IsLegalEmptyPlay (from_stack, from_card, to_stack)
-    CardStackPtr    from_stack;
-    CardPtr	    from_card;
-    CardStackPtr    to_stack;
+static Boolean
+IsLegalEmptyPlay (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 {
     if (from_card->card.rank == CardsKing && to_stack->last == NULL)
 	return True;
     return False;
 }
 
-CardStackPtr
-FindEmptyPlay (from_stack, from_card)
-    CardStackPtr    from_stack;
-    CardPtr	    from_card;
+static CardStackPtr
+FindEmptyPlay (CardStackPtr from_stack, CardPtr from_card)
 {
     int		    i;
-    int		    col = from_stack - stackStacks;
     CardStackPtr    to_stack;
-    
+
     for (i = 0; i < NUM_STACKS; i++)
     {
 	to_stack = &stackStacks[i];
@@ -330,15 +314,9 @@ FindEmptyPlay (from_stack, from_card)
     return NULL;
 }
 
-void
-Play (from_stack, from_card, to_stack)
-    CardStackPtr    from_stack;
-    CardPtr	    from_card;
-    CardStackPtr    to_stack;
+static void
+Play (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 {
-    int		    i;
-    CardPtr	    card;
-
     if (!from_card)
     {
 	from_card = from_stack->last;
@@ -376,7 +354,7 @@ Play (from_stack, from_card, to_stack)
 			     &from_card->card, &to_stack->last->card);
 		return;
 	    }
-	} 
+	}
 	else if (to_stack->widget == suits)
 	{
 	    if (!IsLegalSuitPlay (from_stack, from_card, to_stack))
@@ -403,30 +381,15 @@ Play (from_stack, from_card, to_stack)
     CardMove (from_stack, from_card, to_stack, True);
 }
 
-static Boolean
-AlreadyEmpty (a,b)
-    CardPtr a, b;
-{
-    return !b;
-}
-
-static Boolean
-AlreadyInOrder (a, b)
-    CardPtr a, b;
-{
-    if (a && b && CardIsInSuitOrder (a,b))
-	return True;
-    return False;
-}
-
-FindAMove ()
+static void
+FindAMove (void)
 {
     int		    col;
     CardStackPtr    from_stack, to_stack;
     CardPtr	    from_card;
 
     to_stack = NULL;
-    
+
 #define FindOne(func) \
     for (col = 0; !to_stack && col < NUM_STACKS; col++) {\
 	from_stack = &stackStacks[col]; \
@@ -474,17 +437,20 @@ FindAMove ()
     Message (message, "It's all over.");
 }
 
-Restore ()
+static void
+Restore (void)
 {
     Message (message, "Restore not implemented");
 }
 
-Save ()
+static void
+Save (void)
 {
     Message (message, "Save not implemented");
 }
 
-PileAll ()
+static void
+PileAll (void)
 {
     CardStackPtr    from_stack;
     CardPtr	    from_card;
@@ -508,12 +474,12 @@ PileAll ()
 	Message (message, "No cards to pile.");
 }
 
-Expand (stack)
-    CardStackPtr    stack;
+static void
+Expand (CardStackPtr stack)
 {
     CardPtr card, t;
 
-    if (card = stack->first) {
+    if ((card = stack->first)) {
 	MessageStart ();
 	MessageAppend ("Column contains:");
 	while (card) {
@@ -539,17 +505,14 @@ Expand (stack)
 /* Callbacks to user interface functions */
 
 static void
-StackCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure;
-    XtPointer	data;
+StackCallback (Widget w, XtPointer closure, XtPointer data)
 {
     CardsInputPtr    input = (CardsInputPtr) data;
     CardStackPtr    stack;
     CardPtr	    card;
     String	    type;
-    int		    i;
 
+    (void) closure;
     Message (message, "");
     if (w == stacks)
 	stack = &stackStacks[input->col];
@@ -592,171 +555,175 @@ StackCallback (w, closure, data)
 }
 
 static void
-NewGameCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+NewGameCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     NewGame ();
 }
 
 static void
-QuitCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+QuitCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     Quit ();
 }
 
 static void
-ScoreCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+ScoreCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     Score ();
 }
 
 static void
-UndoCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+UndoCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     Undo ();
 }
 
 static void
-FindAMoveCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+FindAMoveCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     FindAMove ();
 }
 
 static void
-RestoreCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+RestoreCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     Restore ();
 }
 
 static void
-SaveCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+SaveCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     Save ();
 }
 
 static void
-PileAllCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+PileAllCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     PileAll ();
 }
 
 /* actions to user interface functions */
 
-static void UndoAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+static void UndoAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     Undo ();
 }
-    
-static void NewGameAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+
+static void NewGameAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     NewGame ();
 }
-    
-static void ScoreAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+
+static void ScoreAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     Score ();
 }
-    
-static void QuitAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+
+static void QuitAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     Quit ();
 }
 
-static void FindAMoveAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+static void FindAMoveAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     FindAMove ();
 }
 
-static void RestoreAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+static void RestoreAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     Restore ();
 }
 
-static void SaveAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+static void SaveAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     Save ();
 }
 
-static void PileAllAction (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+static void PileAllAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     PileAll ();
 }
 
 XtActionsRec	actions[] = {
-    "ktowersUndo",	UndoAction,
-    "ktowersNewGame",	NewGameAction,
-    "ktowersScore",	ScoreAction,
-    "ktowersQuit",	QuitAction,
-    "ktowersFindAMove",	FindAMoveAction,
-    "ktowersRestore",	RestoreAction,
-    "ktowersSave",	SaveAction,
-    "ktowersPileAll",	PileAllAction,
+    { "ktowersUndo",	UndoAction, },
+    { "ktowersNewGame",	NewGameAction, },
+    { "ktowersScore",	ScoreAction, },
+    { "ktowersQuit",	QuitAction, },
+    { "ktowersFindAMove",	FindAMoveAction, },
+    { "ktowersRestore",	RestoreAction, },
+    { "ktowersSave",	SaveAction, },
+    { "ktowersPileAll",	PileAllAction, },
 };
 
 struct menuEntry {
     char    *name;
-    void    (*function)();
+    void    (*function)(Widget w, XtPointer closure, XtPointer data);
 };
 
 struct menuEntry fileMenuEntries[] = {
-    "restore", RestoreCallback,
-    "save", SaveCallback,
-    "quit", QuitCallback,
+    { "restore", RestoreCallback, },
+    { "save", SaveCallback, },
+    { "quit", QuitCallback, },
 };
-    
-Widget
-CreateMenu (parent, name, entries, count)
-    Widget  parent;
-    char    *name;
-    struct menuEntry	*entries;
-    int	    count;
+
+static Widget
+CreateMenu (Widget parent, char *name, struct menuEntry *entries, int count)
 {
     Widget  menu;
     Widget  entry;
@@ -780,38 +747,36 @@ XtResource resources[] = {
 };
 
 XrmOptionDescRec options[] = {
-    "-smallCards",	"*Cards.smallCards",	XrmoptionNoArg, "True",
-    "-squareCards",	"*Cards.roundCards",	XrmoptionNoArg, "False",
-    "-noanimate",	"*animationSpeed",	XrmoptionNoArg, "0",
-    "-animationSpeed",	"*animationSpeed",	XrmoptionSepArg, NULL
+    { "-smallCards",	"*Cards.smallCards",	XrmoptionNoArg, "True", },
+    { "-squareCards",	"*Cards.roundCards",	XrmoptionNoArg, "False", },
+    { "-noanimate",	"*animationSpeed",	XrmoptionNoArg, "0", },
+    { "-animationSpeed",	"*animationSpeed",	XrmoptionSepArg, NULL },
 };
 
-main (argc, argv)
-    int	    argc;
-    char    **argv;
+int
+main (int argc, char **argv)
 {
-    Arg	args[20];
     Atom wm_delete_window;
 
     toplevel = XtInitialize (argv[0], "KTowers", options, XtNumber(options),
 			     &argc, argv);
-    
+
     XtGetApplicationResources (toplevel, (XtPointer)&ktowersResources, resources,
 			       XtNumber (resources), NULL, 0);
-    
+
     AnimateSetSpeed (ktowersResources.animationSpeed);
-    
+
     XtAddActions (actions, XtNumber(actions));
 
-    XtOverrideTranslations 
-	(toplevel, 
+    XtOverrideTranslations
+	(toplevel,
 	 XtParseTranslationTable ("<Message>WM_PROTOCOLS: ktowersQuit()"));
     frame = XtCreateManagedWidget ("frame", layoutWidgetClass, toplevel, NULL, 0);
     menuBar = XtCreateManagedWidget ("menuBar", layoutWidgetClass, frame, NULL, 0);
     fileMenuButton = XtCreateManagedWidget ("fileMenuButton",
 					    menuButtonWidgetClass,
 					    menuBar, NULL, ZERO);
-    fileMenu = CreateMenu (fileMenuButton, "fileMenu", 
+    fileMenu = CreateMenu (fileMenuButton, "fileMenu",
 			   fileMenuEntries, XtNumber (fileMenuEntries));
     newGame = XtCreateManagedWidget ("newGame", commandWidgetClass,
 				     menuBar, NULL, ZERO);
