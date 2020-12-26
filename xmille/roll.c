@@ -41,14 +41,13 @@
  */
 
 int
-roll(ndie, nsides)
-	int	ndie, nsides; 
+roll(int ndie, int nsides)
 {
 
 	int		tot;
 
 	tot = 0;
 	while (ndie--)
-		tot += random() % nsides + 1;
+		tot += (random() >> 2) % nsides + 1;
 	return tot;
 }

@@ -35,20 +35,17 @@
 # include	<signal.h>
 # ifdef attron
 #	include	<term.h>
-# endif	attron
+# endif	/* attron */
 
 /*
  * @(#)mille.c	1.3 (Berkeley) 5/10/83
  */
 
-int	rub();
-
 char	_sobuf[BUFSIZ];
 bool	restore;
 
-main(ac, av)
-	int	ac;
-	char	*av[];
+int
+main(int ac, char **av)
 {
 	bool	restore;
 
@@ -119,9 +116,11 @@ main(ac, av)
  *	Routine to trap rubouts, and make sure they really want to
  * quit.
  */
-rub() {
-
-	signal(SIGINT, 1);
+void
+rub(int sig)
+{
+	(void) sig;
+	signal(SIGINT, SIG_IGN);
 	if (getyn("Really? "))
 		die();
 	signal(SIGINT, rub);
@@ -130,9 +129,11 @@ rub() {
 /*
  *	Time to go beddy-by
  */
-die() {
+void
+die(void)
+{
 
-	signal(SIGINT, 1);
+	signal(SIGINT, SIG_IGN);
 	if (outf)
 		fflush(outf);
 	finish_ui ();

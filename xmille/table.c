@@ -6,7 +6,9 @@
 
 # include	"mille.h"
 
-main() {
+void
+main(void)
+{
 
 	reg int	i, j, count;
 

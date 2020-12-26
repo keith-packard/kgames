@@ -36,12 +36,12 @@
 # include	"card.h"
 
 struct color colorMap[NUM_COLOR] = {
-	"black",	0,	0,
-	"white",	0,	0,
-	"red",		0,	0,
-	"green",	0,	0,
-	"light gray",	0,	0,
-	"blue",		0,	0,
+	{ "black",	0,	0, },
+	{ "white",	0,	0, },
+	{ "red",	0,	0, },
+	{ "green",	0,	0, },
+	{ "light gray",	0,	0, },
+	{ "blue",	0,	0, },
 };
 
 Display		*dpy;
@@ -93,7 +93,7 @@ typedef struct recordHand {
 
 struct menuEntry {
     char    *name;
-    void    (*function)();
+    void    (*function)(Widget w, XtPointer closure, XtPointer data);
 };
 
 RecordHandRec	humanHandCards[NUM_COLS_IN_HAND];
@@ -110,19 +110,20 @@ RecordHandRec	deckCards[2];
 
 static int	getmove_done;
 
-static void DoRestore (), DoSave (), DoQuit ();
+static void DoRestore (Widget w, XtPointer closure, XtPointer data);
+static void DoSave (Widget w, XtPointer closure, XtPointer data);
+static void DoQuit (Widget w, XtPointer closure, XtPointer data);
 
 static struct menuEntry fileMenuEntries[] = {
-    "restore",	    DoRestore,
-    "save",	    DoSave,
-    "quit",	    DoQuit,
+    { "restore",    DoRestore, },
+    { "save",	    DoSave, },
+    { "quit",	    DoQuit, },
 };
 
 int	iscolor;
 
-displayString (w, string)
-    Widget  w;
-    char    *string;
+static void
+displayString (Widget w, char *string)
 {
     Arg   arg[1];
 
@@ -130,8 +131,8 @@ displayString (w, string)
     XtSetValues (w, arg, 1);
 }
 
-Message (string)
-char	*string;
+void
+Message (char *string)
 {
     displayString (message, string);
 }
@@ -155,15 +156,17 @@ Error (const char *string, ...)
     va_end(ap);
 }
 
-Prompt (string)
-char *string;
+void
+Prompt (char *string)
 {
+    (void) string;
 #ifdef NOTDEF
     displayString (prompt, string);
 #endif
 }
 
-debug (pos, string, a0, a1, a2)
+void
+debug (int pos, char *string, int a0, int a1, int a2)
 {
 }
 
@@ -185,14 +188,17 @@ static void NoFunc (w, closure, data)
     yn_done = 1;
 }
 
-ComputerCard (type)
-int	type;
+void
+ComputerCard (int type)
 {
-	/*	displayCard (type, COMP_CARD_X, COMP_CARD_Y);*/
+    (void) type;
+    /*	displayCard (type, COMP_CARD_X, COMP_CARD_Y);*/
 }
 
-ComputerStatus (string)
+void
+ComputerStatus (char *string)
 {
+    (void) string;
 /*
 	char	buffer[512];
 
@@ -200,7 +206,8 @@ ComputerStatus (string)
 */
 }
 
-ComputerDistance (distance)
+void
+ComputerDistance (int distance)
 {
     Arg	arg[1];
 
@@ -208,11 +215,8 @@ ComputerDistance (distance)
     XtSetValues (computer_miles, arg, 1);
 }
 
-UpdateCard (w, array, ind, col, row, type)
-    Widget	    w;
-    RecordHandPtr   array;
-    int		    ind;
-    int		    type;
+static void
+UpdateCard (Widget w, RecordHandPtr array, int ind, int col, int row, int type)
 {
     if (type == -1)
     {
@@ -225,34 +229,38 @@ UpdateCard (w, array, ind, col, row, type)
     else if (!array[ind].card || type != array[ind].type)
     {
 	if (array[ind].card)
-	    HandReplaceCard (w, array[ind].card, (XtPointer) type, XkwHandDefaultOffset);
+	    HandReplaceCard (w, array[ind].card, (XtPointer) (intptr_t) type, XkwHandDefaultOffset);
 	else
-	    array[ind].card = HandAddCard (w, (XtPointer) type, 
+	    array[ind].card = HandAddCard (w, (XtPointer) (intptr_t) type,
 					   row, col, XkwHandDefaultOffset);
     }
     array[ind].type = type;
 }
 
-ComputerSpeed (type)
+void
+ComputerSpeed (int type)
 {
     UpdateCard (computer_play, computerPlayCards, SPEED_CARD, SPEED_CARD, 0, type);
 }
 
-ComputerBattle (type)
+void
+ComputerBattle (int type)
 {
     UpdateCard (computer_play, computerPlayCards, BATTLE_CARD, BATTLE_CARD, 0, type);
 }
 
-ComputerMiles (type, ind, count)
+void
+ComputerMiles (int type, int ind, int count)
 {
     while (computerMiles[ind] < count) {
-	HandAddCard (computer_play, (XtPointer) type,
+	HandAddCard (computer_play, (XtPointer) (intptr_t) type,
 		     InsertRow, ind + MILES_OFFSET, XkwHandDefaultOffset);
 	++computerMiles[ind];
     }
 }
 
-EraseComputer ()
+void
+EraseComputer (void)
 {
     int	i;
 
@@ -267,7 +275,8 @@ EraseComputer ()
     ComputerDistance (0);
 }
 
-ComputerSafety (type, ind)
+void
+ComputerSafety (int type, int ind)
 {
     int	row, col;
 
@@ -276,12 +285,14 @@ ComputerSafety (type, ind)
     UpdateCard (computer_safeties, computerSafeties, ind, col, row, type);
 }
 
-DisplayDiscard (type)
+void
+DisplayDiscard (int type)
 {
     UpdateCard (deck_hand, deckCards, DECK_DISCARD, DECK_DISCARD, 0, type);
 }
 
-DisplayDeck (numberLeft)
+void
+DisplayDeck (int numberLeft)
 {
     char	buffer[512];
 
@@ -289,7 +300,8 @@ DisplayDeck (numberLeft)
     displayString (deck_count, buffer);
 }
 
-HumanDistance (distance)
+void
+HumanDistance (int distance)
 {
     Arg	arg[1];
 
@@ -297,26 +309,30 @@ HumanDistance (distance)
     XtSetValues (human_miles, arg, 1);
 }
 
-HumanSpeed (type)
+void
+HumanSpeed (int type)
 {
     UpdateCard (human_play, humanPlayCards, SPEED_CARD, SPEED_CARD, 0, type);
 }
 
-HumanBattle (type)
+void
+HumanBattle (int type)
 {
     UpdateCard (human_play, humanPlayCards, BATTLE_CARD, BATTLE_CARD, 0, type);
 }
 
-HumanMiles (type, ind, count)
+void
+HumanMiles (int type, int ind, int count)
 {
     while (humanMiles[ind] < count) {
-	HandAddCard (human_play, (XtPointer) type,
+	HandAddCard (human_play, (XtPointer) (intptr_t) type,
 		     InsertRow, ind + MILES_OFFSET, XkwHandDefaultOffset);
 	++humanMiles[ind];
     }
 }
 
-EraseHuman ()
+void
+EraseHuman (void)
 {
     int	i;
 
@@ -334,7 +350,8 @@ EraseHuman ()
     HumanDistance (0);
 }
 
-HumanSafety (type, ind)
+void
+HumanSafety (int type, int ind)
 {
     int	row, col;
 
@@ -343,20 +360,21 @@ HumanSafety (type, ind)
     UpdateCard (human_safeties, humanSafeties, ind, col, row, type);
 }
 
-HumanHand (type, ind)
-    int	    type, ind;
+void
+HumanHand (int type, int ind)
 {
     UpdateCard (human_hand, humanHandCards, ind, ind, 0, type);
 }
 
-
-newboard()
+void
+newboard(void)
 {
     EraseHuman ();
     EraseComputer ();
 }
 
-newscore()
+void
+newscore(void)
 {
     int	    i;
     char    c;
@@ -380,11 +398,13 @@ newscore()
     XkwPadUpdate (score);
 }
 
-draw_board ()
+void
+draw_board (void)
 {
 }
 
-redraw_board ()
+void
+redraw_board (void)
 {
 }
 
@@ -415,36 +435,31 @@ XtResource resources[] = {
      offset(clipCards), XtRImmediate, (XtPointer) TRUE},
 };
 
-static void yes_action (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+static void yes_action (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) e;
+    (void) p;
+    (void) n;
     YesFunc (w, (XtPointer) NULL, (XtPointer) NULL);
 }
 
-static void no_action (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  p;
-    Cardinal*n;
+static void no_action (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) e;
+    (void) p;
+    (void) n;
     NoFunc (w, (XtPointer) NULL, (XtPointer) NULL);
 }
 
-static void noop_action (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  *p;
-    Cardinal*n;
+static void noop_action (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
 }
 
-static void card_action(p, n, m)
-    String  *p;
-    Cardinal*n;
-    int	    m;
+static void card_action(String *p, Cardinal *n, int m)
 {
     if (*n == 1) {
 	Movetype = m;
@@ -457,123 +472,96 @@ static void card_action(p, n, m)
     }
 }
 
-static void discard_action (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  *p;
-    Cardinal*n;
+static void discard_action (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
     card_action (p, n, M_DISCARD);
 }
 
-static void draw_action (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  *p;
-    Cardinal*n;
+static void draw_action (Widget w, XEvent *e, String *p, Cardinal *n)
 {
-    int	card;
-    
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     Movetype = M_DRAW;
     getmove_done = 1;
 }
 
-static void play_action (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  *p;
-    Cardinal*n;
+static void play_action (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) p;
+    (void) n;
     card_action (p, n, M_PLAY);
 }
 
-static void reasonable_action (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  *p;
-    Cardinal*n;
+static void reasonable_action (Widget w, XEvent *e, String *p, Cardinal *n)
 {
     card_action (p, n, M_REASONABLE);
 }
 
-static void order_action (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  *p;
-    Cardinal*n;
+static void order_action (Widget w, XEvent *e, String *p, Cardinal *n)
 {
-    int	card;
-    
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     Order = !Order;
     Movetype = M_ORDER;
     getmove_done = 1;
 }
 
-static void quit_action (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  *p;
-    Cardinal*n;
+static void quit_action (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
     DoQuit (w, (XtPointer) 0, (XtPointer) 0);
 }
 
-static void save_action (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  *p;
-    Cardinal*n;
+static void save_action (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
     DoSave (w, (XtPointer) 0, (XtPointer) 0);
 }
 
-static void restore_action (w, e, p, n)
-    Widget  w;
-    XEvent  *e;
-    String  *p;
-    Cardinal*n;
+static void restore_action (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
     DoRestore (w, (XtPointer) 0, (XtPointer) 0);
 }
 
 XtActionsRec actions[] = {
-    "milleYes", yes_action,
-    "milleNo", no_action,
-    "milleCancel", no_action,
-    "Noop", noop_action,
-    "milleDiscard", discard_action,
-    "milleDraw", draw_action,
-    "millePlay", play_action,
-    "milleReasonable", reasonable_action,
-    "milleOrder", order_action,
-    "milleQuit", quit_action,
-    "milleSave", save_action,
-    "milleRestore", restore_action,
+    { "milleYes", yes_action, },
+    { "milleNo", no_action, },
+    { "milleCancel", no_action, },
+    { "Noop", noop_action, },
+    { "milleDiscard", discard_action, },
+    { "milleDraw", draw_action, },
+    { "millePlay", play_action, },
+    { "milleReasonable", reasonable_action, },
+    { "milleOrder", order_action, },
+    { "milleQuit", quit_action, },
+    { "milleSave", save_action, },
+    { "milleRestore", restore_action, },
 };
 
 static void
-DisplayCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure;
-    XtPointer	data;
+DisplayCallback (Widget w, XtPointer closure, XtPointer data)
 {
     HandDisplayPtr  display = (HandDisplayPtr) data;
     XRectangle	    *clip = 0;
 
     if (display->clipped)
 	clip = &display->clip;
-    if ((int) display->private == -2)
+    if ((intptr_t) display->private == -2)
 	drawIm (XtDisplay (w), XtWindow (w), &deck, display->x, display->y, clip);
     else
-	displayCard (XtDisplay (w), XtWindow (w), (int) display->private,
+	displayCard (XtDisplay (w), XtWindow (w), (intptr_t) display->private,
 		     display->x, display->y, clip);
 }
 
 static void
-InputCallback (w, closure, data)
-    Widget	w;
-    XtPointer	closure;
-    XtPointer	data;
+InputCallback (Widget w, XtPointer closure, XtPointer data)
 {
     HandInputPtr    input = (HandInputPtr) data;
     String	    type;
@@ -600,17 +588,12 @@ InputCallback (w, closure, data)
 }
 
 static Widget
-make_hand (name, parent, rows, cols, overlap_rows)
-    char    *name;
-    Widget  parent;
-    int	    rows, cols;
-    Bool    overlap_rows;
+make_hand (char *name, Widget parent, int rows, int cols, Bool overlap_rows)
 {
     Widget	hand;
     Arg		args[20];
     Cardinal    i = 0;
     int		display_x, display_y;
-    int		row_offset;
 
     XtSetArg (args[i], XtNcardWidth, WIDTH); i++;
     XtSetArg (args[i], XtNcardHeight, HEIGHT); i++;
@@ -636,35 +619,34 @@ make_hand (name, parent, rows, cols, overlap_rows)
 }
 
 static void
-DoRestore (w, closure, data)
-    Widget  w;
-    XtPointer	closure, data;
+DoRestore (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     rest();
 }
 
 static void
-DoSave (w, closure, data)
-    Widget  w;
-    XtPointer	closure, data;
+DoSave (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     save ();
 }
 
 static void
-DoQuit (w, closure, data)
-    Widget  w;
-    XtPointer	closure, data;
+DoQuit (Widget w, XtPointer closure, XtPointer data)
 {
-    rub ();
+    (void) w;
+    (void) closure;
+    (void) data;
+    rub (0);
 }
 
-Widget
-CreateMenu (parent, name, entries, count)
-    Widget  parent;
-    char    *name;
-    struct menuEntry	*entries;
-    int	    count;
+static Widget
+CreateMenu (Widget parent, char *name, struct menuEntry *entries, int count)
 {
     Widget  menu;
     Widget  entry;
@@ -680,15 +662,13 @@ CreateMenu (parent, name, entries, count)
     return menu;
 }
 
-init_ui (argc, argv)
-    int *argc;
-    char **argv;
+void
+init_ui (int *argc, char **argv)
 {
     XColor	hardware_color, exact_color;
     int	i;
     XGCValues	gcv;
     Colormap	def_cm;
-    char		*def;
     extern double	animation_speed;
     extern int		clip_cards;
     unsigned long	gcmask;
@@ -712,11 +692,11 @@ init_ui (argc, argv)
     XtAddActions (actions, XtNumber(actions));
     animation_speed = milleResources.animationSpeed;
     clip_cards = milleResources.clipCards;
-    
+
     font = milleResources.font;
     backFont = milleResources.backFont;
 
-    if (milleResources.color == COLOR_UNSET) 
+    if (milleResources.color == COLOR_UNSET)
     {
 	iscolor = TRUE;
 	if (visual->map_entries < 3)
@@ -724,7 +704,7 @@ init_ui (argc, argv)
     }
     else
         iscolor = milleResources.color;
-    
+
     if (!iscolor)
     {
 	grayStipple = XCreateBitmapFromData (dpy, RootWindow (dpy, screen),
@@ -752,7 +732,7 @@ init_ui (argc, argv)
 	    colorMap[i].gc = XCreateGC (dpy, RootWindow(dpy, screen),
 					gcmask, &gcv);
     }
-    
+
     text_gc = colorMap[BLACK_COLOR].gc;
     if (iscolor)
 	gcv.background = colorMap[GREY_COLOR].pixel;
@@ -824,24 +804,25 @@ init_ui (argc, argv)
     XtRealizeWidget (prompted_shell);
 }
 
-DisplayText (w, row, col, text)
-    Widget  w;
-    char    *text;
+static void
+DisplayText (Widget w, int row, int col, char *text)
 {
     XkwPadText (w, row, col, text, strlen (text));
 }
 
-
-finish_ui ()
+void
+finish_ui (void)
 {
 }
 
-update_ui ()
+void
+update_ui (void)
 {
 	XFlush (dpy);
 }
 
-Beep ()
+void
+Beep (void)
 {
 	XBell (dpy, 0);
 }
@@ -851,8 +832,8 @@ Beep ()
  * also allowed.  Return TRUE if the answer was yes, FALSE if no.
  */
 
-Center (original, new)
-    Widget  original, new;
+static void
+Center (Widget original, Widget new)
 {
     Arg		args[2];
     Dimension	center_width, center_height;
@@ -874,9 +855,9 @@ Center (original, new)
     XtSetArg (args[1], XtNy, dest_y);
     XtSetValues (new, args, 2);
 }
-    
-getyn(prompt)
-register char	*prompt;
+
+int
+getyn(char *prompt)
 {
     Arg	    args[1];
     XEvent  event;
@@ -924,7 +905,8 @@ GetpromptedInput (char *string)
 	return NULL;
 }
 
-getmove()
+void
+getmove(void)
 {
     XEvent  event;
 
@@ -938,28 +920,30 @@ getmove()
     Error ("", "");
 }
 
-
-do_save ()
+void
+do_save (void)
 {
 	save ();
 }
 
-do_quit ()
+void
+do_quit (void)
 {
-	rub();
+	rub(0);
 }
 
 # define	COMP_STRT	20
 # define	CARD_STRT	2
 
-prboard() {
+void
+prboard(void)
+{
 
 	register PLAY	*pp;
-	register int		i, j, k, temp;
+	register int	i, k;
 
 	for (k = 0; k < 2; k++) {
 		pp = &Player[k];
-		temp = k * COMP_STRT + CARD_STRT;
 		for (i = 0; i < NUM_SAFE; i++)
 			if (pp->safety[i] == S_PLAYED) {
 				if (k == 0) {
@@ -976,11 +960,8 @@ prboard() {
 			ComputerSpeed (pp->speed);
 		}
 		for (i = C_25; i <= C_200; i++) {
-			register char	*name;
 			register int		end;
 
-			name = C_name[i];
-			temp = k * 40;
 			end = pp->nummiles[i];
 			if (k == 0)
 				HumanMiles (i, C_200-i, end);
@@ -989,7 +970,6 @@ prboard() {
 		}
 	}
 	prscore(TRUE);
-	temp = CARD_STRT;
 	pp = &Player[PLAYER];
 	for (i = 0; i < HAND_SZ; i++) {
 		HumanHand (pp->hand[i], i);
@@ -997,8 +977,6 @@ prboard() {
 	DisplayDeck (Topcard - Deck);
 	DisplayDiscard (Discard);
 	if (End == 1000) {
-		static char	ext[] = "Extension";
-
 		/*		stand(EXT_Y, EXT_X, ext); */
 	}
 }
@@ -1007,15 +985,13 @@ prboard() {
  *	Put str at (y,x) in standout mode
  */
 
-stand(y, x, str)
-register int		y, x;
-register char	*str;
+void
+stand(int y, int x, char *str)
 {
 }
 
-InScore (line, player, text)
-int	line, player;
-char	*text;
+void
+InScore (int line, int player, char *text)
 {
     DisplayText (score, line + 1, 20 + player * 20, text);
 #ifdef NOTDEF
@@ -1024,12 +1000,11 @@ char	*text;
 #endif
 }
 
-prscore(for_real)
-register bool	for_real;
+void
+prscore(bool for_real)
 {
 
 	register PLAY	*pp;
-	register int		x;
 	register char	*Score_fmt = "%4d  ";
 	char		buffer[512];
 
@@ -1037,7 +1012,6 @@ register bool	for_real;
 	HumanDistance (Player[0].mileage);
 
 	for (pp = Player; pp < &Player[2]; pp++) {
-		x = (pp - Player) * 6 + 21;
 		sprintf (buffer, Score_fmt, pp->mileage);
 		InScore (0, pp - Player, buffer);
 		sprintf (buffer, Score_fmt, pp->safescore);
@@ -1066,6 +1040,7 @@ register bool	for_real;
 	XkwPadUpdate (score);
 }
 
-FlushInput ()
+void
+FlushInput (void)
 {
 }

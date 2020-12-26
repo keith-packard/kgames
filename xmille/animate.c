@@ -9,21 +9,23 @@
 # include	<X11/Intrinsic.h>
 # include	<X11/StringDefs.h>
 # include	<X11/Xos.h>
+# include	<Xkw/Hand.h>
 
 extern int	iscolor;
 
 double	animation_speed = .5;
 
-static
-do_animate ();
+static void
+do_animate (int ox, int oy, int dx, int dy);
 
-static
-draw_square ();
+static void
+draw_square (int x1, int y1, int x2, int y2);
 
-static
-compute_position ();
+static void
+compute_position (int player, int type, int arg, int *xp, int *yp);
 
-animate_move (player, orig_type, orig_arg, dest_type, dest_arg)
+void
+animate_move (int player, int orig_type, int orig_arg, int dest_type, int dest_arg)
 {
 	int	ox, oy, dx, dy;
 
@@ -51,8 +53,8 @@ msleep (int ms)
     nanosleep(&t, NULL);
 }
 
-static
-do_animate (ox, oy, dx, dy)
+static void
+do_animate (int ox, int oy, int dx, int dy)
 {
 	double	x, y;
 	double	xc, yc;
@@ -174,16 +176,15 @@ extern Widget	human_hand, deck_hand,
 		computer_play, human_play,
 		computer_safeties, human_safeties, layout;
 
-static
-draw_square (x1, y1, x2, y2)
+static void
+draw_square (int x1, int y1, int x2, int y2)
 {
 	XFillRectangle (dpy, XtWindow(layout), xor_gc, x1, y1, x2-x1, y2-y1);
 }
 
 
-static
-compute_position (player, type, arg, xp, yp)
-int	*xp, *yp;
+static void
+compute_position (int player, int type, int arg, int *xp, int *yp)
 {
 	Widget	w;
 	XRectangle	r;
@@ -191,7 +192,7 @@ int	*xp, *yp;
 	int	yForce = 0;
 	Position	x, y;
 	Arg	args[2];
-	
+
 	switch (type) {
 	case ANIMATE_HAND:
 		switch (player) {

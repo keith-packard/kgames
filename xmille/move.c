@@ -44,11 +44,8 @@
 #undef	CTRL
 #define	CTRL(c)		(c - 'A' + 1)
 
-char *
-playcard(PLAY *pp);
-
 void
-domove()
+domove(void)
 {
 	PLAY	*pp;
 	int	i, j;
@@ -176,7 +173,7 @@ acc:
  * the game is over
  */
 void
-check_go()
+check_go(void)
 {
 	CARD	card;
 	PLAY	*pp, *op;
@@ -205,9 +202,6 @@ check_go()
 	}
 	Finished = TRUE;
 }
-
-char *
-sprint (char * string, ...);
 
 char *
 playcard(PLAY *pp)
@@ -395,8 +389,7 @@ sprint (char * string, ...)
  * return whether or not the player has picked
  */
 int
-haspicked(pp)
-	const PLAY	*pp;
+haspicked(const PLAY *pp)
 {
 	int	card;
 
@@ -415,8 +408,7 @@ haspicked(pp)
 }
 
 void
-account(card)
-	CARD	card; 
+account(CARD card)
 {
 	CARD	oppos;
 
@@ -440,8 +432,8 @@ account(card)
 		}
 }
 
-sort(hand)
-	CARD	*hand;
+void
+sort(CARD *hand)
 {
 	CARD	*cp, *tp;
 	CARD	temp;

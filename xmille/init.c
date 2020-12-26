@@ -30,6 +30,7 @@
  */
 
 #include <sys/cdefs.h>
+#include <string.h>
 
 # include	"mille.h"
 
@@ -38,7 +39,7 @@
  */
 
 void
-init()
+init(void)
 {
 	PLAY	*pp;
 	int	i, j;
@@ -82,7 +83,7 @@ init()
 }
 
 void
-shuffle()
+shuffle(void)
 {
 	int	i, r;
 	CARD	temp;

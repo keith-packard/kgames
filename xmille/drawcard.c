@@ -29,62 +29,162 @@ extern char	_25_bits[], _50_bits[], _75_bits[], _100_bits[], _200_bits[];
 extern char	deck_both_bits[];
 
 struct card color_cards[NUM_CARDS] = {
-fill_bits,	WHITE_COLOR,	miles_mask_bits,	BLACK_COLOR,
-_25_bits,	BLUE_COLOR,	0,			0,	"25",	0,
+	{
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ miles_mask_bits,	BLACK_COLOR, },
+			{ _25_bits,		BLUE_COLOR, },
+			{ NULL,			0, },
+		},
+		"25",	0,
+	},
+	{
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ miles_mask_bits,	BLACK_COLOR, },
+			{ _50_bits,		BLUE_COLOR, },
+			{ NULL,			0, },
+		},
+		"50",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ miles_mask_bits,	BLACK_COLOR, },
+			{ _75_bits,		BLUE_COLOR, },
+			{ 0,			0, },
+		},
+		"75",	0,
 
-fill_bits,	WHITE_COLOR,	miles_mask_bits,	BLACK_COLOR,
-_50_bits,	BLUE_COLOR,	0,			0,	"50",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ miles_mask_bits,	BLACK_COLOR, },
+			{ _100_bits,		BLUE_COLOR, },
+			{ 0,			0, },
+		},
+		"100",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ miles_mask_bits,	BLACK_COLOR, },
+			{ _200_bits,		BLUE_COLOR, },
+			{ 0,			0, },
+		},
+		"200",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ out_mask_bits,	BLACK_COLOR, },
+			{ _out_bits,		RED_COLOR, },
+			{ out_label_bits,	RED_COLOR, },
+		},
+		"Panne D'Essence",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ flat_mask_bits,	BLACK_COLOR, },
+			{ _flat_bits,		RED_COLOR, },
+			{ flat_label_bits,	RED_COLOR, },
+		},
+		"Crev\351",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ accident_mask_bits,	BLACK_COLOR, },
+			{ _accident_bits,	RED_COLOR, },
+			{ accident_label_bits,	RED_COLOR, },
+		},
+		"Accident",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ stop_mask_bits,	BLACK_COLOR, },
+			{ _stop_bits,		RED_COLOR, },
+			{ stop_label_bits,	RED_COLOR, },
+		},
+		"Stop!",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ speed_mask_bits,	BLACK_COLOR, },
+			{ _speed_bits,		RED_COLOR, },
+			{ 0,			0, },
+		},
+		"Limite De Vitesse",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ gas_mask_bits,	BLACK_COLOR, },
+			{ _gas_bits,		GREEN_COLOR, },
+			{ 0,			0, },
+		},
+		"Essence",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ spare_mask_bits,	BLACK_COLOR, },
+			{ _spare_bits,		GREEN_COLOR, },
+			{ spare_label_bits,	GREEN_COLOR, },
+		},
+		"Roue de secours",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ repairs_mask_bits,	BLACK_COLOR, },
+			{ _repairs_bits,	GREEN_COLOR, },
+			{ repairs_label_bits,	GREEN_COLOR, },
+		},
+		"R\351parations",	0,
 
-fill_bits,	WHITE_COLOR,	miles_mask_bits,	BLACK_COLOR,
-_75_bits,	BLUE_COLOR,	0,			0,	"75",	0,
-
-fill_bits,	WHITE_COLOR,	miles_mask_bits,	BLACK_COLOR,
-_100_bits,	BLUE_COLOR,	0,			0,	"100",	0,
-
-fill_bits,	WHITE_COLOR,	miles_mask_bits,	BLACK_COLOR,
-_200_bits,	BLUE_COLOR,	0,			0,	"200",	0,
-
-fill_bits,	WHITE_COLOR,	out_mask_bits,		BLACK_COLOR,
-_out_bits,	RED_COLOR,	out_label_bits,		RED_COLOR,	"Panne D'Essence",	0,
-
-fill_bits,	WHITE_COLOR,	flat_mask_bits,		BLACK_COLOR,
-_flat_bits,	RED_COLOR,	flat_label_bits,	RED_COLOR,	"Crev\351",	0,
-
-fill_bits,	WHITE_COLOR,	accident_mask_bits,	BLACK_COLOR,
-_accident_bits,	RED_COLOR,	accident_label_bits,	RED_COLOR,	"Accident",	0,
-
-fill_bits,	WHITE_COLOR,	stop_mask_bits,		BLACK_COLOR,
-_stop_bits,	RED_COLOR,	stop_label_bits,	RED_COLOR,	"Stop!",	0,
-
-fill_bits,	WHITE_COLOR,	speed_mask_bits,	BLACK_COLOR,
-_speed_bits,	RED_COLOR,	0,			0,		"Limite De Vitesse",	0,
-
-fill_bits,	WHITE_COLOR,	gas_mask_bits,		BLACK_COLOR,
-_gas_bits,	GREEN_COLOR,	0,			0,		"Essence",	0,
-
-fill_bits,	WHITE_COLOR,	spare_mask_bits,	BLACK_COLOR,
-_spare_bits,	GREEN_COLOR,	spare_label_bits,	GREEN_COLOR,	"Roue de secours",	0,
-
-fill_bits,	WHITE_COLOR,	repairs_mask_bits,	BLACK_COLOR,
-_repairs_bits,	GREEN_COLOR,	repairs_label_bits,	GREEN_COLOR,	"R\351parations",	0,
-
-fill_bits,	WHITE_COLOR,	go_mask_bits,		BLACK_COLOR,
-_go_bits,	GREEN_COLOR,	go_label_bits,		GREEN_COLOR,	"Roulez",	0,
-
-fill_bits,	WHITE_COLOR,	end_mask_bits,		BLACK_COLOR,
-_end_bits,	GREEN_COLOR,	0,			0,	"Fin de limite",	0,
-
-fill_bits,	WHITE_COLOR,	extra_mask_bits,	BLACK_COLOR,
-_extra_bits,	BLUE_COLOR,	extra_label_bits,	BLUE_COLOR,	"Citerne d'essence",	0,
-
-fill_bits,	WHITE_COLOR,	puncture_mask_bits,	BLACK_COLOR,
-_puncture_bits,	BLUE_COLOR,	puncture_label_bits,	BLUE_COLOR,	"Increvable",	0,
-
-fill_bits,	WHITE_COLOR,	ace_mask_bits,		BLACK_COLOR,
-_ace_bits,	BLUE_COLOR,	ace_label_bits,		BLUE_COLOR,	"As du volant",	0,
-
-fill_bits,	WHITE_COLOR,	right_mask_bits,	BLACK_COLOR,
-_right_bits,	RED_COLOR,	right_label_bits,	RED_COLOR,	"V\351hicule prioritaire",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ go_mask_bits,		BLACK_COLOR, },
+			{ _go_bits,		GREEN_COLOR, },
+			{ go_label_bits,	GREEN_COLOR, },
+		},
+		"Roulez",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ end_mask_bits,	BLACK_COLOR, },
+			{ _end_bits,		GREEN_COLOR, },
+			{ 0,			0, },
+		},
+		"Fin de limite",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ extra_mask_bits,	BLACK_COLOR, },
+			{ _extra_bits,		BLUE_COLOR, },
+			{ extra_label_bits,	BLUE_COLOR, },
+		},
+		"Citerne d'essence",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ puncture_mask_bits,	BLACK_COLOR, },
+			{ _puncture_bits,	BLUE_COLOR, },
+			{ puncture_label_bits,	BLUE_COLOR, },
+		},
+		"Increvable",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ ace_mask_bits,	BLACK_COLOR, },
+			{ _ace_bits,		BLUE_COLOR, },
+			{ ace_label_bits,	BLUE_COLOR, },
+		},
+		"As du volant",	0,
+	}, {
+		{
+			{ fill_bits,		WHITE_COLOR, },
+			{ right_mask_bits,	BLACK_COLOR, },
+			{ _right_bits,		RED_COLOR, },
+			{ right_label_bits,	RED_COLOR, },
+		},
+		"V\351hicule prioritaire",	0,
+	}
 };
 
 struct card	*cards;
@@ -92,38 +192,56 @@ struct card	*cards;
 extern char	deck_red_bits[], deck_blue_bits[], deck_mask_bits[];
 
 struct card color_deck = {
-	fill_bits,		GREEN_COLOR,
-	deck_mask_bits,		BLACK_COLOR,
-	0,			0,
-	0,			0,
+	{
+		{ fill_bits,		GREEN_COLOR, },
+		{ deck_mask_bits,	BLACK_COLOR, },
+		{ NULL,			0, },
+		{ NULL,			0, },
+	},
 	"",
 	0,
 };
 
 struct card mono_deck = {
-	fill_bits,		GREY_COLOR,
-	deck_mask_bits,		BLACK_COLOR,
-	0,			0,
-	0,			0,
+	{
+		{ fill_bits,		GREY_COLOR, },
+		{ deck_mask_bits,	BLACK_COLOR, },
+		{ NULL,			0, },
+		{ NULL,			0, },
+	},
 	"",
 	0,
 };
 
 extern char	blank_bits[];
 
-struct card color_blank = { blank_bits, GREY_COLOR,	0,0,0,0,0,0, "", 0 };
+struct card color_blank = {
+	{
+		{ blank_bits,	GREY_COLOR,  },
+		{ NULL,		0 },
+		{ NULL,		0 },
+		{ NULL,		0 },
+	},
+	"",
+	0
+};
 
-struct card mono_blank = { blank_bits, WHITE_COLOR,	0,0,0,0,0,0, "", 0 };
+struct card mono_blank =  {
+	{
+		{ blank_bits,	WHITE_COLOR,  },
+		{ NULL,		0 },
+		{ NULL,		0 },
+		{ NULL,		0 },
+	},
+	"",
+	0
+};
 
 struct card	deck;
 struct card	blank;
 
-BitmapBitsPut (dpy, d, gc, mask, mask_gc, bits)
-Display		*dpy;
-Drawable	d;
-Pixmap		mask;
-GC		gc, mask_gc;
-char		*bits;
+static void
+BitmapBitsPut (Display *dpy, Drawable d, GC gc, Pixmap mask, GC mask_gc, void *bits)
 {
 	XGCValues	gc_values;
 	XImage		ximage;
@@ -148,10 +266,8 @@ char		*bits;
 	XChangeGC (dpy, gc, GCClipMask, &gc_values);
 }
 
-
-init_card (card, back_gc)
-struct card	*card;
-GC		back_gc;
+static void
+init_card (struct card *card, GC back_gc)
 {
 	int		i;
 	GC		mask_gc;
@@ -194,12 +310,8 @@ GC		back_gc;
 
 Pixmap	card_border;
 
-center_text(d, gc, f, y, l)
-    Drawable	    d;
-    GC		    gc;
-    XFontStruct	    *f;
-    int		    y;
-    char	    *l;
+static void
+center_text(Drawable d, GC gc, XFontStruct *f, int y, char *l)
 {
     int	    len, width;
     int	    x;
@@ -210,16 +322,13 @@ center_text(d, gc, f, y, l)
     XDrawString (dpy, d, gc, x, y, l, len);
 }
 
-init_cards (back_gc)
-GC	back_gc;
+static void
+init_cards (GC back_gc)
 {
 	int		i;
 	GC		gc;
 	XGCValues	gc_values;
 	Pixmap		rest;
-	GC		mask_gc;
-	XGCValues	mask_values;
-	Pixmap		mask;
 
 	setbuf(stderr, NULL);
 
@@ -242,13 +351,14 @@ GC	back_gc;
 	center_text (deck.bits, gc, backFont, HEIGHT / 2 + backFont->ascent,
 		     "Bornes");
 	XFreeGC (dpy, gc);
-	
+
 	for (i = 0; i < (NUM_CARDS - 1); i++) {
 		init_card (&cards[i], back_gc);
 	}
 }
 
-init_color_cards ()
+void
+init_color_cards (void)
 {
 	deck = color_deck;
 	blank = color_blank;
@@ -256,8 +366,8 @@ init_color_cards ()
 	init_cards (colorMap[GREY_COLOR].gc);
 }
 
-
-init_mono_cards()
+void
+init_mono_cards(void)
 {
 	deck = mono_deck;
 	blank = mono_blank;
@@ -265,40 +375,19 @@ init_mono_cards()
 	init_cards (colorMap[WHITE_COLOR].gc);
 }
 
-displayCard (d, w, card, x, y, clip)
-Display	*d;
-Window	w;
-int	card;
-int	x, y;
-XRectangle  *clip;
-{
-    if (card < 0 || card >= NUM_CARDS) {
-	drawIm (d, w, &blank, x, y, clip);
-    } else {
-	drawIm (d, w, &cards[card], x, y, clip);
-    }
-}
-
 static int	oldx, oldy;
 static GC	copyGC;
 int		clip_cards = 1;
 
-drawIm (d, w, c, x, y, clip)
-Display		*d;
-Window		w;
-struct card	*c;
-int		x, y;
-XRectangle	*clip;
+void
+drawIm (Display *d, Window w, struct card *c, int x, int y, XRectangle *clip)
 {
-    int	i;
     XGCValues	gc_values;
     int	mask;
     int	srcx, srcy;
     int	dstx, dsty;
     int	width, height;
 
-    if (!c->bits)
-	init_card (c);
     if (!copyGC)
     {
 	mask = GCGraphicsExposures;
@@ -345,4 +434,14 @@ XRectangle	*clip;
     XCopyArea(d, c->bits, w, copyGC, srcx, srcy, width, height, dstx, dsty);
     oldx = x;
     oldy = y;
+}
+
+void
+displayCard (Display *d, Window w, int card, int x, int y, XRectangle *clip)
+{
+    if (card < 0 || card >= NUM_CARDS) {
+	drawIm (d, w, &blank, x, y, clip);
+    } else {
+	drawIm (d, w, &cards[card], x, y, clip);
+    }
 }

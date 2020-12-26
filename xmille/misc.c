@@ -56,8 +56,8 @@ error(const char *str, ...)
 	return FALSE;
 }
 
-check_ext(forcomp)
-	bool	forcomp;
+bool
+check_ext(bool forcomp)
 {
 
 
@@ -113,7 +113,7 @@ done:
  * it.  Exit appropriately.
  */
 void
-check_more()
+check_more(void)
 {
 	On_exit = TRUE;
 	if (Player[PLAYER].total >= 5000 || Player[COMP].total >= 5000)

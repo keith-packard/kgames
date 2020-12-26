@@ -35,6 +35,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <err.h>
 
 #include <time.h>
 
@@ -55,7 +56,7 @@ typedef	struct stat	STAT;
  *	Returns FALSE if it couldn't be done.
  */
 bool
-save()
+save(void)
 {
 	char	*sp, *ans;
 	int	outf;
@@ -70,7 +71,6 @@ save()
 	if (Fromfile && getyn("Same file? "))
 		strcpy(buf, Fromfile);
 	else {
-over:
 		ans = GetpromptedInput ("File: ");
 		if (!ans)
 		    return FALSE;
@@ -92,7 +92,7 @@ over:
 	}
 	Error (buf);
 	time(tp);			/* get current time		*/
-	rv = varpush(outf, write);
+	rv = varpush(outf, (int(*)(int, void *, size_t))write);
 	close(outf);
 	if (rv == FALSE)
 		unlink(buf);
@@ -105,8 +105,7 @@ over:
  * be cleaned up before the game starts.
  */
 bool
-rest_f(file)
-	const char	*file;
+rest_f(const char *file)
 {
 
 	char	*sp;
@@ -122,7 +121,7 @@ rest_f(file)
 		warn("%s", file);
 		exit(1);
 	}
-	varpush(inf, read);
+	varpush(inf, (int (*)(int, void *, size_t))read);
 	close(inf);
 	strcpy(buf, ctime(&sbuf.st_mtime));
 	for (sp = buf; *sp != '\n'; sp++)
@@ -136,7 +135,7 @@ rest_f(file)
 	return !On_exit;
 }
 
-void
+bool
 rest(void)
 {
 	char	buf[80];
@@ -144,11 +143,10 @@ rest(void)
 	if (Fromfile && getyn("Same file? "))
 		strcpy(buf, Fromfile);
 	else {
-over:
 		ans = GetpromptedInput ("File: ");
 		if (!ans)
 		    return FALSE;
 		strcpy (buf, ans);
 	}
-	rest_f(buf);
+	return rest_f(buf);
 }

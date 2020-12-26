@@ -1,8 +1,11 @@
 # include	<ctype.h>
 # include	<stdio.h>
 # include	<stdarg.h>
+# include	<string.h>
+# include	<unistd.h>
+# include	<stdbool.h>
+# include	<stdlib.h>
 
-typedef char	bool;
 # define reg register
 # define TRUE	1
 # define FALSE	0
@@ -179,8 +182,220 @@ VError(const char *string, va_list ap);
 void
 Error (const char *string, ...);
 
+void
+Prompt (char *string);
+
+void
+debug (int pos, char *string, int a0, int a1, int a2);
+
 bool
 error (const char *string, ...);
 
 char *
 GetpromptedInput (char *string);
+
+void
+Message (char *string);
+
+void
+stand(int y, int x, char *str);
+
+void
+InScore (int line, int player, char *text);
+
+void
+prscore(bool for_real);
+
+/* animate.c */
+void
+animate_move (int player, int orig_type, int orig_arg, int dest_type, int dest_arg);
+
+/* comp.c */
+void
+calcmove(void);
+
+int
+onecard(const PLAY *pp);
+
+int
+canplay(const PLAY *pp, const PLAY *op, CARD card);
+
+/* drawcard.c */
+
+/* end.c */
+void
+finalscore(PLAY *pp);
+
+void
+extrapolate(PLAY *pp);
+
+void
+undoex(void);
+
+/* init.c */
+void
+init(void);
+
+void
+shuffle(void);
+
+/* mille.c */
+void
+rub(int sig);
+
+void
+die(void);
+
+/* misc.c */
+bool
+error(const char *str, ...);
+
+bool
+check_ext(bool forcomp);
+
+void
+check_more(void);
+
+/* move.c */
+void
+domove(void);
+
+void
+check_go(void);
+
+char *
+sprint (char * string, ...);
+
+int
+haspicked(const PLAY *pp);
+
+char *
+playcard(PLAY *pp);
+
+void
+account(CARD card);
+
+void
+sort(CARD *hand);
+
+/* print.c */
+
+/* roll.c */
+int
+roll(int ndie, int nsides);
+
+/* save.c */
+bool
+save(void);
+
+bool
+rest_f(const char *file);
+
+bool
+rest(void);
+
+/* types.c */
+bool
+isrepair(CARD card);
+
+int
+safety(CARD card);
+
+/* uiXt.c */
+void
+prboard(void);
+
+void
+do_save (void);
+
+void
+do_quit (void);
+
+void
+getmove(void);
+
+void
+ComputerCard (int type);
+
+void
+ComputerStatus (char *string);
+
+void
+ComputerDistance (int distance);
+
+void
+ComputerSpeed (int type);
+
+void
+ComputerBattle (int type);
+
+void
+ComputerMiles (int type, int ind, int count);
+
+void
+EraseComputer (void);
+
+void
+ComputerSafety (int type, int ind);
+
+void
+DisplayDiscard (int type);
+
+void
+DisplayDeck (int numberLeft);
+
+void
+HumanDistance (int distance);
+
+void
+HumanSpeed (int type);
+
+void
+HumanBattle (int type);
+
+void
+HumanMiles (int type, int ind, int count);
+
+void
+EraseHuman (void);
+
+void
+HumanSafety (int type, int ind);
+
+void
+HumanHand (int type, int ind);
+
+void
+newboard(void);
+
+void
+newscore(void);
+
+void
+draw_board (void);
+
+void
+redraw_board (void);
+
+void
+init_ui (int *argc, char **argv);
+
+void
+finish_ui (void);
+
+void
+update_ui (void);
+
+void
+Beep (void);
+
+int
+getyn(char *prompt);
+
+void
+FlushInput (void);
+
+/* varpush.c */
+int
+varpush(int file, int (*func)(int, void *, size_t));
+

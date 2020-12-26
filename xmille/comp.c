@@ -40,12 +40,13 @@
 # define	V_VALUABLE	40
 
 void
-calcmove()
+calcmove(void)
 {
 	CARD		card;
 	int		*value;
 	PLAY		*pp, *op;
-	bool		foundend, cango, canstop, foundlow;
+	bool		foundend, canstop, foundlow;
+	int		cango;
 	unsgn int	i, count200, badcount, nummin, nummax, diff;
 	int		curmin, curmax;
 	CARD		safe, oppos;
@@ -87,7 +88,7 @@ calcmove()
 			playit[i] = canplay(pp, op, card);
 norm:
 			if (playit[i])
-				++cango;
+				cango++;
 			break;
 		  case C_GAS_SAFE:	case C_DRIVE_SAFE:
 		  case C_SPARE_SAFE:	case C_RIGHT_WAY:
@@ -395,8 +396,7 @@ play_it:
  * Return true if the given player could conceivably win with his next card.
  */
 int
-onecard(pp)
-	const PLAY	*pp;
+onecard(const PLAY *pp)
 {
 	CARD	bat, spd, card;
 
@@ -405,7 +405,7 @@ onecard(pp)
 	card = -1;
 	if (pp->can_go || ((is_repair(bat) || bat == C_STOP || spd == C_LIMIT) &&
 			   Numseen[S_RIGHT_WAY] != 0) ||
-	    (bat >= 0 && Numseen[safety(bat)] != 0))
+	    (bat >= 0 && Numseen[(int) safety(bat)] != 0))
 		switch (End - pp->mileage) {
 		  case 200:
 			if (pp->nummiles[C_200] == 2)
@@ -428,9 +428,7 @@ onecard(pp)
 }
 
 int
-canplay(pp, op, card)
-	const PLAY	*pp, *op;
-	CARD	card;
+canplay(const PLAY *pp, const PLAY *op, CARD card)
 {
 	switch (card) {
 	  case C_200:

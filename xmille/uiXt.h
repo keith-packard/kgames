@@ -108,3 +108,15 @@ extern struct safety_offset	safety_offsets[4];
 
 # define WINDOW_WIDTH	(HUM_SAFE_X + (WIDTH + PAD_CARD) * 2)
 # define WINDOW_HEIGHT	(HUM_HAND_Y + HEIGHT + PAD_CARD)
+
+void
+displayCard (Display *d, Window w, int card, int x, int y, XRectangle *clip);
+
+void
+init_mono_cards(void);
+
+void
+init_color_cards (void);
+
+void
+drawIm (Display *d, Window w, struct card *c, int x, int y, XRectangle *clip);

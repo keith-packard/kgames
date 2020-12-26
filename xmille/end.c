@@ -42,10 +42,9 @@
  * the end-of-games points to the user who deserves it (if any).
  */
 void
-finalscore(pp)
-	PLAY	*pp;
+finalscore(PLAY *pp)
 {
-	int	temp, tot, num;
+	int	tot, num;
 
 	num = pp - Player;
 	for (tot = 4; tot <= 8; tot++)
@@ -81,8 +80,9 @@ static int	Last_tot[2];	/* last tot used for extrapolate	*/
  *	print out the score as if it was final, and add the totals for
  * the end-of-games points to the user who deserves it (if any).
  */
-extrapolate(pp)
-reg PLAY	*pp; {
+void
+extrapolate(PLAY *pp)
+{
 
 	reg int		x, num, tot, count;
 
@@ -127,7 +127,9 @@ reg PLAY	*pp; {
 #endif
 }
 
-undoex() {
+void
+undoex(void)
+{
 
 	reg PLAY	*pp;
 	reg int		i;

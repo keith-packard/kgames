@@ -4,14 +4,15 @@
  * @(#)types.c	1.1 (Berkeley) 4/1/82
  */
 
-isrepair(card)
-reg CARD	card; {
-
+bool
+isrepair(CARD card)
+{
 	return card == C_GAS || card == C_SPARE || card == C_REPAIRS || card == C_INIT;
 }
 
-safety(card)
-reg CARD	card; {
+int
+safety(CARD card)
+{
 
 	switch (card) {
 	  case C_EMPTY:
@@ -34,4 +35,5 @@ reg CARD	card; {
 		return C_RIGHT_WAY;
 	}
 	/* NOTREACHED */
+	return 0;
 }
