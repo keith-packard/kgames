@@ -1,0 +1,249 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: kgames
+Upsream-Contact: Keith Packard <keithp@keithp.com>
+Source: https://keithp.com/git/kgames
+Copyright: 2020 Keith Packard
+License: MIT
+
+Files: *
+Copyright: Copyright 1992, 2020 Keith Packard
+License: MIT
+
+Files: kcribbage/Makefile.curses
+ kcribbage/cards.c
+ kcribbage/crib.c
+ kcribbage/cribbage.h
+ kcribbage/cribcur.h
+ kcribbage/deck.h
+ kcribbage/extern.c
+ kcribbage/io.c
+ kcribbage/score.c
+ kcribbage/support.c
+ kcribbage/test.c
+Copyright: 1980 Regents of the University of California.
+License: BSD3
+
+Files: xmille/varpush.c
+Copyright: 1982, 1993 The Regents of the University of California.
+License: BSD3
+
+Files: xmille/comp.c
+ xmille/end.c
+ xmille/extern.c
+ xmille/init.c
+ xmille/mille.c
+ xmille/print.c
+ xmille/roll.c
+Copyright: 1982, 1993 The Regents of the University of California.
+License: BSD3
+
+Files: xmille/misc.c
+ xmille/move.c
+ xmille/save.c
+Copyright: 1983, 1993 The Regents of the University of California.
+License: BSD3
+
+Files: Xkw/Animate.c
+ Xkw/Cards.c
+ Xkw/Cards.h
+ Xkw/CardsP.h
+ Xkw/CardsUtil.c
+ Xkw/CardsUtil.h
+ Xkw/Message.c
+ Xkw/Pad.c
+ Xkw/PadP.h
+ Xkw/SuitCards.c
+ Xkw/SuitCards.h
+ dominos/Dominos.c
+ dominos/Dominos.h
+ dominos/DominosP.h
+ dominos/board.c
+ dominos/computer.c
+ dominos/connect.c
+ dominos/dominos.c
+ dominos/dominos.h
+ dominos/file.c
+ dominos/find.c
+ dominos/game.c
+ dominos/util.c
+ kaces/aces.c
+ kcanfield/canfield.c
+ kklondike/klondike.c
+ kmontana/montana.c
+ kspider/spider.c
+ ktabby/tabby.c
+ kthieves/thieves.c
+ ktowers/ktowers.c
+ mc/mc.c
+ slyfox/slyfox.c
+Copyright: 1992 Network Computing Devices
+License: MIT-1
+
+Files: Xkw/Animate.h
+ Xkw/Message.h
+ Xkw/meson.build
+ dominos/meson.build
+ kaces/meson.build
+ kcanfield/meson.build
+ kcribbage/meson.build
+ kcribbage/xt.c
+ kklondike/meson.build
+ kmontana/meson.build
+ kspider/meson.build
+ ktabby/meson.build
+ kthieves/meson.build
+ ktowers/meson.build
+ mc/meson.build
+ meson.build
+ reversi/game.c
+ reversi/meson.build
+ reversi/xreversi.c
+ slyfox/meson.build
+ xmille/cards/meson.build
+ xmille/meson.build
+Copyright: 2020 Keith Packard
+License: MIT-2
+
+Files: Xkw/suit.bm
+Copyright: 1989, Donald R. Woods and Sun Microsystems, Inc.
+ 1990, David Lemke and Network Computing Devices Inc.
+License: MIT-2
+
+Files: Xkw/Hand.c
+ Xkw/Layout.c
+ Xkw/Layout.h
+ Xkw/LayoutP.h
+Copyright: 1991 Massachusetts Institute of Technology
+License: MIT-3
+
+Files: Xkw/Pad.h
+ Xkw/Thermo.c
+ Xkw/Thermo.h
+ Xkw/ThermoP.h
+ kcribbage/CribBoard.c
+ kcribbage/CribBoard.h
+ kcribbage/CribBoardP.h
+Copyright: 1987, 1988 Massachusetts Institute of Technology
+License: MIT-3
+
+Files: reversi/Reversi.c
+ reversi/Reversi.h
+ reversi/ReversiP.h
+Copyright: 1987, 1988 Digital Equipment Corporation, Maynard, Massachusetts, and the Massachusetts Institute of Technology, Cambridge, Massachusetts. 
+License: MIT-4
+
+License: BSD3
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ 1. Redistributions of source code must retain the above copyright
+ notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in the
+ documentation and/or other materials provided with the distribution.
+ 3. Neither the name of the University nor the names of its contributors
+ may be used to endorse or promote products derived from this software
+ without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ SUCH DAMAGE.
+
+License: MIT
+ Permission to use, copy, modify, distribute, and sell this software and its
+ documentation for any purpose is hereby granted without fee, provided that
+ the above copyright notice appear in all copies and that both that copyright
+ notice and this permission notice appear in supporting documentation, and
+ that the name of the copyright holders not be used in advertising or
+ publicity pertaining to distribution of the software without specific,
+ written prior permission.  The copyright holders make no representations
+ about the suitability of this software for any purpose.  It is provided "as
+ is" without express or implied warranty.
+ .
+ THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+ OF THIS SOFTWARE.
+
+License: MIT-1
+ Permission to use, copy, modify, distribute, and sell this software and its
+ documentation for any purpose is hereby granted without fee, provided that
+ the above copyright notice appear in all copies and that both that
+ copyright notice and this permission notice appear in supporting
+ documentation, and that the name of NCD. not be used in advertising or
+ publicity pertaining to distribution of the software without specific,
+ written prior permission.  NCD. makes no representations about the
+ suitability of this software for any purpose.  It is provided "as is"
+ without express or implied warranty.
+ .
+ NCD. DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
+ BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
+ OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+License: MIT-2
+ Permission to use, copy, modify, distribute, and sell this software and its
+ documentation for any purpose is hereby granted without fee, provided that
+ the above copyright notice appear in all copies and that both that copyright
+ notice and this permission notice appear in supporting documentation, and
+ that the name of the copyright holders not be used in advertising or
+ publicity pertaining to distribution of the software without specific,
+ written prior permission.  The copyright holders make no representations
+ about the suitability of this software for any purpose.  It is provided "as
+ is" without express or implied warranty.
+ .
+ THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+ OF THIS SOFTWARE.
+
+License: MIT-3
+ Permission to use, copy, modify, distribute, and sell this software and its
+ documentation for any purpose is hereby granted without fee, provided that
+ the above copyright notice appear in all copies and that both that
+ copyright notice and this permission notice appear in supporting
+ documentation, and that the name of M.I.T. not be used in advertising or
+ publicity pertaining to distribution of the software without specific,
+ written prior permission.  M.I.T. makes no representations about the
+ suitability of this software for any purpose.  It is provided "as is"
+ without express or implied warranty.
+ .
+ M.I.T. DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL M.I.T.
+ BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
+ OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+License: MIT-4
+ Permission to use, copy, modify, and distribute this software and its
+ documentation for any purpose and without fee is hereby granted,
+ provided that the above copyright notice appear in all copies and that
+ both that copyright notice and this permission notice appear in
+ supporting documentation, and that the names of Digital or MIT not be
+ used in advertising or publicity pertaining to distribution of the
+ software without specific, written prior permission.
+ .
+ DIGITAL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
+ ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
+ DIGITAL BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR
+ ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+ WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+ SOFTWARE.

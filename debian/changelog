@@ -1,0 +1,5 @@
+kgames (1.0-1) unstable; urgency=medium
+
+  * Initial release of very old code. Closes: #974011.
+
+ -- Keith Packard <keithp@keithp.com>  Fri, 25 Dec 2020 18:26:08 -0800
