@@ -50,28 +50,28 @@ overlay			return OVERLAY;
 ")"			return CP;
 "<"			return OA;
 ">"			return CA;
-infinity		{ yylval.ival = 1; return INFINITY; }
-inff*			{ yylval.ival = count(yytext, 'f'); return INFINITY; }
-[0-9][0-9]*		{ yylval.ival = atoi(yytext); return NUMBER; }
+infinity		{ LayYYlval.ival = 1; return INFINITY; }
+inff*			{ LayYYlval.ival = count(yytext, 'f'); return INFINITY; }
+[0-9][0-9]*		{ LayYYlval.ival = atoi(yytext); return NUMBER; }
 "="			{ return EQUAL; }
 "$"			{ return DOLLAR; }
 ","			{ return COMMA; }
-"+"			{ yylval.oval = Plus; return PLUS; }
-"-"			{ yylval.oval = Minus; return MINUS; }
-"*"			{ yylval.oval = Times; return TIMES; }
-"/"			{ yylval.oval = Divide; return DIVIDE; }
-"%"			{ yylval.oval = Percent; return PERCENT; }
-%[ \t\n]*of		{ yylval.oval = Percent; return PERCENTOF; }
+"+"			{ LayYYlval.oval = Plus; return PLUS; }
+"-"			{ LayYYlval.oval = Minus; return MINUS; }
+"*"			{ LayYYlval.oval = Times; return TIMES; }
+"/"			{ LayYYlval.oval = Divide; return DIVIDE; }
+"%"			{ LayYYlval.oval = Percent; return PERCENT; }
+%[ \t\n]*of		{ LayYYlval.oval = Percent; return PERCENTOF; }
 width			return WIDTH;
 height			return HEIGHT;
-min			{ yylval.oval = Minimum; return MIN; }
-max			{ yylval.oval = Maximum; return MAX; }
+min			{ LayYYlval.oval = Minimum; return MIN; }
+max			{ LayYYlval.oval = Maximum; return MAX; }
 \\[a-zA-Z_][a-zA-Z0-9_]* { 
 			    int i = yyleng;
 			    while (!istoken (yytext[i-1], i == 0))
 				i--;
 			    yytext[i] = '\0';
-			    yylval.qval = XrmStringToQuark (yytext+1);
+			    LayYYlval.qval = XrmStringToQuark (yytext+1);
  			    return NAME;
 			}
 
@@ -80,7 +80,7 @@ max			{ yylval.oval = Maximum; return MAX; }
 			    while (!istoken (yytext[i-1], i == 0))
 				i--;
 			    yytext[i] = '\0';
-			    yylval.qval = XrmStringToQuark (yytext);
+			    LayYYlval.qval = XrmStringToQuark (yytext);
  			    return NAME;
 			}
 " "			;
@@ -114,13 +114,13 @@ count (char *s, char c)
 }
 
 void
-yysetsource(char *s)
+LayYYsetsource(char *s)
 {
     yysourcebase = yysource = s;
 }
 
 void
-yyerror(char *s)
+LayYYerror(char *s)
 {
     char    *t;
 

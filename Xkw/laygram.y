@@ -13,10 +13,10 @@
 static LayoutPtr    *dest;
 
 int
-yywrap (void);
+LayYYwrap (void);
 
 void
-yyerror(char *s);
+LayYYerror(char *s);
 
 %}
 
@@ -315,14 +315,14 @@ orientation	:   VERTICAL
 %%
 
 int
-yywrap (void)
+LayYYwrap (void)
 {
     return 1;
 }
 
 void
-yysetdest (LayoutPtr *c)
+LayYYsetdest (LayoutPtr *c)
 {
-    (void) yywrap;
+    (void) LayYYwrap;
     dest = c;
 }
