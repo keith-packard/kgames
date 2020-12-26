@@ -409,10 +409,14 @@ main (int argc, char **argv)
 {
 	int	ret;
 
-	if (argc > 1 && argv[1][0] == 'v')
-		verbose = 1;
+	if (argc > 1)
+		freopen(argv[1], "r", stdin);
+	printf("#include \"reversi.h\"\n");
+	printf("#pragma GCC diagnostic ignored \"-Wmissing-braces\"\n");
+	printf("scoreT edgescores [4][4][4][4][4][4][4][4] = {\n");
 	ret = yyparse ();
 	flush_output ();
+	printf("};\n");
 	return ret;
 }
 
