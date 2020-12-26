@@ -23,6 +23,7 @@
  * Author:  Dave Lemke, Network Computing Devices
  */
 
+#include 	<stdlib.h>
 #include	<X11/Intrinsic.h>
 #include	<X11/StringDefs.h>
 #include	<X11/Shell.h>
@@ -40,6 +41,7 @@
 #include	<Xkw/Layout.h>
 #include	<X11/Xutil.h>
 #include	<Xkw/CardsUtil.h>
+#include	<Xkw/Message.h>
 
 Widget      toplevel;
 Widget      frame;
@@ -92,10 +94,10 @@ MonteCarloResources montecarloResources;
 #define ForAllCards	for (row = 0, stack = cardStacks; row < NUM_ROWS; row++) \
 			    for (col = 0; col < NUM_COLS; col++, stack++)
 
-InitStacks()
+static void
+InitStacks (void)
 {
     ForAllCardVars;
-    CardDisplay display;
 
     ForAllCards
     {
@@ -110,17 +112,16 @@ InitStacks()
     currentScore = 0;
 }
 
-GenerateCards()
+static void
+GenerateCards (void)
 {
-    int         i;
-
     CardGenerateStandardDeck(rawcards);
     deckStack.first = &rawcards[0];
     deckStack.last = &rawcards[NUM_CARDS - 1];
 }
 
-SetPosition(stack)
-    CardStackPtr stack;
+static void
+SetPosition(CardStackPtr stack)
 {
     int         i;
 
@@ -128,7 +129,8 @@ SetPosition(stack)
     position[i] = stack;
 }
 
-FirstDeal()
+static void
+FirstDeal (void)
 {
     ForAllCardVars;
 
@@ -142,8 +144,8 @@ FirstDeal()
     Message(deckCount, "%d", cardsLeft);
 }
 
-int
-ComputeScore()
+static int
+ComputeScore (void)
 {
     int         score;
     CardPtr     t;
@@ -159,7 +161,8 @@ ComputeScore()
     return score;
 }
 
-DisplayStacks()
+static void
+DisplayStacks (void)
 {
     ForAllCardVars;
 
@@ -170,8 +173,8 @@ DisplayStacks()
     CardsUpdateDisplay(cards);
 }
 
-Boolean
-MonteCarloUndo()
+static Boolean
+MonteCarloUndo(void)
 {
     if (!CardUndo())
 	return False;
@@ -179,12 +182,10 @@ MonteCarloUndo()
     return True;
 }
 
-MonteCarloDo(from_stack, to_stack)
-    CardStackPtr from_stack,
-                to_stack;
+static void
+MonteCarloDo(CardStackPtr from_stack, CardStackPtr to_stack)
 {
     CardPtr     card;
-    CardStackPtr stack;
 
     card = from_stack->last;
     CardMove(from_stack, card, &wasteStack, True);
@@ -196,10 +197,11 @@ MonteCarloDo(from_stack, to_stack)
 
 /* User interface functions */
 
-static      CardStackPtr
-NextStack(r, c)
-    int         r,
-                c;
+static void
+UnHint(void);
+
+static CardStackPtr
+NextStack(int r, int c)
 {
     ForAllCardVars;
 
@@ -215,8 +217,8 @@ NextStack(r, c)
     return NULL;
 }
 
-static      CardStackPtr
-FirstEmpty()
+static CardStackPtr
+FirstEmpty(void)
 {
     ForAllCardVars;
 
@@ -227,13 +229,12 @@ FirstEmpty()
     return NULL;
 }
 
-void
-Deal()
+static void
+Deal(void)
 {
     ForAllCardVars;
     CardPtr     card;
     CardStackPtr next_stack;
-    int         i;
 
     UnHint();
     stack = cardStacks;
@@ -253,7 +254,7 @@ Deal()
     }
     next_stack = FirstEmpty();
     while (next_stack && deckStack.last) {
-	if (card = deckStack.last) {
+	if ((card = deckStack.last)) {
 	    CardMove(&deckStack, card, next_stack, True);
 	    CardTurn(card, CardFaceUp, True);
 	    DisplayStacks();	/* i like to see them move */
@@ -266,8 +267,8 @@ Deal()
     CardNextHistory();
 }
 
-void
-NewGame()
+static void
+NewGame (void)
 {
     CardsRemoveAllCards(cards);
     fromStack = 0;
@@ -283,8 +284,8 @@ NewGame()
     Message(message, "MonteCarlo version 0.9");
 }
 
-void
-Undo()
+static void
+Undo (void)
 {
     if (!MonteCarloUndo()) {
 	Message(message, "Nothing to undo.");
@@ -296,23 +297,21 @@ Undo()
     CardSetAnimate(True);
 }
 
-void
-Score()
+static void
+Score (void)
 {
     Message(message, "Current position scores %d out of %d.",
 	    ComputeScore(), MAX_SCORE);
 }
 
-void
-Quit()
+static void
+Quit(void)
 {
     exit(0);
 }
 
 static Bool
-NextTo(from_stack, to_stack)
-    CardStackPtr from_stack,
-                to_stack;
+NextTo(CardStackPtr from_stack, CardStackPtr to_stack)
 {
     if ((abs(from_stack->position - to_stack->position) > 1) ||
 	    (abs(from_stack->basePosition - to_stack->basePosition) > 1))
@@ -321,9 +320,8 @@ NextTo(from_stack, to_stack)
 	return True;
 }
 
-Play(from_stack, to_stack)
-    CardStackPtr from_stack,
-                to_stack;
+static void
+Play(CardStackPtr from_stack, CardStackPtr to_stack)
 {
     CardPtr     card;
 
@@ -356,9 +354,8 @@ Play(from_stack, to_stack)
 
 #define MAX_MOVES   16
 
-CardStackPtr
-FindMove(src)
-    CardStackPtr src;
+static CardStackPtr
+FindMove(CardStackPtr src)
 {
     int         r,
                 c;
@@ -382,8 +379,8 @@ FindMove(src)
     return NULL;
 }
 
-void
-BestMove()
+static void
+BestMove(void)
 {
     ForAllCardVars;
     CardStackPtr best,
@@ -423,7 +420,8 @@ BestMove()
 	Message(message, "Its all over.");
 }
 
-UnHint()
+static void
+UnHint(void)
 {
     if (hintStack) {
 	CardTurn(hintStack->last, CardFaceUp, True);
@@ -431,15 +429,15 @@ UnHint()
     }
 }
 
-Hint(stack)
-    CardStackPtr stack;
+static void
+Hint(CardStackPtr stack)
 {
     hintStack = stack;
     CardTurn(stack->last, CardFaceDown, True);
 }
 
-FindAMove(stack)
-    CardStackPtr stack;
+static void
+FindAMove(CardStackPtr stack)
 {
     CardStackPtr hint_stack;
 
@@ -449,12 +447,14 @@ FindAMove(stack)
 	Hint(hint_stack);
 }
 
-Restore()
+static void
+Restore(void)
 {
     Message(message, "Restore not implemented");
 }
 
-Save()
+static void
+Save(void)
 {
     Message(message, "Save not implemented");
 }
@@ -462,23 +462,19 @@ Save()
 /* Callbacks to user interface functions */
 
 static void
-CardsCallback(w, closure, data)
-    Widget      w;
-    XtPointer   closure;
-    XtPointer   data;
+CardsCallback (Widget w, XtPointer closure, XtPointer data)
 {
     CardsInputPtr input = (CardsInputPtr) data;
     CardStackPtr stack;
-    CardPtr     card;
     String      type;
     int         i;
-    Boolean     hintForward;
 
 #define MOVE	0
 #define HINT	1
 #define UNHINT	2
 #define	SELECT	3
 
+    (void) closure;
     Message(message, "");
     stack = &cardStacks[input->row * NUM_COLS + input->col];
     if (!*input->num_params)
@@ -521,187 +517,175 @@ CardsCallback(w, closure, data)
 }
 
 static void
-DealCallback(w, closure, data)
-    Widget      w;
-    XtPointer   closure,
-                data;
+DealCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     Deal();
 }
 
 static void
-NewGameCallback(w, closure, data)
-    Widget      w;
-    XtPointer   closure,
-                data;
+NewGameCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    NewGame();
+    (void) w;
+    (void) closure;
+    (void) data;
+    NewGame ();
 }
 
 static void
-QuitCallback(w, closure, data)
-    Widget      w;
-    XtPointer   closure,
-                data;
+QuitCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    Quit();
+    (void) w;
+    (void) closure;
+    (void) data;
+    Quit ();
 }
 
 static void
-ScoreCallback(w, closure, data)
-    Widget      w;
-    XtPointer   closure,
-                data;
+ScoreCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    Score();
+    (void) w;
+    (void) closure;
+    (void) data;
+    Score ();
 }
 
 static void
-UndoCallback(w, closure, data)
-    Widget      w;
-    XtPointer   closure,
-                data;
+UndoCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    Undo();
+    (void) w;
+    (void) closure;
+    (void) data;
+    Undo ();
 }
 
 static void
-HintCallback(w, closure, data)
-    Widget      w;
-    XtPointer   closure,
-                data;
+HintCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    BestMove();
+    (void) w;
+    (void) closure;
+    (void) data;
+    BestMove ();
 }
 
 static void
-RestoreCallback(w, closure, data)
-    Widget      w;
-    XtPointer   closure,
-                data;
+RestoreCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    Restore();
+    (void) w;
+    (void) closure;
+    (void) data;
+    Restore ();
 }
 
 static void
-SaveCallback(w, closure, data)
-    Widget      w;
-    XtPointer   closure,
-                data;
+SaveCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    Save();
+    (void) w;
+    (void) closure;
+    (void) data;
+    Save ();
 }
 
 /* actions to user interface functions */
 
-static void
-UndoAction(w, e, p, n)
-    Widget      w;
-    XEvent     *e;
-    String      p;
-    Cardinal   *n;
+static void DealAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
-    Undo();
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
+    Deal ();
 }
 
-static void
-DealAction(w, e, p, n)
-    Widget      w;
-    XEvent     *e;
-    String      p;
-    Cardinal   *n;
+static void UndoAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
-    Deal();
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
+    Undo ();
 }
 
-static void
-NewGameAction(w, e, p, n)
-    Widget      w;
-    XEvent     *e;
-    String      p;
-    Cardinal   *n;
+static void NewGameAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
-    NewGame();
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
+    NewGame ();
 }
 
-static void
-ScoreAction(w, e, p, n)
-    Widget      w;
-    XEvent     *e;
-    String      p;
-    Cardinal   *n;
+static void ScoreAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
-    Score();
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
+    Score ();
 }
 
-static void
-QuitAction(w, e, p, n)
-    Widget      w;
-    XEvent     *e;
-    String      p;
-    Cardinal   *n;
+static void QuitAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
-    Quit();
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
+    Quit ();
 }
 
-static void
-RestoreAction(w, e, p, n)
-    Widget      w;
-    XEvent     *e;
-    String      p;
-    Cardinal   *n;
+static void RestoreAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
-    Restore();
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
+    Restore ();
 }
 
-static void
-SaveAction(w, e, p, n)
-    Widget      w;
-    XEvent     *e;
-    String      p;
-    Cardinal   *n;
+static void SaveAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
-    Save();
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
+    Save ();
 }
 
-static void
-BestMoveAction(w, e, p, n)
-    Widget      w;
-    XEvent     *e;
-    String      p;
-    Cardinal   *n;
+static void BestMoveAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
-    BestMove();
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
+    BestMove ();
 }
 
 XtActionsRec actions[] = {
-    "montecarloUndo", UndoAction,
-    "montecarloDeal", DealAction,
-    "montecarloNewGame", NewGameAction,
-    "montecarloScore", ScoreAction,
-    "montecarloQuit", QuitAction,
-    "montecarloRestore", RestoreAction,
-    "montecarloSave", SaveAction,
-    "montecarloBestMove", BestMoveAction,
+    { "montecarloUndo", UndoAction, },
+    { "montecarloDeal", DealAction, },
+    { "montecarloNewGame", NewGameAction, },
+    { "montecarloScore", ScoreAction, },
+    { "montecarloQuit", QuitAction, },
+    { "montecarloRestore", RestoreAction, },
+    { "montecarloSave", SaveAction, },
+    { "montecarloBestMove", BestMoveAction, },
 };
 
 struct menuEntry {
     char       *name;
-    void        (*function) ();
+    void    (*function)(Widget w, XtPointer closure, XtPointer data);
 };
 
 struct menuEntry fileMenuEntries[] = {
-    "restore", RestoreCallback,
-    "save", SaveCallback,
-    "quit", QuitCallback,
+    { "restore", RestoreCallback, },
+    { "save", SaveCallback, },
+    { "quit", QuitCallback, },
 };
 
-Widget
-CreateMenu(parent, name, entries, count)
-    Widget      parent;
-    char       *name;
-    struct menuEntry *entries;
-    int         count;
+static Widget
+CreateMenu (Widget parent, char *name, struct menuEntry *entries, int count)
 {
     Widget      menu;
     Widget      entry;
@@ -725,18 +709,20 @@ XtResource  resources[] = {
 };
 
 XrmOptionDescRec options[] = {
-    "-smallCards", "*Cards.smallCards", XrmoptionNoArg, "True",
-    "-squareCards", "*Cards.roundCards", XrmoptionNoArg, "False",
-    "-noanimate", "*animationSpeed", XrmoptionNoArg, "0",
-    "-animationSpeed", "*animationSpeed", XrmoptionSepArg, NULL,
+    { "-smallCards",	"*Cards.smallCards",	XrmoptionNoArg, "True", },
+    { "-squareCards",	"*Cards.roundCards",	XrmoptionNoArg, "False", },
+    { "-noanimate",	"*animationSpeed",	XrmoptionNoArg, "0", },
+    { "-animationSpeed",	"*animationSpeed",	XrmoptionSepArg, NULL },
 };
 
-main(argc, argv)
-    int         argc;
-    char      **argv;
+int
+main(int argc, char **argv)
 {
-    Arg         args[20];
     Atom        wm_delete_window;
+
+#ifdef APPDEFAULTS
+    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
+#endif
 
     toplevel = XtInitialize(argv[0], "MonteCarlo", options, XtNumber(options),
 			    &argc, argv);
