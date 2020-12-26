@@ -62,4 +62,5 @@ executable('layout',
 	   include_directories: inc,
 	   link_with: [lib_xkw],
 	   install: false)
-install_data('PadTest.ad',             rename: 'PadTest',              install_dir : app_defaults)
+
+#install_data('PadTest.ad',             rename: 'PadTest',              install_dir : app_defaults)
