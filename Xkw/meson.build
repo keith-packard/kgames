@@ -53,6 +53,7 @@ lib_xkw = library('Xkw',
 		  srcs_xkw, flex_files, bison_files,
 		  dependencies: x_libs,
 		  install: true,
+		  version: '1.0.0',
 		  include_directories: inc)
 
 executable('layout',
