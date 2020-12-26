@@ -1,9 +1,0 @@
-MYTOP=..
-#include "../games.tmpl"
-
-SRCS = ktowers.c
-OBJS = ktowers.o
-
-ComplexProgramTarget(ktowers)
-
-InstallAppDefaults(KTowers)
