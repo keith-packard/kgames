@@ -884,6 +884,10 @@ main (int argc, char **argv)
 {
     Atom wm_delete_window;
 
+#ifdef APPDEFAULTS
+    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
+#endif
+
     toplevel = XtInitialize (argv[0], "KKlondike", options, XtNumber(options),
 			     &argc, argv);
 

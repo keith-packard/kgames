@@ -20,7 +20,6 @@
 # OF THIS SOFTWARE.
 #
 srcs_dominos = [
-  'board.c',
   'computer.c',
   'connect.c',
   'dominos.c',

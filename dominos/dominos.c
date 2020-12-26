@@ -989,6 +989,10 @@ main (int argc, char **argv)
     Atom	wm_delete_window;
     int		i;
 
+#ifdef APPDEFAULTS
+    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
+#endif
+
     toplevel = XtInitialize (argv[0], "Dominos", options, XtNumber(options),
 			     &argc, argv);
 

@@ -191,6 +191,10 @@ XrmOptionDescRec options[] = {
 void
 UIInit (int argc, char **argv)
 {
+#ifdef APPDEFAULTS
+    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
+#endif
+
     toplevel = XtInitialize (argv[0], "Cribbage", options, XtNumber(options), &argc, argv);
 
     XtGetApplicationResources (toplevel, (XtPointer)&cribbageResources, resources,

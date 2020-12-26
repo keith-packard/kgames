@@ -733,6 +733,10 @@ main (int argc, char **argv)
     int	nargs;
     Atom wm_delete_window;
 
+#ifdef APPDEFAULTS
+    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
+#endif
+
     toplevel = XtInitialize (argv[0], "KThieves", options, XtNumber(options),
 			     &argc, argv);
 

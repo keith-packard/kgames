@@ -25,3 +25,4 @@ executable('kcanfield',
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
+install_data('KCanfield-color.ad',             rename: 'KCanfield-color',              install_dir : app_defaults)

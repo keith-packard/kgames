@@ -25,3 +25,4 @@ executable('ktabby',
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
+install_data('KTabby.ad',             rename: 'KTabby',              install_dir : app_defaults)

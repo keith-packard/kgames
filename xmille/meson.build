@@ -47,3 +47,4 @@ executable('xmille',
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
+install_data('Mille.ad',             rename: 'Mille',              install_dir : app_defaults)

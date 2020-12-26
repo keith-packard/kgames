@@ -20,6 +20,7 @@
  * OF THIS SOFTWARE.
  */
 #include <stdint.h>
+#include <stdlib.h>
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
 #include <X11/Xaw/Cardinals.h>
@@ -287,6 +288,9 @@ XtActionsRec xreversi_actions[] = {
 void
 dispInit(int argc, char **argv)
 {
+#ifdef APPDEFAULTS
+    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
+#endif
     topLevel = XtInitialize( NULL, "Xreversi",
 			     options, XtNumber(options),
 			     &argc, argv );

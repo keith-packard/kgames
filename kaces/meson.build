@@ -25,3 +25,4 @@ executable('kaces',
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
+install_data('KAces.ad',             rename: 'KAces',              install_dir : app_defaults)

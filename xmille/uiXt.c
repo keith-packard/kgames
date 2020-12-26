@@ -696,6 +696,10 @@ init_ui (argc, argv)
     Arg			arg[2];
     Visual		*visual;
 
+#ifdef APPDEFAULTS
+    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
+#endif
+
     toplevel = XtInitialize (argv[0], "Mille", 0, 0, argc, argv);
     dpy = XtDisplay (toplevel);
     screen = DefaultScreen(dpy);
