@@ -14,15 +14,13 @@
 #include "Layout.h"
 #include "Cards.h"
 
-main (argc, argv)
-    char    **argv;
+int
+main (int argc, char **argv)
 {
     XtAppContext xtcontext;
     Widget toplevel, layout, label, cards;
-    Arg arg[2];
-    int	i;
     CardsCardRec    card[10];
-    
+
     toplevel = XtAppInitialize(&xtcontext, "Layout", NULL, 0,
 			       &argc, argv, NULL, NULL, 0);
 
@@ -30,6 +28,7 @@ main (argc, argv)
     label = XtCreateManagedWidget ("label1", labelWidgetClass, layout, NULL, 0);
     label = XtCreateManagedWidget ("label2", labelWidgetClass, layout, NULL, 0);
     label = XtCreateManagedWidget ("label3", labelWidgetClass, layout, NULL, 0);
+    (void) label;
     cards = XtCreateManagedWidget ("cards", cardsWidgetClass, layout, NULL, 0);
     card[0].rank = CardsAce;
     card[0].suit = CardsHeart;
@@ -39,10 +38,10 @@ main (argc, argv)
     card[2].suit = CardsBack;
     card[3].rank = CardsAce;
     card[3].suit = CardsEmpty;
-    CardsAddCard (cards, &card[0], 0, 0, (XtPointer) 0, Above);
-    CardsAddCard (cards, &card[1], 0, 1, (XtPointer) 0, Above);
-    CardsAddCard (cards, &card[2], 1, 0, (XtPointer) 0, Above);
-    CardsAddCard (cards, &card[3], 1, 1, (XtPointer) 0, Above);
+    CardsAddCard (cards, &card[0], 0, 0);
+    CardsAddCard (cards, &card[1], 0, 1);
+    CardsAddCard (cards, &card[2], 1, 0);
+    CardsAddCard (cards, &card[3], 1, 1);
     XtRealizeWidget (toplevel);
     XtAppMainLoop (xtcontext);
 }

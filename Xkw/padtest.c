@@ -6,14 +6,15 @@
 # include	<X11/Xutil.h>
 # include	<ctype.h>
 # include	<sys/ioctl.h>
+# include	<stdlib.h>
 
 Widget	toplevel;
 Widget	pad;
 
 static int  row, col;
 
-CheckScroll (w)
-    Widget  w;
+void
+CheckScroll (Widget w)
 {
     Arg	arg[1];
     Dimension	rows;
@@ -65,16 +66,17 @@ append (closure, source, inputid)
     XkwPadUpdate (w);
 }
 
-main (argc, argv)
-    int	    argc;
-    char    **argv;
+int
+main (int argc, char **argv)
 {
-    Arg	args[20];
+#ifdef APPDEFAULTS
+    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
+#endif
 
     toplevel = XtInitialize (argv[0], "PadTest", 0, 0, &argc, argv);
     
     pad = XtCreateManagedWidget ("pad", padWidgetClass, toplevel, NULL, 0);
-    XtAddInput (0, XtInputReadMask, append, (XtPointer) &pad);
+    XtAddInput (0, (XtPointer) (intptr_t) XtInputReadMask, append, (XtPointer) &pad);
     XtRealizeWidget (toplevel);
     XtMainLoop ();
 }
