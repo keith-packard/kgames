@@ -25,5 +25,6 @@ executable('kslyfox',
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
-install_data('SlyFox.ad',             rename: 'SlyFox',              install_dir : app_defaults)
-install_data('SlyFox-hard.ad',             rename: 'SlyFox-hard',              install_dir : app_defaults)
+install_man('kslyfox.6')
+install_data('KSlyFox.ad',             rename: 'KSlyFox',              install_dir : app_defaults)
+install_data('KSlyFox-hard.ad',        rename: 'KSlyFox-hard',              install_dir : app_defaults)

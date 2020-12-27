@@ -291,7 +291,7 @@ dispInit(int argc, char **argv)
 #ifdef APPDEFAULTS
     setenv("XAPPLRESDIR", APPDEFAULTS, 1);
 #endif
-    topLevel = XtInitialize( NULL, "Xreversi",
+    topLevel = XtInitialize( NULL, "Kreversi",
 			     options, XtNumber(options),
 			     &argc, argv );
 

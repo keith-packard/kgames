@@ -58,13 +58,14 @@ edges_c = custom_target('edges.c',
 			capture: true,
 			command : [makeedge, '@INPUT@'])
 
-executable('reversi',
+executable('kreversi',
 	   srcs_reversi, edges_c,
 	   include_directories: inc,
 	   dependencies: [x_libs],
 	   link_with: [lib_xkw],
 	   install: true)
 
-install_data('Xreversi.ad',
-	     rename: 'Xreversi',
+install_man('kreversi.6')
+install_data('Kreversi.ad',
+	     rename: 'Kreversi',
 	     install_dir : app_defaults)

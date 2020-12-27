@@ -952,12 +952,12 @@ int
 main (int argc, char **argv)
 {
     Atom        wm_delete_window;
-    char       *adname = "SlyFox";
+    char       *adname = "KSlyFox";
     int         i;
 
     for (i = 1; i < argc; i++) {
 	if (!strcmp(argv[i], "-hard")) {
-	    adname = "SlyFox-hard";
+	    adname = "KSlyFox-hard";
 	    hard = True;
 	}
     }

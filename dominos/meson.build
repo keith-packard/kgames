@@ -30,13 +30,14 @@ srcs_dominos = [
   'util.c',
 ]
 
-executable('dominos',
+executable('kdominos',
 	   srcs_dominos,
 	   include_directories: inc,
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
 
+install_man('kdominos.6')
 
 install_data('Dominos.ad',
 	     rename: 'Dominos',

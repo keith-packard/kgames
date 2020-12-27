@@ -36,4 +36,5 @@ executable('kcribbage',
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
+install_man('kcribbage.6')
 install_data('Cribbage.ad',             rename: 'Cribbage',              install_dir : app_defaults)

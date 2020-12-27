@@ -25,4 +25,5 @@ executable('kmcarlo',
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
+install_man('kmcarlo.6')
 install_data('MonteCarlo.ad',             rename: 'MonteCarlo',              install_dir : app_defaults)
