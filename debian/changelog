@@ -1,3 +1,9 @@
+kgames (1.0-2) unstable; urgency=medium
+
+  * Mark kgames as 'Replaces: xmille'
+
+ -- Keith Packard <keithp@keithp.com>  Sun, 27 Dec 2020 12:20:36 -0800
+
 kgames (1.0-1) unstable; urgency=medium
 
   * Initial release of very old code. Closes: #974011.
