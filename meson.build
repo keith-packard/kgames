@@ -21,7 +21,8 @@
 #
 project('kgames', 'c',
 	license : 'MIT',
-	version: '1.0')
+	version: '1.0',
+	default_options: ['bindir=games', 'datadir=share/X11'])
 
 c_compiler = meson.get_compiler('c')
 
