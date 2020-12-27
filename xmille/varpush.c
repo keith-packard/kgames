@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 1982, 1993
+ *	The Regents of the University of California.  All rights reserved.
+ */
+
 # include	"mille.h"
 
 /*
