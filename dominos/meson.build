@@ -30,10 +30,11 @@ srcs_dominos = [
   'util.c',
 ]
 
+
 executable('kdominos',
 	   srcs_dominos,
 	   include_directories: inc,
-	   dependencies: x_libs,
+	   dependencies: cairo_libs,
 	   link_with: [lib_xkw],
 	   install: true)
 

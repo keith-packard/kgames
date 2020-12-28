@@ -20,6 +20,10 @@
 		undo \
 		$spacing < -100% > \
 		draw \
+		$spacing < -100% > \
+		zoom_in \
+		$spacing < -100% > \
+		zoom_out \
 		$spacing <+inf -inf> \
 		score0 \
 		$spacing < -100% > \
@@ -34,7 +38,6 @@
 *player.borderWidth: 1
 *board.boderWidth: 0
 *porthole.borderWidth: 0
-*board.size: 40
 *player_scrollbar.orientation: horizontal
 
 *player.translations: #override \
@@ -90,6 +93,10 @@
 
 *draw.label: Draw
 
+*zoom_in.label: Zoom In
+
+*zoom_out.label: Zoom Out
+
 *pileAll.label: Fill Piles
 
 *Command.shapeStyle: oval
@@ -98,7 +105,9 @@
 	<Key>u:		dominosUndo()\n\
 	<Key>n:		dominosNewGame()\n\
 	<Key>d:		dominosDraw()\n\
-	<Key>?:		dominosHint()
+	<Key>?:		dominosHint()\n\
+	<Key>+:         dominosZoomIn()\n\
+	<Key>-:         dominosZoomOut()\n\
 
 *yesOrNoShell.allowShellResize: true
 *yesOrNoLabel.borderWidth: 0

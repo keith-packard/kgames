@@ -64,6 +64,8 @@ Widget	    undo;
 Widget	    hint;
 Widget	    computerCount;
 Widget	    draw;
+Widget	    zoom_in;
+Widget	    zoom_out;
 Widget	    score_w[MAX_PLAYERS];
 
 int	    total_score[MAX_PLAYERS];
@@ -722,6 +724,20 @@ MakeLastPlayerVisible (void)
 }
 
 static void
+Zoom(double ratio)
+{
+    Arg		args[1];
+    Dimension	size;
+
+    XtSetArg(args[0], XtNsize, &size);
+    XtGetValues(board_w, args, 1);
+    size = (Dimension) (size * ratio + 0.5);
+    XtSetArg(args[0], XtNsize, size);
+    XtSetValues(board_w, args, 1);
+    MakeLastPlayerVisible();
+}
+
+static void
 NewGameCallback (Widget w, XtPointer closure, XtPointer data)
 {
     (void) w;
@@ -755,6 +771,24 @@ DrawCallback (Widget w, XtPointer closure, XtPointer data)
     (void) closure;
     (void) data;
     Draw ();
+}
+
+static void
+ZoomInCallback (Widget w, XtPointer closure, XtPointer data)
+{
+    (void) w;
+    (void) closure;
+    (void) data;
+    Zoom (1.25);
+}
+
+static void
+ZoomOutCallback (Widget w, XtPointer closure, XtPointer data)
+{
+    (void) w;
+    (void) closure;
+    (void) data;
+    Zoom (0.8);
 }
 
 static void
@@ -896,6 +930,26 @@ DrawAction (Widget w, XEvent *e, String *p, Cardinal *n)
 }
 
 static void
+ZoomInAction (Widget w, XEvent *e, String *p, Cardinal *n)
+{
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
+    Zoom (1.25);
+}
+
+static void
+ZoomOutAction (Widget w, XEvent *e, String *p, Cardinal *n)
+{
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
+    Zoom (0.8);
+}
+
+static void
 YesAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
     (void) w;
@@ -927,6 +981,8 @@ XtActionsRec	actions[] = {
     { "dominosDraw",	DrawAction, },
     { "dominosYes",	YesAction, },
     { "dominosNo",	NoAction, },
+    { "dominosZoomIn",	ZoomInAction },
+    { "dominosZoomOut",	ZoomOutAction },
 };
 
 struct menuEntry {
@@ -967,7 +1023,7 @@ XtResource resources[] = {
 };
 
 XrmOptionDescRec options[] = {
-    { "-squareCards",	"*Cards.roundCards",	XrmoptionNoArg, "False", },
+    { "-size",		"*Dominos.size",	XrmoptionSepArg, NULL, },
 };
 
 static void
@@ -1028,6 +1084,14 @@ main (int argc, char **argv)
     draw = XtCreateManagedWidget ("draw", commandWidgetClass,
 				  menuBar, NULL, ZERO);
     XtAddCallback(draw, XtNcallback, DrawCallback, NULL);
+
+    zoom_in = XtCreateManagedWidget ("zoom_in", commandWidgetClass,
+				     menuBar, NULL, ZERO);
+    XtAddCallback(zoom_in, XtNcallback, ZoomInCallback, NULL);
+
+    zoom_out = XtCreateManagedWidget ("zoom_out", commandWidgetClass,
+				      menuBar, NULL, ZERO);
+    XtAddCallback(zoom_out, XtNcallback, ZoomOutCallback, NULL);
 
     for (i = 0; i < NumPlayers; i++)
     {

@@ -48,6 +48,8 @@ extern WidgetClass  dominosWidgetClass;
 #define XtNinputCallback  "inputCallback"
 #define XtCInputCallback  "InputCallback"
 
+#define XtRRenderColor "RenderColor"
+
 typedef struct _DominosInput {
     Widget	    w;
     DominoPtr	    domino;

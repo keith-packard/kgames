@@ -32,8 +32,11 @@ lib_xmu = c_compiler.find_library('Xmu')
 lib_xpm = c_compiler.find_library('Xpm')
 lib_xt = c_compiler.find_library('Xt')
 lib_xaw = c_compiler.find_library('Xaw')
+lib_render = c_compiler.find_library('Xrender')
+lib_cairo = c_compiler.find_library('cairo')
 
 x_libs = [lib_xaw, lib_xt, lib_xmu, lib_xpm, lib_x11, lib_m]
+cairo_libs = x_libs + [lib_cairo, lib_render]
 
 prefix = get_option('prefix')
 datadir = get_option('datadir')

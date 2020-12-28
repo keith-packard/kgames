@@ -27,13 +27,12 @@
 #define _DOMINOS_H_
 
 #include <stdio.h>
+#include <X11/Xdefs.h>
 
 #ifndef TRUE
 #define TRUE	1
 #define FALSE	0
 #endif
-
-typedef char		*pointer;
 
 typedef unsigned char	Pips;
 
