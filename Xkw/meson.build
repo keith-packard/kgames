@@ -35,6 +35,12 @@ bison_gen = generator(bison,
 			  
 bison_files = bison_gen.process('laygram.y')
 
+make_cards_svg = find_program('make-cards-svg')
+
+cards_files = custom_target('svg-cards',
+			    output : ['cards-svg.c', 'cards-svg.h'],
+			    command : [make_cards_svg, '@OUTPUT0@', '@OUTPUT1@'])
+
 srcs_xkw = [
   'Animate.c',
   'Cards.c',
@@ -48,6 +54,7 @@ srcs_xkw = [
   'padtest.c',
   'SuitCards.c',
   'Thermo.c',
+  'Svg.c',
   'KCommand.c',
   'KLabel.c',
   'KMenuButton.c',
@@ -59,7 +66,7 @@ srcs_xkw = [
 ]
 
 lib_xkw = library('Xkw',
-		  srcs_xkw, flex_files, bison_files,
+		  srcs_xkw, flex_files, bison_files, cards_files,
 		  dependencies: cairo_libs,
 		  install: true,
 		  version: '1.0.0',

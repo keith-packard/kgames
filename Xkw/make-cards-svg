@@ -1,0 +1,40 @@
+#!/bin/bash
+
+dir=`dirname $0`
+
+case $# in
+    2)
+    ;;
+    *)
+	echo "usage: $0 cards.c cards.h"
+	exit 1
+	;;
+esac
+
+(
+    echo '#include "'"$2"'"'
+    for suit in C D H S; do
+	for rank in A 2 3 4 5 6 7 8 9 T J Q K; do
+	    file="$dir"/cards/"$rank""$suit".svg
+	    echo "const char svg_card_$rank$suit[]" =
+	    sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/^/    "/' -e 's/$/\\n"/' "$file"
+	    echo "    ;";
+	    echo ""
+	done
+    done
+
+    echo "const char *const svg_cards[52] = {"
+    for suit in C D H S; do
+	for rank in A 2 3 4 5 6 7 8 9 T J Q K; do
+	    echo "    svg_card_$rank$suit,";
+	done
+    done
+    echo "};"
+    echo ""
+) > "$1"
+
+(
+    echo '#define svg_card_width 270'
+    echo '#define svg_card_height 420'
+    echo "extern const char *const svg_cards[52];"
+) > "$2"

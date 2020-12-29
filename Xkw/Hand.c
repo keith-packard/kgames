@@ -332,6 +332,7 @@ Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
     new->hand.bottomCard = NULL;
     new->hand.erased = NULL;
     new->hand.exposeTime = 0;
+    new->hand.force_erase = False;
 }
 
 #define MotionMask ( \
@@ -705,7 +706,7 @@ HandUpdateDisplay (Widget gw)
     {
 	w->hand.erased = e->next;
 	c = 0;
-	if (e->isCard)
+	if (e->isCard && 0)
 	{
 	    for (c = w->hand.bottomCard; c; c = c->prev)
 		if (c->redisplay && c->x == e->cardX && c->y == e->cardY)

@@ -106,6 +106,7 @@ typedef struct {
     Boolean	    col_insert;		/*  top get moved down/right */
     Boolean	    immediate_update;	/* redisplay after every edit */
     Boolean	    row_major;		/* stack cards in cols */
+    Boolean	    force_erase;	/* erase stack even if card replaces */
     XtCallbackList  display_callback;	/* func to display cards */
     XtCallbackList  input_callback;	/* func called on button press */
     /* List of cards could be changed by resource, but easier by func */

@@ -27,6 +27,8 @@
 #include <X11/Xfuncproto.h>
 #include <X11/extensions/Xrender.h>
 #include <cairo/cairo.h>
+#include <librsvg/rsvg.h>
+//#include <librsvg/rsvg-cairo.h>
 
 extern const char _XtRRenderColor[];
 #define XtRRenderColor ((char *)_XtRRenderColor)
@@ -99,6 +101,15 @@ XkwSetSourceInterp(cairo_t *cr, XRenderColor *a, XRenderColor *b);
 void
 XkwDialogAddButton(Widget dialog, _Xconst char* name, XtCallbackProc function,
 		   XtPointer param);
+
+RsvgHandle *
+XkwRsvgCreate(const char *str);
+
+double
+XkwRsvgAspect(RsvgHandle *rsvg);
+
+void
+XkwRsvgDraw(cairo_t *cr, int surface_width, int surface_height, RsvgHandle *rsvg);
 
 _XFUNCPROTOEND
 

@@ -61,6 +61,9 @@ typedef struct {
     Boolean	    round_cards;    /* rounded corners */
     Boolean	    small_cards;    /* small cards */
     Boolean	    medium_cards;   /* medium cards */
+    Boolean	    svg_cards;	    /* svg cards */
+    Dimension	    svg_width;	    /* width of svg cards */
+    XRenderColor    background;
     Boolean	    use_tile;	    /* use tiles instead of stipples */
     CardsOverlap    overlap;
     Pixmap	    back;

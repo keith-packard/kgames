@@ -113,7 +113,7 @@ do_animate (Widget widget, int ox, int oy, int dx, int dy)
 	dist = sqrt ((double) xd * xd + yd * yd);
 	rx = (double) xd / dist;
 	ry = (double) yd / dist;
-	speed = animation_speed;
+	speed = animation_speed * width / 100.0;
 	xc = speed * rx;
 	yc = speed * ry;
 	xp = yp = -32767;

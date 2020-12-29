@@ -26,10 +26,13 @@
 #include <X11/IntrinsicP.h>
 #include <X11/StringDefs.h>
 #include <X11/Xmu/Converters.h>
+#include <Xkw/Xkw.h>
+#include <cairo/cairo-xlib.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include "CardsP.h"
+#include "cards.h"
 
 #define offset(field)	XtOffsetOf(CardsRec, cards.field)
 
@@ -38,6 +41,10 @@
 static XtResource resources[] = {
     {XtNroundCards, XtCRoundCards, XtRBoolean, sizeof (Boolean),
      offset(round_cards), XtRImmediate, (XtPointer) True},
+    {XtNsvgCards, XtCSvgCards, XtRBoolean, sizeof (Boolean),
+     offset(svg_cards), XtRImmediate, (XtPointer) True},
+    {XtNsvgWidth, XtCSvgWidth, XtRDimension, sizeof(Dimension),
+     offset(svg_width), XtRImmediate, (XtPointer) 200},
     {XtNoverlap, XtCOverlap, XtRCardsOverlap, sizeof (CardsOverlap),
      offset(overlap), XtRImmediate, (XtPointer) CardsOverlapNeither},
     {XtNsmallCards, XtCSmallCards, XtRBoolean, sizeof (Boolean),
@@ -48,6 +55,8 @@ static XtResource resources[] = {
      offset(use_tile), XtRImmediate, (XtPointer) False},
     {XtNback, XtCBack, XtRBitmap, sizeof (Pixmap),
      offset(back), XtRString, (XtPointer) NULL },
+    { XtNbackgroundColor, XtCBackground, XtRRenderColor, sizeof (XRenderColor),
+      offset (background), XtRString, XtDefaultBackground },
     {XtNtrademark, XtCTrademark, XtRBitmap, sizeof (Pixmap),
      offset(trademark), XtRString, (XtPointer) NULL },
     {XtNobverseColor, XtNobverseColor, XtRPixel, sizeof (Pixel),
@@ -111,6 +120,12 @@ static Boolean	any_small, made_small;
 
 static Pixmap	card_bitmaps[CARDS_PER_DECK];
 static Pixmap	gray_bitmap;
+
+#include	"cards-svg.h"
+
+static Boolean	any_svg, made_svg;
+
+static RsvgHandle	*svg_map[CARDS_PER_DECK];
 
 #define SuperClass  ((HandWidgetClass)&handClassRec)
 
@@ -177,8 +192,27 @@ GetSize (Display *dpy, Pixmap p, unsigned int *widthp, unsigned int *heightp)
 #define	CARD_INSET_X	10
 #define	CARD_INSET_Y	(LARGE_CARD_HEIGHT/8)
 
-#define CARD_WIDTH(w)	((w)->cards.medium_cards ? MEDIUM_CARD_WIDTH : (w)->cards.small_cards ? SMALL_CARD_WIDTH : LARGE_CARD_WIDTH)
-#define CARD_HEIGHT(w)	((w)->cards.medium_cards ? MEDIUM_CARD_HEIGHT : (w)->cards.small_cards ? SMALL_CARD_HEIGHT : LARGE_CARD_HEIGHT)
+static inline int CARD_WIDTH(CardsWidget w)
+{
+    if (w->cards.medium_cards)
+	return MEDIUM_CARD_WIDTH;
+    if (w->cards.small_cards)
+	return SMALL_CARD_WIDTH;
+    if (w->cards.svg_cards)
+	return w->cards.svg_width;
+    return LARGE_CARD_WIDTH;
+}
+
+static inline int CARD_HEIGHT(CardsWidget w)
+{
+    if (w->cards.medium_cards)
+	return MEDIUM_CARD_HEIGHT;
+    if (w->cards.small_cards)
+	return SMALL_CARD_HEIGHT;
+    if (w->cards.svg_cards)
+	return (int) (w->cards.svg_width * svg_card_height / svg_card_width);
+    return LARGE_CARD_HEIGHT;
+}
 
 #define ScreenNo(w) XScreenNumberOfScreen (XtScreen (w))
 
@@ -211,6 +245,11 @@ setSizeVars (CardsWidget req, CardsWidget new)
     {
 	row_major = True;
 	row_major_set = True;
+	if (new->cards.round_cards && !new->cards.small_cards)
+	{
+	    display_x = ROUND_W;
+	    display_width -= display_x * 2;
+	}
 	if (new->cards.medium_cards)
 	{
 	    col_offset = 16;
@@ -221,20 +260,27 @@ setSizeVars (CardsWidget req, CardsWidget new)
 	    col_offset = 16;
 	    new->cards.offset_other = 8;
 	}
+	else if (new->cards.svg_cards)
+	{
+	    col_offset = CARD_WIDTH(new) / 5;
+	    new->cards.offset_other = col_offset / 2;
+	    display_x = CARD_WIDTH(new) / 4;
+	    display_width = width - display_x * 2;
+	}
 	else
 	{
 	    col_offset = RANK_LOC_X + RANK_WIDTH + RANK_WIDTH / 3;
 	    new->cards.offset_other = ROUND_W + LARGE_CARD_HEIGHT / 30;
 	}
-	if (new->cards.round_cards && !new->cards.small_cards)
-	{
-	    display_x = ROUND_W;
-	    display_width -= display_x * 2;
-	}
     }
     else
     {
-	if (new->cards.round_cards && !new->cards.medium_cards &&
+	if (new->cards.svg_cards)
+	{
+	    display_y = CARD_WIDTH(new) / 5;
+	    display_height = height - display_y * 2;
+	}
+	else if (new->cards.round_cards && !new->cards.medium_cards &&
 	    !new->cards.small_cards)
 	{
 	    display_y = ROUND_H;
@@ -254,11 +300,17 @@ setSizeVars (CardsWidget req, CardsWidget new)
 	    row_offset = 29;
 	    new->cards.offset_other = 10;
 	}
-	else 	if (new->cards.small_cards)
+	else if (new->cards.small_cards)
 	{
 	    row_offset = 20;
 	    if (!row_major)
 		new->cards.offset_other = 10;
+	}
+	else if (new->cards.svg_cards)
+	{
+	    row_offset = CARD_HEIGHT(new) / 5;
+	    if (!row_major)
+		new->cards.offset_other = row_offset / 2;
 	}
 	else
 	{
@@ -561,6 +613,9 @@ Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
     if (!new->cards.color)
 	new->cards.medium_cards = False;
 
+    if (new->cards.svg_cards)
+	new->hand.force_erase = True;
+
     new->cards.redgc = 0;
     new->cards.blackgc = 0;
     new->cards.whitegc = 0;
@@ -600,17 +655,22 @@ SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
     else
 	new->cards.medium_cards = req->cards.medium_cards;
 
+    new->hand.force_erase = False;
     if (new->cards.medium_cards)
 	any_medium = True;
     else if (req->cards.small_cards)
 	any_small = True;
-    else
+    else if (req->cards.svg_cards) {
+	any_svg = True;
+	new->hand.force_erase = True;
+    } else
 	any_large = True;
 
     make_card_maps(cur);
 
     if (req->cards.small_cards != cur->cards.small_cards ||
 	req->cards.medium_cards != cur->cards.medium_cards ||
+	req->cards.svg_cards != cur->cards.svg_cards ||
 	req->cards.overlap != cur->cards.overlap)
     {
 	setSizeVars (req, new);
@@ -959,6 +1019,13 @@ make_card_maps(CardsWidget w)
 						    SMALL_CARD_WIDTH, SMALL_CARD_HEIGHT);
 	}
     }
+
+    if (any_svg && !made_svg)
+    {
+	made_svg = True;
+	for (i = 0; i < CARDS_PER_DECK; i++)
+	    svg_map[i] = XkwRsvgCreate(svg_cards[i]);
+    }
 }
 
 /*
@@ -1048,6 +1115,39 @@ paint_medium_card(CardsWidget w, int x, int y, CardsRank rank, CardsSuit suit, X
 
     CheckCopyArea(dpy, medium_map[card_number], window, cardgc,
 	       MEDIUM_CARD_WIDTH, MEDIUM_CARD_HEIGHT, x, y, clip);
+}
+
+static void
+paint_svg_card(CardsWidget w, int x, int y, CardsRank rank, CardsSuit suit, XRectangle *clip)
+{
+    int card_number = 0;
+
+    switch (suit)
+    {
+    case CardsSpade:
+	card_number = 3 * NUM_RANKS;
+	break;
+    case CardsHeart:
+	card_number = 2 * NUM_RANKS;
+	break;
+    case CardsDiamond:
+	card_number = NUM_RANKS;
+	break;
+    case CardsClub:
+	card_number = 0;
+	break;
+    default:
+	break;
+    }
+    card_number += CardsRankToInt (rank);
+
+    RsvgHandle *rsvg_handle = svg_map[card_number];
+    if (rsvg_handle) {
+	cairo_t *cr = XkwGetCairo((Widget) w);
+	cairo_translate(cr, x, y);
+	XkwRsvgDraw(cr, CARD_WIDTH(w), CARD_HEIGHT(w), rsvg_handle);
+	cairo_destroy(cr);
+    }
 }
 
 static void
@@ -1473,6 +1573,8 @@ DisplayCallback (Widget gw, XtPointer closure, XtPointer data)
 	    paint_medium_card (w, x, y, card->rank, card->suit, clip);
 	else if (w->cards.small_cards)
 	    paint_small_card (w, x, y, card->rank, card->suit, clip);
+	else if (w->cards.svg_cards)
+	    paint_svg_card (w, x, y, card->rank, card->suit, clip);
 	else
 	    paint_large_card (w, x, y, card->rank, card->suit, clip);
 	break;
