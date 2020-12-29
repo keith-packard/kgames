@@ -2,7 +2,7 @@
 
 *reversi.white:		white
 *reversi.black:		black
-*reversi.background:	#30d030
+*reversi.Background:	#30d030
 *reversi.width:		450
 *reversi.height:	450
 

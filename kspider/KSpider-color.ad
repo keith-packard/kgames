@@ -1,4 +1,4 @@
 #include "KSpider"
 
-*frame.background: gray50
-*Cards.background: gray50
+*frame.Background: gray50
+*Cards.Background: gray50

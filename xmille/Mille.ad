@@ -87,9 +87,9 @@ horizontal { \
 } \
 }
 
-*layout.background: light gray
+*layout.Background: light gray
 
-*menuBar.background: cadet blue
+*menuBar.Background: cadet blue
 *MenuButton.shapeStyle: oval
 *fileMenuButton.leftBitmap: menu12
 *fileMenuButton.label: File
@@ -99,20 +99,20 @@ horizontal { \
 *fileMenu.save.label:		Save to File
 *fileMenu.quit.label:		Quit
 
-*deckCount.background: light gray
+*deckCount.Background: light gray
 *deckCount.borderWidth: 0
 
-*errors.background: light gray
+*errors.Background: light gray
 *errors.borderWidth: 0
 
 *score.editType: edit
 *score.resize: both
 *score.translations:
 *score.baseTranslations:
-*message.background: light gray
+*message.Background: light gray
 *message.borderWidth: 0
 
-*Hand.background: light gray
+*Hand.Background: light gray
 *Hand.internalBorderWidth: 3
 *Hand.translations: #override \
 	<Btn1Down>:	select(reasonable)\n\
@@ -140,7 +140,7 @@ horizontal { \
 
 *computerSafeties.borderWidth: 0
 
-*computerSafetyLabel.background: light gray
+*computerSafetyLabel.Background: light gray
 *computerSafetyLabel.label: Computer Safeties
 *computerSafetyLabel.borderWidth: 0
 
@@ -158,11 +158,11 @@ horizontal { \
 
 *humanSafeties.borderWidth: 0
 
-*humanSafetyLabel.background: light gray
+*humanSafetyLabel.Background: light gray
 *humanSafetyLabel.label: Player Safeties
 *humanSafetyLabel.borderWidth: 0
 
-*humanHand.background: gray50
+*humanHand.Background: gray50
 
 *yesOrNoShell.allowShellResize: true
 *yesOrNoLabel.borderWidth: 0

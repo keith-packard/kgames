@@ -1,5 +1,7 @@
-#include "KCanfield"
+#include "KAces"
 
+*deck.Background: #374
+*piles.Background: #374
 *frame.Background: #374
 *tableau.Background: #374
 *foundation.Background: #374
