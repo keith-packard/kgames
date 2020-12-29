@@ -30,6 +30,8 @@ static XtResource resources[] = {
     /* {name, class, type, size, offset, default_type, default_addr}, */
     { XtNlabel, XtCLabel, XtRString, sizeof(String),
       offset (label), XtRString, NULL },
+    { XtNresize, XtCResize, XtRBoolean, sizeof(Boolean),
+      offset(resize), XtRImmediate, (XtPointer) True },
     { XtNfont, XtCFont, XtRXkwFont, sizeof (XkwFont),
       offset (font), XtRString, XtDefaultFont },
     { XtNbackgroundColor, XtCBackground, XtRRenderColor, sizeof (XRenderColor),
@@ -132,6 +134,20 @@ XkwKLabelRedisplay(Widget gw, XEvent *event, Region region)
     cairo_destroy (cr);
 }
 
+static void
+preferred_size(KLabelWidget w, Dimension *width, Dimension *height)
+{
+    cairo_t *cr = get_cairo(w);
+    cairo_text_extents_t text_extents;
+    cairo_font_extents_t font_extents;
+    cairo_font_extents(cr, &font_extents);
+    cairo_text_extents(cr, w->klabel.label, &text_extents);
+    cairo_destroy(cr);
+
+    *width = text_extents.width + pad(&font_extents) * 2;
+    *height = font_extents.height + pad(&font_extents) * 2;
+}
+
 static Boolean
 XkwKLabelSetValues(Widget gcur, Widget greq, Widget gnew,
 		   ArgList args, Cardinal *num_args)
@@ -139,6 +155,7 @@ XkwKLabelSetValues(Widget gcur, Widget greq, Widget gnew,
     KLabelWidget cur = (KLabelWidget)gcur;
     KLabelWidget req = (KLabelWidget)greq;
     KLabelWidget new = (KLabelWidget)gnew;
+    Boolean was_resized = False;
 
     (void) req;
     if (new->klabel.label != cur->klabel.label) {
@@ -147,6 +164,19 @@ XkwKLabelSetValues(Widget gcur, Widget greq, Widget gnew,
 	    new->klabel.label = XtNewString(new->core.name);
 	else
 	    new->klabel.label = XtNewString(new->klabel.label);
+	was_resized = True;
+    }
+    if (new->klabel.font.font_face != cur->klabel.font.font_face ||
+	new->klabel.font.size != cur->klabel.font.size)
+	was_resized = True;
+    if (new->klabel.resize && was_resized) {
+	Dimension width, height;
+
+	preferred_size(new, &width, &height);
+	if (XtHeight(cur) == XtHeight(req))
+	    XtHeight(new) = height;
+	if (XtWidth(cur) == XtWidth(req))
+	    XtWidth(new) = width;
     }
     return TRUE;
 }
@@ -157,16 +187,8 @@ XkwKLabelQueryGeometry(Widget gw, XtWidgetGeometry *intended,
 {
     KLabelWidget w = (KLabelWidget)gw;
 
-    cairo_t *cr = get_cairo(w);
-    cairo_text_extents_t text_extents;
-    cairo_font_extents_t font_extents;
-    cairo_font_extents(cr, &font_extents);
-    cairo_text_extents(cr, w->klabel.label, &text_extents);
-    cairo_destroy(cr);
-
     preferred->request_mode = CWWidth | CWHeight;
-    preferred->width = text_extents.width + pad(&font_extents) * 2;
-    preferred->height = font_extents.height + pad(&font_extents) * 2;
+    preferred_size(w, &preferred->width, &preferred->height);
 
     if (((intended->request_mode & (CWWidth | CWHeight)) == (CWWidth | CWHeight))
 	&& intended->width == preferred->width
