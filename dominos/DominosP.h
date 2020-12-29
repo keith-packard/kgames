@@ -27,7 +27,6 @@
 #define _XtDominosP_h
 
 #include <X11/Xaw/SimpleP.h>
-#include <X11/extensions/Xrender.h>
 #include "Dominos.h"
 #include "dominos.h"
 

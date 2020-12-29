@@ -26,6 +26,7 @@
 #include <X11/IntrinsicP.h>
 #include <X11/StringDefs.h>
 #include <X11/Xmu/Converters.h>
+#include <Xkw/Xkw.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <math.h>
@@ -57,13 +58,19 @@ static XtResource resources[] = {
 #include	<X11/Xmu/Drawing.h>
 
 static char defaultTranslations[] =
-"<BtnDown>: select()";
+"<Btn1Down>: select()\n"
+"<Btn2Down>: select()\n"
+"<Btn3Down>: select()\n"
+"<Btn4Down>: zoomout()\n"
+"<Btn5Down>: zoomin()";
 
 #define SuperClass  ((SimpleWidgetClass)&simpleClassRec)
 
 #define INSET(w)	((w)->dominos.size / 20.0)
 
+#ifndef MAX
 #define MAX(a,b)	    ((a) < (b) ? (b) : (a))
+#endif
 #define LINE_WIDTH(w)	    MAX (((w)->dominos.size / 30), 2)
 #define PIP_SIZE(w)	    MAX (((w)->dominos.size / 10), 2)
 #define PIP_OFF(w)    	    ((w)->dominos.size / 5)
@@ -102,63 +109,10 @@ DominoHeight (DominosWidget w, DominoPtr d)
 
 #define ScreenNo(w) XScreenNumberOfScreen (XtScreen (w))
 
-#define	donestr(type, value, tstr) \
-	{							\
-	    if (toVal->addr != NULL) {				\
-		if (toVal->size < sizeof(type)) {		\
-		    toVal->size = sizeof(type);			\
-		    XtDisplayStringConversionWarning(dpy, 	\
-			(char*) fromVal->addr, tstr);		\
-		    return False;				\
-		}						\
-		*(type*)(toVal->addr) = (value);		\
-	    }							\
-	    else {						\
-		static type static_val;				\
-		static_val = (value);				\
-		toVal->addr = (XPointer)&static_val;		\
-	    }							\
-	    toVal->size = sizeof(type);				\
-	    return True;					\
-	}
-
-static Boolean
-XmuCvtStringToRenderColor(Display *dpy,
-			  XrmValue *args, Cardinal *num_args,
-			  XrmValue *fromVal, XrmValue *toVal,
-			  XtPointer *converter_data)
-{
-    char	    *spec;
-    XRenderColor    renderColor;
-
-    spec = (char *) fromVal->addr;
-    if (strcasecmp (spec, XtDefaultForeground) == 0)
-    {
-	renderColor.red = 0;
-	renderColor.green = 0;
-	renderColor.blue = 0;
-	renderColor.alpha = 0xffff;
-    }
-    else if (strcasecmp (spec, XtDefaultBackground) == 0)
-    {
-	renderColor.red = 0xffff;
-	renderColor.green = 0xffff;
-	renderColor.blue = 0xffff;
-	renderColor.alpha = 0xffff;
-    }
-    else if (!XRenderParseColor (dpy, spec, &renderColor))
-	return False;
-
-    donestr (XRenderColor, renderColor, XtRRenderColor);
-}
-
 static void
 ClassInitialize(void)
 {
-    XtSetTypeConverter(XtRString, XtRRenderColor, 
-		       XmuCvtStringToRenderColor, 
-		       NULL, 0,
-		       XtCacheByDisplay, NULL);
+    XkwInitializeWidgetSet();
 }
 
 #define UsualSuspects(w)	Display *dpy = XtDisplay ((Widget) w); \
@@ -422,6 +376,37 @@ ActionSelect (Widget gw, XEvent *event, String *params, Cardinal *num_params)
     input.event = *event;
     input.num_params = num_params;
     XtCallCallbackList (gw, w->dominos.input_callback, (XtPointer) &input);
+}
+
+static void
+Zoom(Widget w, double ratio)
+{
+    Arg		args[1];
+    Dimension	size;
+
+    XtSetArg(args[0], XtNsize, &size);
+    XtGetValues(w, args, 1);
+    size = (Dimension) (size * ratio + 0.5);
+    XtSetArg(args[0], XtNsize, size);
+    XtSetValues(w, args, 1);
+}
+
+static void
+ZoomInAction (Widget w, XEvent *e, String *p, Cardinal *n)
+{
+    (void) e;
+    (void) p;
+    (void) n;
+    Zoom (w, 1.25);
+}
+
+static void
+ZoomOutAction (Widget w, XEvent *e, String *p, Cardinal *n)
+{
+    (void) e;
+    (void) p;
+    (void) n;
+    Zoom (w, 0.8);
 }
 
 static void
@@ -701,6 +686,8 @@ Redisplay (Widget gw, XEvent *event, Region region)
 
 static XtActionsRec actions[] = {
     { "select", ActionSelect },		    /* select card */
+    { "zoomin", ZoomInAction },
+    { "zoomout", ZoomOutAction },
 };
 
 DominosClassRec	dominosClassRec = {

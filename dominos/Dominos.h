@@ -26,6 +26,7 @@
 #ifndef _XtDominos_h
 #define _XtDominos_h
 #include "dominos.h"
+#include <Xkw/Xkw.h>
 
 /* define exposed functions */
 
@@ -47,8 +48,6 @@ extern WidgetClass  dominosWidgetClass;
 #define XtCSize		"Size"
 #define XtNinputCallback  "inputCallback"
 #define XtCInputCallback  "InputCallback"
-
-#define XtRRenderColor "RenderColor"
 
 typedef struct _DominosInput {
     Widget	    w;
