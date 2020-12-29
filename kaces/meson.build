@@ -27,3 +27,4 @@ executable('kaces',
 	   install: true)
 install_man('kaces.6')
 install_data('KAces.ad',             rename: 'KAces',              install_dir : app_defaults)
+install_data('KAces-color.ad',             rename: 'KAces-color',              install_dir : app_defaults)
