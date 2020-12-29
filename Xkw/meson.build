@@ -39,6 +39,7 @@ srcs_xkw = [
   'Animate.c',
   'Cards.c',
   'CardsUtil.c',
+  'Dialog.c',
   'Hand.c',
   'Layout.c',
   'medium.c',
@@ -47,11 +48,19 @@ srcs_xkw = [
   'padtest.c',
   'SuitCards.c',
   'Thermo.c',
+  'KCommand.c',
+  'KLabel.c',
+  'KMenuButton.c',
+  'KSimpleMenu.c',
+  'KSme.c',
+  'KSmeBSB.c',
+  'KSmeLine.c',
+  'XkwInit.c',
 ]
 
 lib_xkw = library('Xkw',
 		  srcs_xkw, flex_files, bison_files,
-		  dependencies: x_libs,
+		  dependencies: cairo_libs,
 		  install: true,
 		  version: '1.0.0',
 		  include_directories: inc)

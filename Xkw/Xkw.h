@@ -1,0 +1,105 @@
+/*
+ * Copyright © 2020 Keith Packard
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that copyright
+ * notice and this permission notice appear in supporting documentation, and
+ * that the name of the copyright holders not be used in advertising or
+ * publicity pertaining to distribution of the software without specific,
+ * written prior permission.  The copyright holders make no representations
+ * about the suitability of this software for any purpose.  It is provided "as
+ * is" without express or implied warranty.
+ *
+ * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ */
+
+#ifndef _Xkw_h
+#define _Xkw_h
+
+#include <X11/Intrinsic.h>
+#include <X11/Xfuncproto.h>
+#include <X11/extensions/Xrender.h>
+#include <cairo/cairo.h>
+
+extern const char _XtRRenderColor[];
+#define XtRRenderColor ((char *)_XtRRenderColor)
+extern const char _XtRXkwFont[];
+#define XtRXkwFont ((char *)_XtRXkwFont)
+extern const char _XtRDpi[];
+#define XtRDpi ((char *)_XtRDpi)
+
+extern const char _XtNdpi[];
+#define XtNdpi ((char *)_XtNdpi)
+extern const char _XtCDpi[];
+#define XtCDpi ((char *)_XtCDpi)
+
+extern const char _XtNbackgroundColor[];
+#define XtNbackgroundColor ((char *)_XtNbackgroundColor)
+extern const char _XtNforegroundColor[];
+#define XtNforegroundColor ((char *)_XtNforegroundColor)
+
+typedef struct {
+	cairo_font_face_t	*font_face;
+	double			size;
+} XkwFont;
+
+#ifndef XtX
+#define XtX(w)            (((RectObj)w)->rectangle.x)
+#endif
+#ifndef XtY
+#define XtY(w)            (((RectObj)w)->rectangle.y)
+#endif
+#ifndef XtWidth
+#define XtWidth(w)        (((RectObj)w)->rectangle.width)
+#endif
+#ifndef XtHeight
+#define XtHeight(w)       (((RectObj)w)->rectangle.height)
+#endif
+#ifndef XtBorderWidth
+#define XtBorderWidth(w)  (((RectObj)w)->rectangle.border_width)
+#endif
+
+/*
+ * Ok, Xt is surprisingly broken. Values that *can* fit in the arg
+ * value are assumed to be there, even if they are passed by
+ * address. We work around this by creating a macro which always uses
+ * an address and then figuring out how to pass the resulting value
+ * based on the size
+ */
+#define XkwSetArg(arg, n, d) do {			\
+	(arg).name = (n);				\
+	if (sizeof(*(d)) <= sizeof(XtArgVal))		\
+	    memcpy(&(arg).value, (d), sizeof(*d));	\
+	else						\
+	    (arg).value = (XtArgVal) (d);		\
+    } while(0)
+
+
+_XFUNCPROTOBEGIN
+
+void
+XkwInitializeWidgetSet(void);
+
+cairo_t *
+XkwGetCairo(Widget w);
+
+void
+XkwSetSource(cairo_t *cr, XRenderColor *color);
+
+void
+XkwSetSourceInterp(cairo_t *cr, XRenderColor *a, XRenderColor *b);
+
+void
+XkwDialogAddButton(Widget dialog, _Xconst char* name, XtCallbackProc function,
+		   XtPointer param);
+
+_XFUNCPROTOEND
+
+#endif /* _Xkw_h */
