@@ -99,6 +99,8 @@ XkwCvtStringToXkwFont(Display *dpy,
     FcResult		result;
     XkwFont	    	xkwFont;
 
+    if (strncmp(string_name, "fixed", 5) == 0)
+	string_name = "monospace-12";
     if (*string_name == '-') {
 	pat = XftXlfdParse(string_name, False, False);
     } else {
