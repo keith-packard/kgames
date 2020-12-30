@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
@@ -28,6 +28,7 @@
 #include "Pad.h"
 /* include superclass private header file */
 #include <X11/Xaw/SimpleP.h>
+#include <Xkw/Xkw.h>
 #include <stdlib.h>
 
 typedef struct {
@@ -57,17 +58,15 @@ typedef struct _PadCopy {
 
 typedef struct {
     /* resources */
-    XFontStruct	    *font;
-    unsigned long   foreground_pixel;
-    unsigned long   bold_pixel;
+    XkwFont	    font;
+    double          dpi;
+    XRenderColor    background;
+    XRenderColor    foreground;
+    XRenderColor    bold;
     Dimension	    rows, cols;
     Dimension	    internal_border;
     XtCallbackList  resize_callbacks;
     /* private state */
-    GC		    normal_gc;
-    GC		    inverse_gc;
-    GC		    bold_gc;
-    GC		    bold_inverse_gc;
     PadLinePtr	    is;
     PadLinePtr	    want;
     int		    underline_pos;
@@ -77,7 +76,6 @@ typedef struct {
     int		    char_vAdjust;
     int		    char_hAdjust;
     unsigned long   serial;
-    Boolean	    fixed_width;
     PadCopyPtr	    copy;
 } PadPart;
 
@@ -90,15 +88,15 @@ typedef struct {
     (b)->text = Some(char, (cols)+1),\
     (b)->attr = Some(char, (cols)+1),\
     Clear (b, cols))
-			     
+
 #define DisposeText(b) (Dispose ((b)->text), Dispose ((b)->attr))
-	
+
 #define CopyText(fromb, tob, col, num) (\
     bcopy((fromb)->text + col, (tob)->text + col, num), \
     bcopy((fromb)->attr + col, (tob)->attr + col, num))
 
 #define NextSerial(w)	(++(w)->pad.serial)
-		     
+
 #define XPos(w,col)	((w)->pad.internal_border + (col) * (w)->pad.char_width)
 #define YPos(w,row)	((w)->pad.internal_border + (row) * (w)->pad.char_height)
 #define TextX(w,col)	((w)->pad.char_hAdjust + XPos(w, col))
