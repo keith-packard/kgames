@@ -31,31 +31,25 @@ static XtResource resources[] = {
     /* {name, class, type, size, offset, default_type, default_addr}, */
     { XtNfont, XtCFont, XtRXkwFont, sizeof (XkwFont),
       offset (font), XtRString, XtDefaultFont },
-    { XtNdpi, XtCDpi, XtRDpi, sizeof(double),
-      offset (dpi), XtRString, "" },
-    { XtNbackgroundColor, XtCBackground, XtRRenderColor, sizeof (XRenderColor),
-      offset (background), XtRString, XtDefaultBackground },
     { XtNmercuryColor, XtCForeground, XtRRenderColor, sizeof (XRenderColor),
       offset (mercuryColor), XtRString, XtDefaultForeground },
-    { XtNtextColor, XtCForeground, XtRRenderColor, sizeof (XRenderColor),
-      offset (textColor), XtRString, XtDefaultForeground },
     { XtNtickColor, XtCForeground, XtRRenderColor, sizeof (XRenderColor),
       offset (tickColor), XtRString, XtDefaultForeground },
     { XtNthickness, XtCThickness, XtRInt, sizeof (int),
       offset (reqThickness), XtRImmediate, (XtPointer) ThermoUnspecified },
-    { XtNminimum, XtCMinimum, XtRInt, sizeof (int), 
+    { XtNminimum, XtCMinimum, XtRInt, sizeof (int),
       offset (minimum), XtRImmediate, (XtPointer) 0},
-    { XtNmaximum, XtCMaximum, XtRInt, sizeof (int), 
+    { XtNmaximum, XtCMaximum, XtRInt, sizeof (int),
       offset (maximum), XtRImmediate, (XtPointer) 0},
-    { XtNcurrent, XtCCurrent, XtRInt, sizeof (int), 
+    { XtNcurrent, XtCCurrent, XtRInt, sizeof (int),
       offset (current), XtRImmediate, (XtPointer) 0},
-    { XtNminorStart, XtCMinorStart, XtRInt, sizeof (int), 
+    { XtNminorStart, XtCMinorStart, XtRInt, sizeof (int),
       offset (reqMinorStart), XtRImmediate, (XtPointer) ThermoUnspecified},
-    { XtNmajorStart, XtCMajorStart, XtRInt, sizeof (int), 
+    { XtNmajorStart, XtCMajorStart, XtRInt, sizeof (int),
       offset (reqMajorStart), XtRImmediate, (XtPointer) ThermoUnspecified},
-    { XtNminorStep, XtCMinorStep, XtRInt, sizeof (int), 
+    { XtNminorStep, XtCMinorStep, XtRInt, sizeof (int),
       offset (reqMinorStep), XtRImmediate, (XtPointer) ThermoUnspecified},
-    { XtNmajorStep, XtCMajorStep, XtRInt, sizeof (int), 
+    { XtNmajorStep, XtCMajorStep, XtRInt, sizeof (int),
       offset (reqMajorStep), XtRImmediate, (XtPointer) ThermoUnspecified},
     { XtNstartPad, XtCStartPad, XtRDimension, sizeof (Dimension),
       offset (reqStartPad), XtRImmediate, (XtPointer) ThermoUnspecified},
@@ -85,13 +79,33 @@ NumberLength (int n)
     return l;
 }
 
+static void
+init_cairo(ThermoWidget w, cairo_t *cr)
+{
+    cairo_set_font_face(cr, w->thermo.font.font_face);
+    cairo_set_font_size(cr, w->thermo.font.size * w->ksimple.dpi / 72.0);
+}
+
 static cairo_t *
 get_cairo(ThermoWidget w)
 {
     cairo_t *cr = XkwGetCairo((Widget) w);
-    cairo_set_font_face(cr, w->thermo.font.font_face);
-    cairo_set_font_size(cr, w->thermo.font.size * w->thermo.dpi / 72.0);
+    init_cairo(w, cr);
     return cr;
+}
+
+static cairo_t *
+draw_begin(ThermoWidget w, Region region)
+{
+    cairo_t *cr = XkwDrawBegin((Widget) w, region);
+    init_cairo(w, cr);
+    return cr;
+}
+
+static void
+draw_end(ThermoWidget w, Region region, cairo_t *cr)
+{
+    XkwDrawEnd((Widget) w, region, cr);
 }
 
 static void
@@ -256,7 +270,7 @@ drawMercury (ThermoWidget	w,
 	y = VerticalPos (w, new);
 	height = other - y;
 	if (height < 0) {
-	    XkwSetSource(cr, &w->thermo.background);
+	    XkwSetSource(cr, &w->ksimple.background);
 	    cairo_rectangle(cr, x, other, width, -height);
 	} else {
 	    XkwSetSource(cr, &w->thermo.mercuryColor);
@@ -271,7 +285,7 @@ drawMercury (ThermoWidget	w,
 	other = HorizontalPos (w, new);
 	width = other - x;
 	if (width < 0) {
-	    XkwSetSource(cr, &w->thermo.background);
+	    XkwSetSource(cr, &w->ksimple.background);
 	    cairo_rectangle(cr, other, y, -width, height);
 	} else {
 	    XkwSetSource(cr, &w->thermo.mercuryColor);
@@ -342,8 +356,7 @@ Redisplay (Widget  gw,
     int		    v;
 
     (void) event;
-    (void) region;
-    cairo_t *cr = get_cairo(w);
+    cairo_t *cr = draw_begin(w, region);
     drawMercury (w, cr, w->thermo.minimum, w->thermo.current);
     for (v = w->thermo.minorStart; v <= w->thermo.maximum; v += w->thermo.minorStep)
 	drawTick (w, cr, v, w->thermo.minorTickLen);
@@ -352,7 +365,7 @@ Redisplay (Widget  gw,
 	drawTick (w, cr, v, w->thermo.majorTickLen);
 	drawValue (w, cr, v);
     }
-    cairo_destroy(cr);
+    draw_end(w, region, cr);
 }
 
 static Boolean
@@ -367,12 +380,6 @@ SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
     (void) args;
     (void) count;
     if (memcmp(&req->thermo.mercuryColor, &cur->thermo.mercuryColor, sizeof (XRenderColor)) != 0)
-    {
-	redraw = TRUE;
-    }
-    if (memcmp(&req->thermo.textColor, &cur->thermo.textColor, sizeof (XRenderColor)) != 0 ||
-	req->thermo.font.font_face != cur->thermo.font.font_face ||
-	req->thermo.font.size != cur->thermo.font.size)
     {
 	redraw = TRUE;
     }
@@ -409,7 +416,7 @@ SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 
 ThermoClassRec thermoClassRec = {
   { /* core fields */
-    /* superclass		*/	(WidgetClass) &widgetClassRec,
+    /* superclass		*/	(WidgetClass) &ksimpleClassRec,
     /* class_name		*/	"Thermo",
     /* widget_size		*/	sizeof(ThermoRec),
     /* class_initialize		*/	ClassInitialize,
@@ -442,7 +449,12 @@ ThermoClassRec thermoClassRec = {
     /* display_accelerator	*/	XtInheritDisplayAccelerator,
     /* extension		*/	NULL
   },
-  { /* simple fields */
+  /* simple */
+  {
+    XtInheritChangeSensitive,		/* change_sensitive */
+  },
+  {
+    /* ksimple fields */
     /* empty			*/	0
   },
   { /* thermo fields */
@@ -451,4 +463,3 @@ ThermoClassRec thermoClassRec = {
 };
 
 WidgetClass thermoWidgetClass = (WidgetClass)&thermoClassRec;
-

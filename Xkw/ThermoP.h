@@ -26,7 +26,7 @@
 
 #include "Thermo.h"
 /* include superclass private header file */
-#include <X11/Xaw/SimpleP.h>
+#include <Xkw/KSimpleP.h>
 #include <Xkw/Xkw.h>
 
 /* define unique representation types not found in <X11/StringDefs.h> */
@@ -40,6 +40,7 @@ typedef struct {
 typedef struct _ThermoClassRec {
     CoreClassPart	core_class;
     SimpleClassPart	simple_class;
+    KSimpleClassPart    ksimple_class;
     ThermoClassPart	thermo_class;
 } ThermoClassRec;
 
@@ -48,10 +49,7 @@ extern ThermoClassRec thermoClassRec;
 typedef struct {
     /* resources */
     XkwFont	    font;
-    double	    dpi;
-    XRenderColor    background;
     XRenderColor    mercuryColor;
-    XRenderColor    textColor;
     XRenderColor    tickColor;
     int		    current;
     int		    minimum;
@@ -83,6 +81,7 @@ typedef struct {
 typedef struct _ThermoRec {
     CorePart		core;
     SimplePart		simple;
+    KSimplePart		ksimple;
     ThermoPart		thermo;
 } ThermoRec;
 
