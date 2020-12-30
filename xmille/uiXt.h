@@ -1,5 +1,6 @@
 # include	<X11/Xlib.h>
 # include	"color.h"
+# include	<Xkw/Xkw.h>
 
 extern	Display	*dpy;
 extern	int	screen;
@@ -11,12 +12,9 @@ extern	GC	text_gc, xor_gc;
 # define MAXBITMAPS	4
 
 struct card {
-	struct card_init {
-		char	*bits;
-		int	color;
-	} init[MAXBITMAPS];
-	char	*label;
-	Pixmap	bits;
+	const char	*svg;
+	const char	*label;
+	RsvgHandle	*rsvg_handle;
 };
 
 extern struct card	*cards;

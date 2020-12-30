@@ -28,6 +28,7 @@
 # include	<Xkw/Xkw.h>
 # include	<X11/Xutil.h>
 # include	"gray.bm"
+# include	"cards-svg.h"
 
 #ifdef CTRL
 # undef CTRL
@@ -70,6 +71,7 @@ Widget		human_hand;
 Widget		human_play;
 Widget		human_safeties;
 Widget		human_safety_label;
+double		scale = 2.0;
 
 Widget		yes_or_no_shell;
 Widget		yes_or_no_dialog;
@@ -551,14 +553,28 @@ DisplayCallback (Widget w, XtPointer closure, XtPointer data)
 {
     HandDisplayPtr  display = (HandDisplayPtr) data;
     XRectangle	    *clip = 0;
+    int		    card_no;
+    struct card	    *card;
 
-    if (display->clipped)
+    cairo_t *cr = XkwGetCairo(w);
+    if (display->clipped) {
 	clip = &display->clip;
-    if ((intptr_t) display->private == -2)
-	drawIm (XtDisplay (w), XtWindow (w), &deck, display->x, display->y, clip);
+	cairo_rectangle(cr, clip->x, clip->y, clip->x + clip->width, clip->y + clip->height);
+	cairo_clip(cr);
+    }
+    /* position card */
+    cairo_translate(cr, display->x, display->y);
+    cairo_scale(cr, scale, scale);
+    card_no = (int) (intptr_t) display->private;
+    if (card_no == -2)
+	card = &deck;
+    else if (card_no < 0 || NUM_CARDS <= card_no)
+	card = &blank;
     else
-	displayCard (XtDisplay (w), XtWindow (w), (intptr_t) display->private,
-		     display->x, display->y, clip);
+	card = &svg_cards[card_no];
+
+    XkwRsvgDraw(cr, WIDTH, HEIGHT, card->rsvg_handle);
+    cairo_destroy(cr);
 }
 
 static void
@@ -596,14 +612,14 @@ make_hand (char *name, Widget parent, int rows, int cols, Bool overlap_rows)
     Cardinal    i = 0;
     int		display_x, display_y;
 
-    XtSetArg (args[i], XtNcardWidth, WIDTH); i++;
-    XtSetArg (args[i], XtNcardHeight, HEIGHT); i++;
+    XtSetArg (args[i], XtNcardWidth, WIDTH * scale); i++;
+    XtSetArg (args[i], XtNcardHeight, HEIGHT * scale); i++;
     XtSetArg (args[i], XtNnumRows, rows); i++;
     XtSetArg (args[i], XtNnumCols, cols); i++;
     if (!overlap_rows) {
-	XtSetArg (args[i], XtNrowOffset, HEIGHT + WIDTH/10); i++;
+	XtSetArg (args[i], XtNrowOffset, HEIGHT * scale + WIDTH * scale/10); i++;
     }
-    XtSetArg (args[i], XtNcolOffset, WIDTH + WIDTH/10); i++;
+    XtSetArg (args[i], XtNcolOffset, WIDTH * scale + WIDTH * scale/10); i++;
     display_x = 0;
     display_y = 0;
     if (rows == 1)
@@ -612,8 +628,8 @@ make_hand (char *name, Widget parent, int rows, int cols, Bool overlap_rows)
 	display_y = 8;
     XtSetArg (args[i], XtNdisplayX, display_x); i++;
     XtSetArg (args[i], XtNdisplayY, display_y); i++;
-    XtSetArg (args[i], XtNdisplayWidth, WIDTH - display_x * 2); i++;
-    XtSetArg (args[i], XtNdisplayHeight, HEIGHT - display_y * 2); i++;
+    XtSetArg (args[i], XtNdisplayWidth, WIDTH * scale - display_x * 2); i++;
+    XtSetArg (args[i], XtNdisplayHeight, HEIGHT * scale - display_y * 2); i++;
     hand = XtCreateManagedWidget (name, handWidgetClass, parent, args, i);
     XtAddCallback (hand, XtNdisplayCallback, DisplayCallback, (XtPointer) hand);
     return hand;
@@ -663,6 +679,8 @@ CreateMenu (Widget parent, char *name, struct menuEntry *entries, int count)
     return menu;
 }
 
+int		clip_cards;
+
 void
 init_ui (int *argc, char **argv)
 {
@@ -671,7 +689,6 @@ init_ui (int *argc, char **argv)
     XGCValues	gcv;
     Colormap	def_cm;
     extern double	animation_speed;
-    extern int		clip_cards;
     unsigned long	gcmask;
     Pixmap		grayStipple;
     Arg			arg[2];
