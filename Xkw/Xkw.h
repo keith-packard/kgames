@@ -97,6 +97,9 @@ XkwColorEqual(XRenderColor *a, XRenderColor *b)
 void
 XkwInitializeWidgetSet(void);
 
+cairo_surface_t *
+XkwGetSurface(Widget w);
+
 cairo_t *
 XkwGetCairo(Widget w);
 

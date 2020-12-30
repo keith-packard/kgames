@@ -38,11 +38,7 @@ KSimpleRealize (Widget gw,
     KSimpleWidget w = (KSimpleWidget) gw;
 
     (*superclass->core_class.realize)(gw, value_mask, attributes);
-    w->ksimple.surface = cairo_xlib_surface_create(XtDisplay(w),
-						   XtWindow(w),
-						   XtScreen(w)->root_visual,
-						   XtWidth(w),
-						   XtHeight(w));
+    w->ksimple.surface = XkwGetSurface(gw);
 }
 
 static void
@@ -50,12 +46,11 @@ KSimpleResize(Widget gw)
 {
     KSimpleWidget w = (KSimpleWidget) gw;
 
+    if (!XtIsRealized(gw))
+	return;
+
     cairo_surface_destroy(w->ksimple.surface);
-    w->ksimple.surface = cairo_xlib_surface_create(XtDisplay(w),
-						   XtWindow(w),
-						   XtScreen(w)->root_visual,
-						   XtWidth(w),
-						   XtHeight(w));
+    w->ksimple.surface = XkwGetSurface(gw);
 }
 
 static void

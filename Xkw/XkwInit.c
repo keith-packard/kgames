@@ -175,6 +175,16 @@ XkwCvtStringToDpi(Display *dpy,
     donestr (double, dpi, XtRDpi);
 }
 
+cairo_surface_t *
+XkwGetSurface(Widget w)
+{
+    return cairo_xlib_surface_create(XtDisplay(w),
+				     XtWindow(w),
+				     XtScreen(w)->root_visual,
+				     XtWidth(w),
+				     XtHeight(w));
+}
+
 cairo_t *
 XkwGetCairo(Widget w)
 {
