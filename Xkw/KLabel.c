@@ -75,6 +75,20 @@ pad(cairo_font_extents_t *font_extents)
 }
 
 static void
+preferred_size(KLabelWidget w, Dimension *width, Dimension *height)
+{
+    cairo_t *cr = get_cairo(w);
+    cairo_text_extents_t text_extents;
+    cairo_font_extents_t font_extents;
+    cairo_font_extents(cr, &font_extents);
+    cairo_text_extents(cr, w->klabel.label, &text_extents);
+    cairo_destroy(cr);
+
+    *width = text_extents.width + pad(&font_extents) * 2;
+    *height = font_extents.height + pad(&font_extents) * 2;
+}
+
+static void
 XkwKLabelInitialize(Widget request, Widget cnew,
 		    ArgList args, Cardinal *num_args)
 {
@@ -84,6 +98,15 @@ XkwKLabelInitialize(Widget request, Widget cnew,
 	w->klabel.label = XtNewString(w->core.name);
     else
 	w->klabel.label = XtNewString(w->klabel.label);
+
+    if (XtWidth(w) == 0 || XtHeight(w) == 0) {
+	Dimension width, height;
+	preferred_size(w, &width, &height);
+	if (XtWidth(w) == 0)
+	    XtWidth(w) = width;
+	if (XtHeight(w) == 0)
+	    XtHeight(w) = height;
+    }
 }
 
 static void
@@ -132,20 +155,6 @@ XkwKLabelRedisplay(Widget gw, XEvent *event, Region region)
     cairo_move_to(cr, x, y);
     cairo_show_text(cr, w->klabel.label);
     cairo_destroy (cr);
-}
-
-static void
-preferred_size(KLabelWidget w, Dimension *width, Dimension *height)
-{
-    cairo_t *cr = get_cairo(w);
-    cairo_text_extents_t text_extents;
-    cairo_font_extents_t font_extents;
-    cairo_font_extents(cr, &font_extents);
-    cairo_text_extents(cr, w->klabel.label, &text_extents);
-    cairo_destroy(cr);
-
-    *width = text_extents.width + pad(&font_extents) * 2;
-    *height = font_extents.height + pad(&font_extents) * 2;
 }
 
 static Boolean
