@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
@@ -50,6 +50,7 @@ typedef struct _CardsClass {
 typedef struct _CardsClassRec {
     CoreClassPart	core_class;
     SimpleClassPart	simple_class;
+    KSimpleClassPart	ksimple_class;
     HandClassPart	hand_class;
     CardsClassPart	cards_class;
 } CardsClassRec;
@@ -58,36 +59,17 @@ extern CardsClassRec cardsClassRec;
 
 typedef struct {
     /* resources */
-    Boolean	    round_cards;    /* rounded corners */
-    Boolean	    small_cards;    /* small cards */
-    Boolean	    medium_cards;   /* medium cards */
-    Boolean	    svg_cards;	    /* svg cards */
-    Dimension	    svg_width;	    /* width of svg cards */
-    XRenderColor    background;
-    Boolean	    use_tile;	    /* use tiles instead of stipples */
+    double	    scale;
     CardsOverlap    overlap;
     Pixmap	    back;
-    Pixmap	    trademark;
     Pixel	    obverse_color;
-    Pixel	    black_color;
-    Pixel	    red_color;
     Pixel	    inverse_color;
-    Pixel	    empty_color;
     Boolean	    color;
+    Dimension	    card_width;
     /* private state */
+    cairo_pattern_t *back_pattern;
     int		    offset_face;
     int		    offset_other;
-    GC		    redgc;
-    Boolean	    redHasClip;
-    GC		    blackgc;
-    Boolean	    blackHasClip;
-    GC		    whitegc;
-    Boolean	    whiteHasClip;
-    GC		    backgc;
-    Boolean	    backHasClip;
-    GC		    emptygc;
-    Boolean	    emptyHasClip;
-    Pixmap	    backTile;
     int		    back_delta_x;
     int		    back_delta_y;
 } CardsPart;
@@ -99,6 +81,7 @@ typedef struct {
 typedef struct _CardsRec {
     CorePart	core;
     SimplePart	simple;
+    KSimplePart ksimple;
     HandPart	hand;
     CardsPart	cards;
 } CardsRec;
