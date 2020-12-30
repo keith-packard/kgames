@@ -13,18 +13,19 @@
 # include	<X11/Xaw/Paned.h>
 # include	<X11/Xaw/Form.h>
 # include	<X11/Xaw/Box.h>
-# include	<X11/Xaw/Command.h>
+# include	<Xkw/KCommand.h>
 # include	<X11/Xaw/Dialog.h>
-# include	<X11/Xaw/Label.h>
-# include	<X11/Xaw/MenuButton.h>
-# include	<X11/Xaw/SimpleMenu.h>
-# include	<X11/Xaw/SmeBSB.h>
+# include	<Xkw/KLabel.h>
+# include	<Xkw/KMenuButton.h>
+# include	<Xkw/KSimpleMenu.h>
+# include	<Xkw/KSmeBSB.h>
 # include	<X11/Xaw/AsciiText.h>
 # include	<X11/Xaw/Cardinals.h>
 # include	<Xkw/Hand.h>
 # include	<Xkw/Thermo.h>
 # include	<Xkw/Layout.h>
 # include	<Xkw/Pad.h>
+# include	<Xkw/Xkw.h>
 # include	<X11/Xutil.h>
 # include	"gray.bm"
 
@@ -652,11 +653,11 @@ CreateMenu (Widget parent, char *name, struct menuEntry *entries, int count)
     Widget  entry;
     int	    i;
 
-    menu = XtCreatePopupShell (name, simpleMenuWidgetClass,
+    menu = XtCreatePopupShell (name, ksimpleMenuWidgetClass,
 			       parent, NULL, ZERO);
     for (i = 0; i < count; i++) {
 	entry = XtCreateManagedWidget (entries[i].name,
-				       smeBSBObjectClass, menu, NULL, ZERO);
+				       ksmeBSBObjectClass, menu, NULL, ZERO);
 	XtAddCallback (entry, XtNcallback, entries[i].function, NULL);
     }
     return menu;
@@ -681,6 +682,11 @@ init_ui (int *argc, char **argv)
 #endif
 
     toplevel = XtInitialize (argv[0], "Mille", 0, 0, argc, argv);
+
+    Arg	args[1];
+    XtSetArg(args[0], XtNinput, True);
+    XtSetValues(toplevel, args, ONE);
+
     dpy = XtDisplay (toplevel);
     screen = DefaultScreen(dpy);
     def_cm = DefaultColormap(dpy, screen);
@@ -756,13 +762,13 @@ init_ui (int *argc, char **argv)
 	init_mono_cards();
     layout = XtCreateManagedWidget ("layout", layoutWidgetClass, toplevel, NULL, (Cardinal) 0);
     menu_bar = XtCreateManagedWidget ("menuBar", boxWidgetClass, layout, NULL, ZERO);
-    file_menu_button = XtCreateManagedWidget ("fileMenuButton", menuButtonWidgetClass, menu_bar, NULL, ZERO);
+    file_menu_button = XtCreateManagedWidget ("fileMenuButton", kmenuButtonWidgetClass, menu_bar, NULL, ZERO);
     file_menu = CreateMenu (file_menu_button, "fileMenu", fileMenuEntries, XtNumber (fileMenuEntries));
     computer_play = make_hand ("computerPlay", layout, 3, 7, True);
     computer_miles = XtCreateManagedWidget ("computerMiles", thermoWidgetClass, layout, NULL, ZERO);
     computer_safeties = make_hand ("computerSafeties", layout, 2, 2, False);
-    computer_safety_label = XtCreateManagedWidget ("computerSafetyLabel", labelWidgetClass, layout, NULL, ZERO);
-    deck_count = XtCreateManagedWidget ("deckCount", labelWidgetClass, layout, NULL, ZERO);
+    computer_safety_label = XtCreateManagedWidget ("computerSafetyLabel", klabelWidgetClass, layout, NULL, ZERO);
+    deck_count = XtCreateManagedWidget ("deckCount", klabelWidgetClass, layout, NULL, ZERO);
     deck_hand = make_hand ("deck", layout, 1, 2, False);
     XtSetArg (arg[0], XtNnumRows, 13);
     XtSetArg (arg[1], XtNnumCols, 48);
@@ -770,14 +776,14 @@ init_ui (int *argc, char **argv)
 				   arg, TWO);
     XtAddCallback (deck_hand, XtNinputCallback, InputCallback, NULL);
     HandAddCard (deck_hand, (XtPointer) -2, 0, 0, XkwHandDefaultOffset);
-    message = XtCreateManagedWidget ("message", labelWidgetClass, layout, NULL, ZERO);
-    errors = XtCreateManagedWidget ("errors", labelWidgetClass, layout, NULL, ZERO);
+    message = XtCreateManagedWidget ("message", klabelWidgetClass, layout, NULL, ZERO);
+    errors = XtCreateManagedWidget ("errors", klabelWidgetClass, layout, NULL, ZERO);
     human_miles = XtCreateManagedWidget ("humanMiles", thermoWidgetClass, layout, NULL, ZERO);
     human_play = make_hand ("humanPlay", layout, 3, 7, True);
     human_hand = make_hand ("humanHand", layout, 1, 7, False);
     XtAddCallback (human_hand, XtNinputCallback, InputCallback, NULL);
     human_safeties = make_hand ("humanSafeties", layout, 2, 2, False);
-    human_safety_label = XtCreateManagedWidget ("humanSafetyLabel", labelWidgetClass, layout, NULL, ZERO);
+    human_safety_label = XtCreateManagedWidget ("humanSafetyLabel", klabelWidgetClass, layout, NULL, ZERO);
     newscore ();
     prscore (FALSE);
     XtRealizeWidget (toplevel);
@@ -785,22 +791,22 @@ init_ui (int *argc, char **argv)
 			        toplevel, NULL, ZERO);
     yes_or_no_dialog = XtCreateManagedWidget ("yesOrNoDialog", layoutWidgetClass,
 				yes_or_no_shell, NULL, ZERO);
-    yes_or_no_label = XtCreateManagedWidget ("yesOrNoLabel", labelWidgetClass,
+    yes_or_no_label = XtCreateManagedWidget ("yesOrNoLabel", klabelWidgetClass,
 				yes_or_no_dialog, NULL, ZERO);
-    XawDialogAddButton (yes_or_no_dialog, "yesOrNoOk", YesFunc, NULL);
-    XawDialogAddButton (yes_or_no_dialog, "yesOrNoNo", NoFunc, NULL);
+    XkwDialogAddButton (yes_or_no_dialog, "yesOrNoOk", YesFunc, NULL);
+    XkwDialogAddButton (yes_or_no_dialog, "yesOrNoNo", NoFunc, NULL);
     XtRealizeWidget (yes_or_no_shell);
     prompted_shell = XtCreatePopupShell ("prompted", transientShellWidgetClass,
 				toplevel, NULL, ZERO);
     XtSetArg (arg[0], XtNvalue, "");
     prompted_dialog = XtCreateManagedWidget ("promptedDialog", layoutWidgetClass,
 				prompted_shell, arg, ONE);
-    prompted_label = XtCreateManagedWidget ("promptedLabel", labelWidgetClass,
+    prompted_label = XtCreateManagedWidget ("promptedLabel", klabelWidgetClass,
 				prompted_dialog, NULL, ZERO);
     prompted_value = XtCreateManagedWidget ("promptedValue", asciiTextWidgetClass,
 				prompted_dialog, NULL, ZERO);
-    XawDialogAddButton (prompted_dialog, "promptedOk", YesFunc, NULL);
-    XawDialogAddButton (prompted_dialog, "promptedCancel", NoFunc, NULL);
+    XkwDialogAddButton (prompted_dialog, "promptedOk", YesFunc, NULL);
+    XkwDialogAddButton (prompted_dialog, "promptedCancel", NoFunc, NULL);
     XtRealizeWidget (prompted_shell);
 }
 
