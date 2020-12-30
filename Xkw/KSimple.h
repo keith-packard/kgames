@@ -20,44 +20,12 @@
  * OF THIS SOFTWARE.
  */
 
-#ifndef _XkwKLabelP_h
-#define _XkwKLabelP_h
+#ifndef _XkwKSimple_h_
+#define _XkwKSimple_h_
 
-#include <Xkw/Xkw.h>
-#include <Xkw/KLabel.h>
-#include <Xkw/KSimpleP.h>
+extern WidgetClass ksimpleWidgetClass;
 
-typedef struct _KLabelClass {
-    int unused;
-} KLabelClassPart;
+typedef struct _KSimpleClassRec	*KSimpleWidgetClass;
+typedef struct _KSimpleRec	*KSimpleWidget;
 
-typedef struct _KLabelClassRec {
-    CoreClassPart	core_class;
-    SimpleClassPart	simple_class;
-    KSimpleClassPart	ksimple_class;
-    KLabelClassPart	klabel_class;
-} KLabelClassRec;
-
-extern KLabelClassRec klabelClassRec;
-
-/* New fields for the KLabel widget record */
-typedef struct {
-    XkwFont		font;
-    char		*label;
-    XtJustify		justify;
-    Boolean		resize;
-    int			shape_style;
-    Dimension		corner_round;
-} KLabelPart;
-
-/*
- * Full instance record declaration
- */
-typedef struct _KLabelRec {
-    CorePart	core;
-    SimplePart	simple;
-    KSimplePart	ksimple;
-    KLabelPart	klabel;
-} KLabelRec;
-
-#endif /* _XkwKLabelP_h */
+#endif /* _XkwKSimple_h_ */

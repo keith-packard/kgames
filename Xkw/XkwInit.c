@@ -22,8 +22,8 @@
 
 #include <Xkw/Xkw.h>
 #include <X11/IntrinsicP.h>
-#include <X11/StringDefs.h>
 #include <X11/CoreP.h>
+#include <Xkw/KSimpleP.h>
 #include <cairo/cairo-ft.h>
 #include <cairo/cairo-xlib.h>
 #include <X11/Xft/Xft.h>
@@ -38,25 +38,25 @@ const char _XtCDpi[] = "Dpi";
 const char _XtNbackgroundColor[] = "backgroundColor";
 const char _XtNforegroundColor[] = "foregroundColor";
 
-#define	donestr(type, value, tstr) \
-	{							\
-	    if (toVal->addr != NULL) {				\
-		if (toVal->size < sizeof(type)) {		\
-		    toVal->size = sizeof(type);			\
-		    XtDisplayStringConversionWarning(dpy, 	\
-			(char*) fromVal->addr, tstr);		\
-		    return False;				\
-		}						\
-		*(type*)(toVal->addr) = (value);		\
-	    }							\
-	    else {						\
-		static type static_val;				\
-		static_val = (value);				\
-		toVal->addr = (XPointer)&static_val;		\
-	    }							\
-	    toVal->size = sizeof(type);				\
-	    return True;					\
-	}
+#define	donestr(type, value, tstr)					\
+    {									\
+	if (toVal->addr != NULL) {					\
+	    if (toVal->size < sizeof(type)) {				\
+		toVal->size = sizeof(type);				\
+		XtDisplayStringConversionWarning(dpy,			\
+						 (char*) fromVal->addr, tstr); \
+		return False;						\
+	    }								\
+	    *(type*)(toVal->addr) = (value);				\
+	}								\
+	else {								\
+	    static type static_val;					\
+	    static_val = (value);					\
+	    toVal->addr = (XPointer)&static_val;			\
+	}								\
+	toVal->size = sizeof(type);					\
+	return True;							\
+    }
 
 static Boolean
 XkwCvtStringToRenderColor(Display *dpy,
@@ -188,6 +188,37 @@ XkwGetCairo(Widget w)
     cairo_t *cr = cairo_create(s);
     cairo_surface_destroy (s);
     return cr;
+}
+
+cairo_t *
+XkwDrawBegin(Widget gw)
+{
+    KSimpleWidget 	w = (KSimpleWidget) gw;
+    cairo_surface_t	*pix;
+    cairo_t		*cr;
+
+    pix = cairo_surface_create_similar(w->ksimple.surface,
+				       CAIRO_CONTENT_COLOR,
+				       XtWidth(w),
+				       XtHeight(w));
+    cr = cairo_create(pix);
+    cairo_surface_destroy(pix);
+    XkwSetSource(cr, &w->ksimple.background);
+    cairo_paint(cr);
+    XkwSetSource(cr, &w->ksimple.foreground);
+    return cr;
+}
+
+void
+XkwDrawEnd(Widget gw, cairo_t *cr)
+{
+    KSimpleWidget 	w = (KSimpleWidget) gw;
+    cairo_t 		*dest = cairo_create(w->ksimple.surface);
+
+    cairo_set_source_surface(dest, cairo_get_target(cr), 0, 0);
+    cairo_paint(dest);
+    cairo_destroy(cr);
+    cairo_destroy(dest);
 }
 
 void

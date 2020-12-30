@@ -55,8 +55,6 @@ static XtResource resources[] = {
      offset(use_tile), XtRImmediate, (XtPointer) False},
     {XtNback, XtCBack, XtRBitmap, sizeof (Pixmap),
      offset(back), XtRString, (XtPointer) NULL },
-    { XtNbackgroundColor, XtCBackground, XtRRenderColor, sizeof (XRenderColor),
-      offset (background), XtRString, XtDefaultBackground },
     {XtNtrademark, XtCTrademark, XtRBitmap, sizeof (Pixmap),
      offset(trademark), XtRString, (XtPointer) NULL },
     {XtNobverseColor, XtNobverseColor, XtRPixel, sizeof (Pixel),

@@ -58,6 +58,7 @@ srcs_xkw = [
   'KCommand.c',
   'KLabel.c',
   'KMenuButton.c',
+  'KSimple.c',
   'KSimpleMenu.c',
   'KSme.c',
   'KSmeBSB.c',

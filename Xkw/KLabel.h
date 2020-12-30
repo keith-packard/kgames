@@ -25,7 +25,7 @@
 
 /* KLabel Widget */
 
-#include <X11/Xaw/Simple.h>
+#include <Xkw/KSimple.h>
 
 #define XtNshapeStyle "shapeStyle"
 #define XtCShapeStyle "ShapeStyle"

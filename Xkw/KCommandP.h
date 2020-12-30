@@ -72,6 +72,7 @@ typedef struct _KCommandClass {
 typedef struct _KCommandClassRec {
     CoreClassPart	core_class;
     SimpleClassPart	simple_class;
+    KSimpleClassPart	ksimple_class;
     KLabelClassPart	klabel_class;
     KCommandClassPart   kcommand_class;
 } KCommandClassRec;
@@ -94,6 +95,7 @@ typedef struct {
 typedef struct _KCommandRec {
     CorePart         core;
     SimplePart	     simple;
+    KSimplePart	     ksimple;
     KLabelPart	     klabel;
     KCommandPart     kcommand;
 } KCommandRec;

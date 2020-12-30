@@ -228,8 +228,8 @@ XkwKCommandToggle(Widget w)
     KCommandWidget kcw = (KCommandWidget)w;
     Arg args[2];
     Cardinal num_args;
-    XRenderColor foreground = kcw->klabel.background;
-    XRenderColor background = kcw->klabel.foreground;
+    XRenderColor foreground = kcw->ksimple.background;
+    XRenderColor background = kcw->ksimple.foreground;
 
     num_args = 0;
     XkwSetArg(args[num_args], XtNbackgroundColor,
@@ -365,9 +365,9 @@ PaintKCommandWidget(Widget w, XEvent *event, Region region, Bool change)
 	    cairo_t *cr = XkwGetCairo(w);
 
 	    if (cbw->kcommand.highlighted != HighlightNone)
-		XkwSetSource(cr, &cbw->klabel.foreground);
+		XkwSetSource(cr, &cbw->ksimple.foreground);
 	    else
-		XkwSetSource(cr, &cbw->klabel.background);
+		XkwSetSource(cr, &cbw->ksimple.background);
 
 	    if (very_thick)
 		cairo_paint(cr);
@@ -401,16 +401,16 @@ XkwKCommandSetValues(Widget current, Widget request, Widget cnew,
 	unsigned int i;
 	XRenderColor foreground, background;
 
-	foreground = oldcbw->klabel.foreground;
-	background = oldcbw->klabel.background;
+	foreground = oldcbw->ksimple.foreground;
+	background = oldcbw->ksimple.background;
 	for (i = 0; i < *num_args; i++) {
 	    if (STR_EQUAL(args[i].name, XtNforegroundColor))
-		background = cbw->klabel.foreground;
+		background = cbw->ksimple.foreground;
 	    else if (STR_EQUAL(args[i].name, XtNbackgroundColor))
-		foreground = cbw->klabel.background;
+		foreground = cbw->ksimple.background;
 	}
-	cbw->klabel.foreground = foreground;
-	cbw->klabel.background = background;
+	cbw->ksimple.foreground = foreground;
+	cbw->ksimple.background = background;
     }
 
     return True;
@@ -425,10 +425,10 @@ XkwKCommandGetValuesHook(Widget w, ArgList args, Cardinal *num_args)
     for (i = 0; i < *num_args; i++) {
 	if (STR_EQUAL(args[i].name, XtNforegroundColor))
 	    *((XRenderColor*)args[i].value) = cbw->kcommand.set ?
-		cbw->klabel.background : cbw->klabel.foreground;
+		cbw->ksimple.background : cbw->ksimple.foreground;
 	else if (STR_EQUAL(args[i].name, XtNbackgroundColor))
 	    *((XRenderColor*)args[i].value) = cbw->kcommand.set ?
-		cbw->klabel.foreground : cbw->klabel.background;
+		cbw->ksimple.foreground : cbw->ksimple.background;
     }
 }
 

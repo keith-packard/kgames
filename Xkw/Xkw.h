@@ -25,6 +25,8 @@
 
 #include <X11/Intrinsic.h>
 #include <X11/Xfuncproto.h>
+#include <X11/StringDefs.h>
+#include <X11/Xatom.h>
 #include <X11/extensions/Xrender.h>
 #include <cairo/cairo.h>
 #include <librsvg/rsvg.h>
@@ -86,6 +88,12 @@ typedef struct {
 
 _XFUNCPROTOBEGIN
 
+static inline Boolean
+XkwColorEqual(XRenderColor *a, XRenderColor *b)
+{
+    return memcmp(a, b, sizeof (XRenderColor)) == 0;
+}
+
 void
 XkwInitializeWidgetSet(void);
 
@@ -110,6 +118,12 @@ XkwRsvgAspect(RsvgHandle *rsvg);
 
 void
 XkwRsvgDraw(cairo_t *cr, int surface_width, int surface_height, RsvgHandle *rsvg);
+
+cairo_t *
+XkwDrawBegin(Widget gw);
+
+void
+XkwDrawEnd(Widget gw, cairo_t *cr);
 
 _XFUNCPROTOEND
 

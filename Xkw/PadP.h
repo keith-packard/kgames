@@ -27,7 +27,7 @@
 
 #include "Pad.h"
 /* include superclass private header file */
-#include <X11/Xaw/SimpleP.h>
+#include <Xkw/KSimpleP.h>
 #include <Xkw/Xkw.h>
 #include <stdlib.h>
 
@@ -38,45 +38,32 @@ typedef struct {
 typedef struct _PadClassRec {
     CoreClassPart	core_class;
     SimpleClassPart	simple_class;
+    KSimpleClassPart	ksimple_class;
     PadClassPart	pad_class;
 } PadClassRec;
 
 extern PadClassRec padClassRec;
 
 typedef struct _PadLine {
-    long    serial;
-    long    id;
     char    *text;
     char    *attr;
 } PadLineRec, *PadLinePtr;
 
-typedef struct _PadCopy {
-    struct _PadCopy *next;
-    int		    src, dst, amt;
-    unsigned long   copy_serial;
-} PadCopyRec, *PadCopyPtr;
-
 typedef struct {
     /* resources */
     XkwFont	    font;
-    double          dpi;
-    XRenderColor    background;
-    XRenderColor    foreground;
     XRenderColor    bold;
     Dimension	    rows, cols;
     Dimension	    internal_border;
     XtCallbackList  resize_callbacks;
     /* private state */
-    PadLinePtr	    is;
-    PadLinePtr	    want;
+    PadLinePtr	    lines;
     int		    underline_pos;
     int		    underline_thickness;
     int		    char_width;
     int		    char_height;
     int		    char_vAdjust;
     int		    char_hAdjust;
-    unsigned long   serial;
-    PadCopyPtr	    copy;
 } PadPart;
 
 #define New(t) (t *) malloc(sizeof (t))
@@ -92,15 +79,8 @@ typedef struct {
 #define DisposeText(b) (Dispose ((b)->text), Dispose ((b)->attr))
 
 #define CopyText(fromb, tob, col, num) (\
-    bcopy((fromb)->text + col, (tob)->text + col, num), \
-    bcopy((fromb)->attr + col, (tob)->attr + col, num))
-
-#define NextSerial(w)	(++(w)->pad.serial)
-
-#define XPos(w,col)	((w)->pad.internal_border + (col) * (w)->pad.char_width)
-#define YPos(w,row)	((w)->pad.internal_border + (row) * (w)->pad.char_height)
-#define TextX(w,col)	((w)->pad.char_hAdjust + XPos(w, col))
-#define TextY(w,row)	((w)->pad.char_vAdjust + YPos(w, row))
+    memcpy((tob)->text + col, (fromb)->text + col, num), \
+    memcpy((tob)->attr + col, (fromb)->attr + col, num))
 
 #define ColPos(w,x)	(((x)-(int)(w)->pad.internal_border) /\
 			 (int)(w)->pad.char_width)
@@ -110,6 +90,7 @@ typedef struct {
 typedef struct _PadRec {
     CorePart		core;
     SimplePart		simple;
+    KSimplePart		ksimple;
     PadPart		pad;
 } PadRec;
 

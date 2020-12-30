@@ -2,7 +2,7 @@
  * $XConsortium: HandP.h,v 1.9 91/07/26 15:21:49 keith Exp $
  */
 
-/* 
+/*
  * HandP.h - Private definitions for Hand widget
  */
 
@@ -11,7 +11,7 @@
 
 #include <stdlib.h>
 #include "Hand.h"
-#include <X11/Xaw/SimpleP.h>
+#include <Xkw/KSimpleP.h>
 
 /***********************************************************************
  *
@@ -40,6 +40,7 @@ typedef struct _HandClass {
 typedef struct _HandClassRec {
     CoreClassPart	core_class;
     SimpleClassPart	simple_class;
+    KSimpleClassPart	ksimple_class;
     HandClassPart	hand_class;
 } HandClassRec;
 
@@ -47,7 +48,7 @@ extern HandClassRec handClassRec;
 
 /***************************************
  *
- *  Instance (widget) structure 
+ *  Instance (widget) structure
  *
  **************************************/
 
@@ -125,9 +126,8 @@ typedef struct {
 typedef struct _HandRec {
     CorePart	core;
     SimplePart	simple;
+    KSimplePart ksimple;
     HandPart	hand;
 } HandRec;
 
 #endif /* _XtHandP_h */
-
-

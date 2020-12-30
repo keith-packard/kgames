@@ -20,44 +20,45 @@
  * OF THIS SOFTWARE.
  */
 
-#ifndef _XkwKLabelP_h
-#define _XkwKLabelP_h
+#ifndef _XkwKSimpleP_h_
+#define _XkwKSimpleP_h_
 
 #include <Xkw/Xkw.h>
-#include <Xkw/KLabel.h>
-#include <Xkw/KSimpleP.h>
+#include <X11/IntrinsicP.h>
+#include <Xkw/KSimple.h>
+#include <X11/Xaw/SimpleP.h>
+#include <cairo/cairo-xlib.h>
 
-typedef struct _KLabelClass {
-    int unused;
-} KLabelClassPart;
+_XFUNCPROTOBEGIN
 
-typedef struct _KLabelClassRec {
+typedef struct {
+    int	unused;
+} KSimpleClassPart;
+
+typedef struct _KSimpleClassRec {
     CoreClassPart	core_class;
     SimpleClassPart	simple_class;
     KSimpleClassPart	ksimple_class;
-    KLabelClassPart	klabel_class;
-} KLabelClassRec;
+} KSimpleClassRec;
 
-extern KLabelClassRec klabelClassRec;
+extern KSimpleClassRec ksimpleClassRec;
 
-/* New fields for the KLabel widget record */
 typedef struct {
-    XkwFont		font;
-    char		*label;
-    XtJustify		justify;
-    Boolean		resize;
-    int			shape_style;
-    Dimension		corner_round;
-} KLabelPart;
+    /* resources */
+    XRenderColor	background;
+    XRenderColor	foreground;
+    double		dpi;
 
-/*
- * Full instance record declaration
- */
-typedef struct _KLabelRec {
+    /* private */
+    cairo_surface_t	*surface;
+} KSimplePart;
+
+typedef struct _KSimpleRec {
     CorePart	core;
     SimplePart	simple;
     KSimplePart	ksimple;
-    KLabelPart	klabel;
-} KLabelRec;
+} KSimpleRec;
 
-#endif /* _XkwKLabelP_h */
+_XFUNCPROTOEND
+
+#endif /* _XkwKSimple_h_ */

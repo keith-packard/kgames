@@ -51,6 +51,7 @@ typedef struct _KMenuButtonClass {
 typedef struct _KMenuButtonClassRec {
     CoreClassPart	    core_class;
     SimpleClassPart	    simple_class;
+    KSimpleClassPart	    ksimple_class;
     KLabelClassPart	    klabel_class;
     KCommandClassPart	    kcommand_class;
     KMenuButtonClassPart    kmenuButton_class;
@@ -68,6 +69,7 @@ typedef struct {
 typedef struct _KMenuButtonRec {
     CorePart         core;
     SimplePart	     simple;
+    KSimplePart	     ksimple;
     KLabelPart	     label;
     KCommandPart     kcommand;
     KMenuButtonPart  menu_button;

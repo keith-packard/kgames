@@ -129,6 +129,10 @@ KMenuButtonClassRec kmenuButtonClassRec = {
   {
     XtInheritChangeSensitive		/* change_sensitive	  */
   },
+  /* ksimple */
+  {
+      0,
+  },
   /* klabel */
   {
     0,				/* extension */

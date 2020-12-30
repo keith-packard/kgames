@@ -20,9 +20,6 @@
  * OF THIS SOFTWARE.
  */
 
-#include <X11/IntrinsicP.h>
-#include <X11/StringDefs.h>
-#include <X11/Xatom.h>
 #include <Xkw/KLabelP.h>
 
 static XtResource resources[] = {
@@ -34,12 +31,6 @@ static XtResource resources[] = {
       offset(resize), XtRImmediate, (XtPointer) True },
     { XtNfont, XtCFont, XtRXkwFont, sizeof (XkwFont),
       offset (font), XtRString, XtDefaultFont },
-    { XtNbackgroundColor, XtCBackground, XtRRenderColor, sizeof (XRenderColor),
-      offset (background), XtRString, XtDefaultBackground },
-    { XtNforegroundColor, XtCForeground, XtRRenderColor, sizeof (XRenderColor),
-      offset (foreground), XtRString, XtDefaultForeground },
-    { XtNdpi, XtCDpi, XtRDpi, sizeof(double),
-      offset (dpi), XtRString, "" },
     { XtNjustify, XtCJustify, XtRJustify, sizeof(XtJustify),
       offset (justify), XtRImmediate, (XtPointer) XtJustifyCenter },
     { XtNshapeStyle, XtCShapeStyle, XtRShapeStyle, sizeof(int),
@@ -49,23 +40,42 @@ static XtResource resources[] = {
 #undef offset
 };
 
-#define Superclass (&simpleClassRec)
+#define superclass (&ksimpleClassRec)
 
 static void
 XkwKLabelClassInitialize(void)
 {
-    XkwInitializeWidgetSet();
     XtSetTypeConverter(XtRString, XtRShapeStyle, XmuCvtStringToShapeStyle,
 		       NULL, 0, XtCacheNone, NULL);
+}
+
+static void
+init_cairo(KLabelWidget w, cairo_t *cr)
+{
+    cairo_set_font_face(cr, w->klabel.font.font_face);
+    cairo_set_font_size(cr, w->klabel.font.size * w->ksimple.dpi / 72.0);
 }
 
 static cairo_t *
 get_cairo(KLabelWidget w)
 {
     cairo_t *cr = XkwGetCairo((Widget) w);
-    cairo_set_font_face(cr, w->klabel.font.font_face);
-    cairo_set_font_size(cr, w->klabel.font.size * w->klabel.dpi / 72.0);
+    init_cairo(w, cr);
     return cr;
+}
+
+static cairo_t *
+draw_begin(KLabelWidget w)
+{
+    cairo_t *cr = XkwDrawBegin((Widget) w);
+    init_cairo(w, cr);
+    return cr;
+}
+
+static void
+draw_end(KLabelWidget w, cairo_t *cr)
+{
+    XkwDrawEnd((Widget) w, cr);
 }
 
 static double
@@ -122,18 +132,15 @@ static void
 XkwKLabelRedisplay(Widget gw, XEvent *event, Region region)
 {
     KLabelWidget w = (KLabelWidget)gw;
-    if (*Superclass->core_class.expose != NULL)
-	(*Superclass->core_class.expose)(gw, event, region);
+    if (*superclass->core_class.expose != NULL)
+	(*superclass->core_class.expose)(gw, event, region);
 
-    cairo_t *cr = get_cairo(w);
-
-    XkwSetSource(cr, &w->klabel.background);
-    cairo_paint(cr);
+    cairo_t *cr = draw_begin(w);
 
     if (XtIsSensitive(gw))
-	XkwSetSource(cr, &w->klabel.foreground);
+	XkwSetSource(cr, &w->ksimple.foreground);
     else
-	XkwSetSourceInterp(cr, &w->klabel.foreground, &w->klabel.background);
+	XkwSetSourceInterp(cr, &w->ksimple.foreground, &w->ksimple.background);
     cairo_text_extents_t text_extents;
     cairo_font_extents_t font_extents;
     cairo_font_extents(cr, &font_extents);
@@ -154,7 +161,7 @@ XkwKLabelRedisplay(Widget gw, XEvent *event, Region region)
     double y = (w->core.height - font_extents.height) / 2 + font_extents.ascent;
     cairo_move_to(cr, x, y);
     cairo_show_text(cr, w->klabel.label);
-    cairo_destroy (cr);
+    draw_end(w, cr);
 }
 
 static Boolean
@@ -212,7 +219,7 @@ XkwKLabelQueryGeometry(Widget gw, XtWidgetGeometry *intended,
 KLabelClassRec klabelClassRec = {
   /* core */
   {
-    (WidgetClass)&simpleClassRec,	/* superclass */
+    (WidgetClass)superclass,		/* superclass */
     "KLabel",				/* class_name */
     sizeof(KLabelRec),			/* widget_size */
     XkwKLabelClassInitialize,		/* class_initialize */

@@ -30,7 +30,7 @@
 #include <X11/Xmu/Converters.h>
 #include <stdio.h>
 #include <ctype.h>
-#include "HandP.h"
+#include <Xkw/HandP.h>
 
 #define offset(field)	XtOffsetOf(HandRec, hand.field)
 
@@ -79,7 +79,7 @@ static XtResource resources[] = {
 
 static char defaultTranslations[] =  "<BtnDown>: select()";
 
-#define SuperClass  ((SimpleWidgetClass)&simpleClassRec)
+#define SuperClass  ((KSimpleWidgetClass)&ksimpleClassRec)
 
 static int
 handWidth (HandWidget w, int num_cols)
