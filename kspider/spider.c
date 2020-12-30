@@ -28,7 +28,7 @@
 # include	<X11/StringDefs.h>
 # include	<X11/Shell.h>
 # include	<X11/Xos.h>
-# include	<X11/Xaw/Command.h>
+# include	<Xkw/KCommand.h>
 # include	<X11/Xaw/Box.h>
 # include	<X11/Xaw/AsciiText.h>
 # include	<X11/Xaw/Cardinals.h>
@@ -804,6 +804,10 @@ main (int argc, char **argv)
 
     toplevel = XtInitialize (argv[0], "KSpider", options, XtNumber(options),
 			     &argc, argv);
+
+    Arg	args[1];
+    XtSetArg(args[0], XtNinput, True);
+    XtSetValues(toplevel, args, ONE);
 
     XtGetApplicationResources (toplevel, (XtPointer)&spiderResources, resources,
 			       XtNumber (resources), NULL, 0);

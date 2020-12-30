@@ -954,6 +954,10 @@ main (int argc, char **argv)
     toplevel = XtInitialize (argv[0], "KCanfield", options, XtNumber(options),
 			     &argc, argv);
 
+    Arg	args[1];
+    XtSetArg(args[0], XtNinput, True);
+    XtSetValues(toplevel, args, ONE);
+
     XtGetApplicationResources (toplevel, (XtPointer)&canfieldResources, resources,
 			       XtNumber (resources), NULL, 0);
 

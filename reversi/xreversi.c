@@ -25,9 +25,9 @@
 #include <X11/StringDefs.h>
 #include <X11/Xaw/Cardinals.h>
 #include <X11/Xaw/AsciiText.h>
-#include <X11/Xaw/Command.h>
+#include <Xkw/KCommand.h>
 #include <X11/Xaw/Toggle.h>
-#include <X11/Xaw/Label.h>
+#include <Xkw/KLabel.h>
 #include <X11/Xaw/Paned.h>
 #include <X11/Xaw/Box.h>
 #include <X11/Xaw/Form.h>
@@ -73,7 +73,7 @@ static XrmOptionDescRec options[] = {
 static Widget
 MakeCommandButton(Widget box, char *name, XtCallbackProc function)
 {
-  Widget w = XtCreateManagedWidget(name, commandWidgetClass, box, NULL, ZERO);
+  Widget w = XtCreateManagedWidget(name, kcommandWidgetClass, box, NULL, ZERO);
   if (function != NULL)
     XtAddCallback(w, XtNcallback, function, (caddr_t) NULL);
   return w;
@@ -295,6 +295,10 @@ dispInit(int argc, char **argv)
 			     options, XtNumber(options),
 			     &argc, argv );
 
+    Arg	args[1];
+    XtSetArg(args[0], XtNinput, True);
+    XtSetValues(toplevel, args, ONE);
+
     XtGetApplicationResources(topLevel, &app_resources, resources,
 			      XtNumber(resources), NULL, 0);
 
@@ -304,22 +308,22 @@ dispInit(int argc, char **argv)
     layout = XtCreateManagedWidget ( "layout", layoutWidgetClass, topLevel, NULL, ZERO);
     reversi = XtCreateManagedWidget( "reversi", reversiWidgetClass, layout, NULL, ZERO );
     XtAddCallback (reversi, XtNstoneCallback, DoMove, (caddr_t) NULL);
-    error = XtCreateManagedWidget ( "error", labelWidgetClass, layout, NULL, ZERO );
+    error = XtCreateManagedWidget ( "error", klabelWidgetClass, layout, NULL, ZERO );
     quit = MakeCommandButton (layout, "quit", DoQuit);
     hint_button = MakeCommandButton (layout, "hint", DoHint);
     undoButton = MakeCommandButton (layout, "undo", DoUndo);
     restart = MakeCommandButton (layout, "restart", DoRestart);
-    playerLabel = XtCreateManagedWidget ("playerLabel", labelWidgetClass, layout, NULL, ZERO);
+    playerLabel = XtCreateManagedWidget ("playerLabel", klabelWidgetClass, layout, NULL, ZERO);
     playWhite = MakeRadioButton (layout, "playWhite", DoPlay, PLAY_WHITE, (Widget) NULL);
     playBlack = MakeRadioButton (layout, "playBlack", DoPlay, PLAY_BLACK, playWhite);
     playBoth = MakeRadioButton (layout, "playBoth", DoPlay, PLAY_BOTH, playWhite);
     playNeither = MakeRadioButton (layout, "playNeither", DoPlay, PLAY_NEITHER, playWhite);
     SetPlay ();
-    levelLabel = XtCreateManagedWidget ( "levelLabel", labelWidgetClass, layout, NULL, ZERO);
+    levelLabel = XtCreateManagedWidget ( "levelLabel", klabelWidgetClass, layout, NULL, ZERO);
     sprintf (levelString, "%d", level);
     levelValue = MakeStringBox (layout, "levelValue", levelString);
     XtSetKeyboardFocus (layout, levelValue);
-    turn = XtCreateManagedWidget ("turn", labelWidgetClass, layout, NULL, ZERO);
+    turn = XtCreateManagedWidget ("turn", klabelWidgetClass, layout, NULL, ZERO);
     XtRealizeWidget(topLevel);
 }
 

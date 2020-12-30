@@ -1051,6 +1051,10 @@ main (int argc, char **argv)
     toplevel = XtInitialize (argv[0], "Dominos", options, XtNumber(options),
 			     &argc, argv);
 
+    Arg	args[1];
+    XtSetArg(args[0], XtNinput, True);
+    XtSetValues(toplevel, args, ONE);
+
     XtGetApplicationResources (toplevel, (XtPointer)&dominosResources, resources,
 			       XtNumber (resources), NULL, 0);
 
