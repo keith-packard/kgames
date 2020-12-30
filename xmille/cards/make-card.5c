@@ -1,0 +1,102 @@
+#!/usr/bin/nickle
+autoimport Cairo;
+
+void outline (cairo_t cr, real width, real height, real lw)
+{
+	real	radius = width / 6;
+
+	save(cr);
+	translate(cr, lw/2, lw/2);
+	set_line_width(cr, lw);
+	width -= lw;
+	height -= lw;
+
+	move_to(cr, 0, radius);
+	/* top left */
+	arc(cr, radius, radius, radius, pi, 3 * pi / 2);
+
+	/* top */
+	line_to(cr, width - radius, 0);
+
+	/* top right */
+	arc(cr, width - radius, radius, radius, 3 * pi / 2, 0);
+
+	/* right */
+	line_to(cr, width, height - radius);
+
+	/* bottom right */
+	arc(cr, width - radius, height - radius, radius, 0, pi / 2);
+
+	/* bottom */
+	line_to(cr, radius, height);
+
+	/* bottom left */
+	arc(cr, radius, height - radius, radius, pi/2, pi);
+
+	/* right */
+	line_to(cr, 0, radius);
+	restore(cr);
+}
+
+void make_card(string filename, real width, real height)
+{
+	string new_name = "all-" + filename;
+
+	real text_pos = width / 12;
+
+	cairo_t cr = new_svg(new_name, width, height);
+
+	string label = String::wordsplit(filename, ".")[0];
+
+	outline(cr, width, height, width / 50);
+
+	if (label == "deck")
+		set_source_rgb(cr, 0, .8, 0);
+	else
+		set_source_rgb(cr, 1, 1, 1);
+
+	fill(cr);
+
+	if (label != "blank") {
+		Rsvg::rsvg_t image = Rsvg::new_from_file(filename);
+		save(cr);
+		Rsvg::dimensions_t rsvg_dim = Rsvg::get_dimensions(image);
+		translate(cr, (width - rsvg_dim.width) / 2, (height - rsvg_dim.height) / 2);
+		Rsvg::render(image, cr);
+		restore(cr);
+	}
+
+	outline(cr, width, height, width / 50);
+
+	set_source_rgb(cr, 0, 0, 0);
+
+	stroke(cr);
+
+	if (label != "deck" && label != "blank") {
+		set_font(cr, "ITC Benguiat Gothic Std-10:bold");
+		set_source_rgb(cr, 0, 0, 0);
+		text_extents_t extents = text_extents(cr, label);
+		move_to(cr,
+			text_pos - extents.x_bearing,
+			text_pos - extents.y_bearing);
+		text_path(cr, label);
+		fill(cr);
+		move_to(cr,
+			width - text_pos - extents.x_advance,
+			height - text_pos - (extents.height + extents.y_bearing));
+		text_path(cr, label);
+		fill(cr);
+	}
+
+	destroy(cr);
+}
+
+void
+main()
+{
+	for (int i = 1; i < dim(argv); i++)
+		make_card(argv[i], 100, 150);
+}
+
+if (dim(argv) > 1)
+	main();
