@@ -34,7 +34,7 @@ srcs_dominos = [
 executable('kdominos',
 	   srcs_dominos,
 	   include_directories: inc,
-	   dependencies: cairo_libs,
+	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
 

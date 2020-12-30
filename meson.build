@@ -40,8 +40,9 @@ lib_cairo_ft = dependency('cairo-ft')
 lib_xft = dependency('xft')
 lib_rsvg2 = dependency('librsvg-2.0')
 
-x_libs = [lib_xaw, lib_xt, lib_xmu, lib_xpm, lib_x11, lib_m]
-cairo_libs = x_libs + [lib_xft, lib_cairo_ft, lib_rsvg2, lib_cairo, lib_fontconfig, lib_freetype, lib_render]
+x_libs = [lib_xft, lib_cairo_ft, lib_rsvg2, lib_cairo, lib_fontconfig,
+	  lib_freetype, lib_render, lib_xaw, lib_xt, lib_xmu,
+	  lib_xpm, lib_x11, lib_m]
 
 prefix = get_option('prefix')
 datadir = get_option('datadir')

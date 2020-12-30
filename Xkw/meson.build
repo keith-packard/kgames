@@ -67,13 +67,20 @@ srcs_xkw = [
 
 lib_xkw = library('Xkw',
 		  srcs_xkw, flex_files, bison_files, cards_files,
-		  dependencies: cairo_libs,
+		  dependencies: x_libs,
 		  install: true,
 		  version: '1.0.0',
 		  include_directories: inc)
 
 executable('layout',
 	   'layout.c',
+	   dependencies: x_libs,
+	   include_directories: inc,
+	   link_with: [lib_xkw],
+	   install: false)
+
+executable('padtest',
+	   'padtest.c',
 	   dependencies: x_libs,
 	   include_directories: inc,
 	   link_with: [lib_xkw],
