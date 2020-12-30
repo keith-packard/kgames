@@ -25,6 +25,7 @@
 #include <X11/StringDefs.h>
 #include <X11/Xaw/Cardinals.h>
 #include <X11/Xaw/AsciiText.h>
+#include <X11/Shell.h>
 #include <Xkw/KCommand.h>
 #include <X11/Xaw/Toggle.h>
 #include <Xkw/KLabel.h>
@@ -297,7 +298,7 @@ dispInit(int argc, char **argv)
 
     Arg	args[1];
     XtSetArg(args[0], XtNinput, True);
-    XtSetValues(toplevel, args, ONE);
+    XtSetValues(topLevel, args, ONE);
 
     XtGetApplicationResources(topLevel, &app_resources, resources,
 			      XtNumber(resources), NULL, 0);
