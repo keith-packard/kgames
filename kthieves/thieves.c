@@ -740,7 +740,6 @@ main (int argc, char **argv)
     toplevel = XtInitialize (argv[0], "KThieves", options, XtNumber(options),
 			     &argc, argv);
 
-    Arg	args[1];
     XtSetArg(args[0], XtNinput, True);
     XtSetValues(toplevel, args, ONE);
 
