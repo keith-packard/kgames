@@ -199,7 +199,7 @@ UIInit (int argc, char **argv)
 
     Arg	args[1];
     XtSetArg(args[0], XtNinput, True);
-    XtSetValues(toplevel, args, ONE);
+    XtSetValues(toplevel, args, 1);
 
     XtGetApplicationResources (toplevel, (XtPointer)&cribbageResources, resources,
 			       XtNumber (resources), NULL, 0);
