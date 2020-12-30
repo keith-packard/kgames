@@ -193,7 +193,7 @@ XkwKMenuButtonSetValues(Widget current, Widget request, Widget cnew,
 		XtNewString(mbw_new->menu_button.menu_name);
     }
 
-    return (False);
+    return TRUE;
 }
 
 /*ARGSUSED*/
