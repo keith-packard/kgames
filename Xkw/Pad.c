@@ -97,17 +97,17 @@ get_cairo(PadWidget w)
 }
 
 static cairo_t *
-draw_begin(PadWidget w)
+draw_begin(PadWidget w, Region region)
 {
-    cairo_t *cr = XkwDrawBegin((Widget) w);
+    cairo_t *cr = XkwDrawBegin((Widget) w, region);
     init_cairo(w, cr);
     return cr;
 }
 
 static void
-draw_end(PadWidget w, cairo_t *cr)
+draw_end(PadWidget w, Region region, cairo_t *cr)
 {
-    XkwDrawEnd((Widget) w, cr);
+    XkwDrawEnd((Widget) w, region, cr);
 }
 
 static int
@@ -316,17 +316,16 @@ Redisplay (Widget gw, XEvent *event, Region region)
     PadWidget   w = (PadWidget) gw;
     int row;
 
-    (void) region;
     if (!XtIsRealized (gw))
 	return;
     if (!event || (event->type == Expose && event->xexpose.count == 0))
     {
-	cairo_t *cr = draw_begin(w);
+	cairo_t *cr = draw_begin(w, region);
 
 	for (row = 0; row < w->pad.rows; row++)
 	    RedrawText (w, cr, row, 0, w->pad.cols);
 
-	draw_end(w, cr);
+	draw_end(w, region, cr);
     }
 }
 
