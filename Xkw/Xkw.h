@@ -123,10 +123,10 @@ void
 XkwRsvgDraw(cairo_t *cr, int surface_width, int surface_height, RsvgHandle *rsvg);
 
 cairo_t *
-XkwDrawBegin(Widget gw);
+XkwDrawBegin(Widget gw, Region region);
 
 void
-XkwDrawEnd(Widget gw, cairo_t *cr);
+XkwDrawEnd(Widget gw, Region region, cairo_t *cr);
 
 _XFUNCPROTOEND
 

@@ -65,17 +65,17 @@ get_cairo(KLabelWidget w)
 }
 
 static cairo_t *
-draw_begin(KLabelWidget w)
+draw_begin(KLabelWidget w, Region region)
 {
-    cairo_t *cr = XkwDrawBegin((Widget) w);
+    cairo_t *cr = XkwDrawBegin((Widget) w, region);
     init_cairo(w, cr);
     return cr;
 }
 
 static void
-draw_end(KLabelWidget w, cairo_t *cr)
+draw_end(KLabelWidget w, Region region, cairo_t *cr)
 {
-    XkwDrawEnd((Widget) w, cr);
+    XkwDrawEnd((Widget) w, region, cr);
 }
 
 static double
@@ -135,11 +135,9 @@ XkwKLabelRedisplay(Widget gw, XEvent *event, Region region)
     if (*superclass->core_class.expose != NULL)
 	(*superclass->core_class.expose)(gw, event, region);
 
-    cairo_t *cr = draw_begin(w);
+    cairo_t *cr = draw_begin(w, region);
 
-    if (XtIsSensitive(gw))
-	XkwSetSource(cr, &w->ksimple.foreground);
-    else
+    if (!XtIsSensitive(gw))
 	XkwSetSourceInterp(cr, &w->ksimple.foreground, &w->ksimple.background);
     cairo_text_extents_t text_extents;
     cairo_font_extents_t font_extents;
@@ -155,13 +153,13 @@ XkwKLabelRedisplay(Widget gw, XEvent *event, Region region)
 	x = w->core.width - text_extents.width - pad(&font_extents);
 	break;
     default:
-	x = (w->core.width - text_extents.width) / 2;
+	x = (w->core.width - text_extents.width) / 2 - text_extents.x_bearing;
 	break;
     }
-    double y = (w->core.height - font_extents.height) / 2 + font_extents.ascent;
+    double y = (w->core.height - text_extents.height) / 2 - text_extents.y_bearing;
     cairo_move_to(cr, x, y);
     cairo_show_text(cr, w->klabel.label);
-    draw_end(w, cr);
+    draw_end(w, region, cr);
 }
 
 static Boolean
@@ -255,6 +253,10 @@ KLabelClassRec klabelClassRec = {
   /* simple */
   {
     XtInheritChangeSensitive,		/* change_sensitive */
+  },
+  {
+    /* ksimple fields */
+    /* empty			*/	0
   },
   /* klabel */
   {

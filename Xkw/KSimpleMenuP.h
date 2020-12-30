@@ -62,6 +62,7 @@ typedef struct _KSimpleMenuPart {
     KSmeObject	label;		/* If label_string is non-NULL then this is
 				   the label widget */
     XRenderColor background;
+    XRenderColor foreground;
     WidgetClass	label_class;	/* Widget Class of the menu label object */
     Dimension	top_margin;	/* Top and bottom margins */
     Dimension	bottom_margin;
@@ -73,6 +74,7 @@ typedef struct _KSimpleMenuPart {
     int		backing_store;	/* What type of backing store to use */
 
     /* private */
+    cairo_surface_t	*surface;
     Boolean	recursive_set_values; /* contain a possible infinite loop */
     Boolean	menu_width;	/* If true then force width to remain
 				   core.width */

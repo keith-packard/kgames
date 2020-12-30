@@ -170,8 +170,8 @@ KSmeBSBClassRec ksmeBSBClassRec = {
     False,				/* visible_interest */
     XkwKSmeBSBDestroy,			/* destroy */
     NULL,				/* resize */
-    XkwKSmeBSBRedisplay,			/* expose */
-    XkwKSmeBSBSetValues,			/* set_values */
+    XkwKSmeBSBRedisplay,		/* expose */
+    XkwKSmeBSBSetValues,		/* set_values */
     NULL,				/* set_values_hook */
     XtInheritSetValuesAlmost,		/* set_values_almost */
     NULL,				/* get_values_hook */
@@ -261,14 +261,33 @@ XkwKSmeBSBDestroy(Widget w)
 	XtFree(entry->ksme_bsb.label);
 }
 
+static void
+init_cairo(KSmeBSBObject w, cairo_t *cr)
+{
+    cairo_set_font_face(cr, w->ksme_bsb.font.font_face);
+    cairo_set_font_size(cr, w->ksme_bsb.font.size * w->ksme_bsb.dpi / 72.0);
+}
+
 static cairo_t *
 get_cairo(KSmeBSBObject w)
 {
     cairo_t *cr = XkwGetCairo((Widget) w);
-    cairo_set_font_face(cr, w->ksme_bsb.font.font_face);
-    cairo_set_font_size(cr, w->ksme_bsb.font.size * w->ksme_bsb.dpi / 72.0);
-    cairo_translate(cr, XtX(w), XtY(w));
+    init_cairo(w, cr);
     return cr;
+}
+
+static cairo_t *
+draw_begin(KSmeBSBObject w, Region region)
+{
+    cairo_t *cr = XkwDrawBegin((Widget) w, region);
+    init_cairo(w, cr);
+    return cr;
+}
+
+static void
+draw_end(KSmeBSBObject w, Region region, cairo_t *cr)
+{
+    XkwDrawEnd((Widget) w, region, cr);
 }
 
 /*
@@ -289,22 +308,16 @@ XkwKSmeBSBRedisplay(Widget w, XEvent *event, Region region)
 {
     KSmeBSBObject entry = (KSmeBSBObject)w;
 
-    cairo_t *cr = get_cairo(entry);
+    cairo_t *cr = draw_begin(entry, region);
 
     if (XtIsSensitive(w) && XtIsSensitive(XtParent(w))) {
-	if (w == XkwKSimpleMenuGetActiveEntry(XtParent(w)))
+	if (w == XkwKSimpleMenuGetActiveEntry(XtParent(w))) {
 	    XkwSetSource(cr, &entry->ksme_bsb.foreground);
-	else
+	    cairo_rectangle(cr, 0, 0,
+			    XtWidth(entry), XtHeight(entry));
+	    cairo_fill(cr);
 	    XkwSetSource(cr, &entry->ksme_bsb.background);
-
-	cairo_rectangle(cr, 0, 0,
-			XtWidth(entry), XtHeight(entry));
-	cairo_fill(cr);
-
-	if (w == XkwKSimpleMenuGetActiveEntry(XtParent(w)))
-	    XkwSetSource(cr, &entry->ksme_bsb.background);
-	else
-	    XkwSetSource(cr, &entry->ksme_bsb.foreground);
+	}
     }
     else
 	XkwSetSourceInterp(cr, &entry->ksme_bsb.foreground, &entry->ksme_bsb.background);
@@ -326,16 +339,16 @@ XkwKSmeBSBRedisplay(Widget w, XEvent *event, Region region)
 	    x = XtWidth(entry) - text_extents.width - margin;
 	    break;
 	default:
-	    x = (XtWidth(entry) - text_extents.width) / 2;
+	    x = (XtWidth(entry) - text_extents.width) / 2 - text_extents.x_bearing;
 	    break;
 	}
-	double y = (XtHeight(entry) - font_extents.height) / 2 + font_extents.ascent;
+	double y = (XtHeight(entry) - text_extents.height) / 2 - text_extents.y_bearing;
 	cairo_move_to(cr, x, y);
 	cairo_show_text(cr, entry->ksme_bsb.label);
     }
 
     DrawBitmaps(w, cr);
-    cairo_destroy(cr);
+    draw_end(entry, region, cr);
 }
 
 

@@ -163,6 +163,8 @@ static XtResource resources[] = {
   },
     { XtNbackgroundColor, XtCBackground, XtRRenderColor, sizeof (XRenderColor),
       offset (background), XtRString, XtDefaultBackground },
+    { XtNforegroundColor, XtCForeground, XtRRenderColor, sizeof (XRenderColor),
+      offset (foreground), XtRString, XtDefaultForeground },
 #ifndef OLDXAW
   {
     XtNleftMargin,
@@ -504,25 +506,27 @@ XkwKSimpleMenuRedisplay(Widget w, XEvent *event, Region region)
  *	Realizes the widget.
  */
 static void
-XkwKSimpleMenuRealize(Widget w, XtValueMask *mask, XSetWindowAttributes *attrs)
+XkwKSimpleMenuRealize(Widget gw, XtValueMask *mask, XSetWindowAttributes *attrs)
 {
-    KSimpleMenuWidget smw = (KSimpleMenuWidget)w;
+    KSimpleMenuWidget w = (KSimpleMenuWidget)gw;
 #ifndef OLDXAW
     XawPixmap *pixmap;
 #endif
 
-    attrs->cursor = smw->ksimple_menu.cursor;
+    attrs->cursor = w->ksimple_menu.cursor;
     *mask |= CWCursor;
-    if (smw->ksimple_menu.backing_store == Always ||
-	smw->ksimple_menu.backing_store == NotUseful ||
-	smw->ksimple_menu.backing_store == WhenMapped) {
+    if (w->ksimple_menu.backing_store == Always ||
+	w->ksimple_menu.backing_store == NotUseful ||
+	w->ksimple_menu.backing_store == WhenMapped) {
 	*mask |= CWBackingStore;
-	attrs->backing_store = smw->ksimple_menu.backing_store;
+	attrs->backing_store = w->ksimple_menu.backing_store;
     }
     else
 	*mask &= ~CWBackingStore;
 
-    (*Superclass->core_class.realize)(w, mask, attrs);
+    (*Superclass->core_class.realize)(gw, mask, attrs);
+
+    w->ksimple_menu.surface = XkwGetSurface(gw);
 
 #ifndef OLDXAW
     if (w->core.background_pixmap > XtUnspecifiedPixmap) {
@@ -545,14 +549,19 @@ XkwKSimpleMenuRealize(Widget w, XtValueMask *mask, XSetWindowAttributes *attrs)
  *	Handle the menu being resized.
  */
 static void
-XkwKSimpleMenuResize(Widget w)
+XkwKSimpleMenuResize(Widget gw)
 {
-    if (!XtIsRealized(w))
+    KSimpleMenuWidget w = (KSimpleMenuWidget) gw;
+
+    if (!XtIsRealized(gw))
 	return;
 
-    Layout(w, NULL, NULL);
+    cairo_surface_destroy(w->ksimple_menu.surface);
+    w->ksimple_menu.surface = XkwGetSurface(gw);
 
-    XkwKSimpleMenuRedisplay(w, NULL, NULL);
+    Layout(gw, NULL, NULL);
+
+    XkwKSimpleMenuRedisplay(gw, NULL, NULL);
 }
 
 /*

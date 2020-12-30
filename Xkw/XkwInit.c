@@ -24,6 +24,7 @@
 #include <X11/IntrinsicP.h>
 #include <X11/CoreP.h>
 #include <Xkw/KSimpleP.h>
+#include <Xkw/KSimpleMenuP.h>
 #include <cairo/cairo-ft.h>
 #include <cairo/cairo-xlib.h>
 #include <X11/Xft/Xft.h>
@@ -188,44 +189,132 @@ XkwGetSurface(Widget w)
 cairo_t *
 XkwGetCairo(Widget w)
 {
-    while (!XtIsWidget(w))
-	w = XtParent(w);
-    cairo_surface_t	*s = cairo_xlib_surface_create(XtDisplay(w),
-						       XtWindow(w),
-						       XtScreen(w)->root_visual,
-						       XtWidth(w),
-						       XtHeight(w));
+    Widget real = w;
+    while (!XtIsWidget(real))
+	real = XtParent(real);
+
+    cairo_surface_t *s = XkwGetSurface(real);
     cairo_t *cr = cairo_create(s);
+    cairo_translate(cr, XtX(w) - XtX(real), XtY(w) - XtY(real));
     cairo_surface_destroy (s);
     return cr;
 }
 
-cairo_t *
-XkwDrawBegin(Widget gw)
+static XRectangle
+XkwDrawRect(Widget gw, Region region)
 {
-    KSimpleWidget 	w = (KSimpleWidget) gw;
-    cairo_surface_t	*pix;
-    cairo_t		*cr;
+    XRectangle ret = { .x = 0, .y = 0, .width = XtWidth(gw), .height = XtHeight(gw) };
 
-    pix = cairo_surface_create_similar(w->ksimple.surface,
-				       CAIRO_CONTENT_COLOR,
-				       XtWidth(w),
-				       XtHeight(w));
-    cr = cairo_create(pix);
+    if (region) {
+	XRectangle clip;
+
+	XClipBox(region, &clip);
+	if (clip.x > 0) {
+	    ret.x = clip.x;
+	    ret.width -= clip.x;
+	} else
+	    clip.width += clip.x;
+	if (clip.y > 0) {
+	    ret.y = clip.y;
+	    ret.height -= clip.y;
+	} else
+	    clip.height += clip.y;
+
+	if (ret.width > clip.width)
+	    ret.width = clip.width;
+	if (ret.height > clip.height)
+	    clip.height = clip.height;
+    }
+    return ret;
+}
+
+cairo_t *
+XkwDrawBegin(Widget gw, Region region)
+{
+    Widget		greal = gw;
+
+    while (!XtIsWidget(greal))
+	greal = XtParent(greal);
+
+    Boolean		surface_created = False;
+    cairo_surface_t	*surface = NULL;
+    XRenderColor	*bg = NULL;
+    XRenderColor	*fg = NULL;
+
+    if (XtIsSubclass(greal, ksimpleWidgetClass)) {
+	KSimpleWidget 	real = (KSimpleWidget) greal;
+	surface = real->ksimple.surface;
+	fg = &real->ksimple.foreground;
+	bg = &real->ksimple.background;
+    } else if (XtIsSubclass(greal, ksimpleMenuWidgetClass)) {
+	KSimpleMenuWidget real = (KSimpleMenuWidget) greal;
+	surface = real->ksimple_menu.surface;
+	fg = &real->ksimple_menu.foreground;
+	bg = &real->ksimple_menu.background;
+    } else {
+	surface = XkwGetSurface(greal);
+	surface_created = True;
+    }
+
+    XRectangle rect = XkwDrawRect(gw, region);
+
+    cairo_surface_t *pix = cairo_surface_create_similar(surface,
+							CAIRO_CONTENT_COLOR,
+							rect.width, rect.height);
+    if (surface_created)
+	cairo_surface_destroy(surface);
+
+    cairo_t *cr = cairo_create(pix);
+
+    cairo_translate(cr, -rect.x, -rect.y);
+
     cairo_surface_destroy(pix);
-    XkwSetSource(cr, &w->ksimple.background);
-    cairo_paint(cr);
-    XkwSetSource(cr, &w->ksimple.foreground);
+    if (bg) {
+	XkwSetSource(cr, bg);
+	cairo_paint(cr);
+    }
+    if (fg)
+	XkwSetSource(cr, fg);
     return cr;
 }
 
 void
-XkwDrawEnd(Widget gw, cairo_t *cr)
+XkwDrawEnd(Widget gw, Region region, cairo_t *cr)
 {
-    KSimpleWidget 	w = (KSimpleWidget) gw;
-    cairo_t 		*dest = cairo_create(w->ksimple.surface);
+    Widget		greal = gw;
 
-    cairo_set_source_surface(dest, cairo_get_target(cr), 0, 0);
+    while (!XtIsWidget(greal))
+	greal = XtParent(greal);
+
+    Boolean		surface_created = False;
+    cairo_surface_t	*surface = NULL;
+
+    if (XtIsSubclass(greal, ksimpleWidgetClass)) {
+	KSimpleWidget 	real = (KSimpleWidget) greal;
+	surface = real->ksimple.surface;
+    } else if (XtIsSubclass(greal, ksimpleMenuWidgetClass)) {
+	KSimpleMenuWidget real = (KSimpleMenuWidget) greal;
+	surface = real->ksimple_menu.surface;
+    } else {
+	surface = XkwGetSurface(greal);
+	surface_created = True;
+    }
+
+    cairo_t 		*dest = cairo_create(surface);
+
+    if (surface_created)
+	cairo_surface_destroy(surface);
+
+    XRectangle rect = XkwDrawRect(gw, region);
+
+    double x = rect.x;
+    double y = rect.y;
+    if (gw != greal) {
+	x += XtX(gw);
+	y += XtY(gw);
+    }
+    cairo_set_source_surface(dest, cairo_get_target(cr), x, y);
+
     cairo_paint(dest);
     cairo_destroy(cr);
     cairo_destroy(dest);
