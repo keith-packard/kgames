@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
@@ -65,7 +65,7 @@ Animate (Widget srcWidget, int srcRow, int srcCol, Widget dstWidget, int dstRow,
     XtSetArg (arg[0], XtNcardWidth, &width);
     XtSetArg (arg[1], XtNcardHeight, &height);
     XtSetArg (arg[2], XtNobverseColor, &obverse);
-    XtSetArg (arg[3], XtNblackColor, &black);
+    XtSetArg (arg[3], XtNforeground, &black);
     XtGetValues (srcWidget, arg, 4);
     xor_value = obverse ^ black;
     compute_position (srcWidget, srcRow, srcCol, XtParent(srcWidget), &ox, &oy);
