@@ -33,6 +33,7 @@ SOFTWARE.
 #include <X11/StringDefs.h>
 #include <X11/Xaw/XawInit.h>
 #include <X11/Xmu/Drawing.h>
+#include <math.h>
 #include "ReversiP.h"
 
 /****************************************************************
@@ -52,15 +53,17 @@ static XtResource resources[] = {
 	offset(reversi.callbacks), XtRCallback, (XtPointer) NULL},
     {XtNbackground, XtCBackground, XtRPixel, sizeof(Pixel),
 	offset(core.background_pixel), XtRString, "green"},
-    {XtNwhite, XtCForeground, XtRPixel, sizeof(Pixel),
+    {XtNbackgroundColor, XtCBackground, XtRRenderColor, sizeof(XRenderColor),
+     offset(ksimple.background), XtRString, "green"},
+    {XtNwhite, XtCForeground, XtRRenderColor, sizeof(XRenderColor),
 	offset(reversi.white), XtRString, "white"},
-    {XtNblack, XtCForeground, XtRPixel, sizeof(Pixel),
+    {XtNblack, XtCForeground, XtRRenderColor, sizeof(XRenderColor),
 	offset(reversi.black), XtRString, "black"},
-    {XtNgrid, XtCForeground, XtRPixel,sizeof (Pixel),
+    {XtNgrid, XtCForeground, XtRRenderColor, sizeof (XRenderColor),
 	offset(reversi.grid), XtRString, "black"},
 };
 
-#define superclass		(&simpleClassRec)
+#define superclass		(&ksimpleClassRec)
 
 /****************************************************************
  *
@@ -70,86 +73,7 @@ static XtResource resources[] = {
 
 static void ClassInitialize(void)
 {
-} /* ClassInitialize */
-
-static void GetnormalGCs(ReversiWidget rw)
-{
-    XGCValues	values;
-
-    values.foreground	= rw->reversi.white;
-
-    rw->reversi.white_GC = XtGetGC(
-	(Widget)rw,
-	(unsigned) GCForeground,
-	&values);
-
-    values.foreground = rw->reversi.black;
-
-    rw->reversi.black_GC = XtGetGC(
-	(Widget)rw,
-	(unsigned) GCForeground,
-	&values);
-
-    values.foreground = rw->reversi.grid;
-
-    rw->reversi.grid_GC = XtGetGC(
-	(Widget)rw,
-	(unsigned) GCForeground,
-	&values);
-}
-
-static void GetGrayTile(ReversiWidget rw)
-{
-    Pixmap  tile;
-
-    tile       = XmuCreateStippledPixmap(XtScreen((Widget)rw),
-					 rw->reversi.white, 
-					 rw->reversi.black,
-					 rw->core.depth);
-    XSetWindowBackgroundPixmap (XtDisplay (rw),
-			        XtWindow (rw),
-				tile);
-    XFreePixmap (XtDisplay (rw), tile);
-}
-
-#define MIN_DISTINGUISH	10000.0
-
-static Bool
-DistinguishableColors (XColor *colorA, XColor *colorB)
-{
-    double	    deltaRed, deltaGreen, deltaBlue;
-    double	    dist;
-
-    deltaRed = colorA->red - colorB->red;
-    deltaGreen = colorA->green - colorB->green;
-    deltaBlue = colorA->blue - colorB->blue;
-    dist = deltaRed * deltaRed +
-	   deltaGreen * deltaGreen +
- 	   deltaBlue * deltaBlue;
-    return dist > MIN_DISTINGUISH * MIN_DISTINGUISH;
-}
-
-static void
-GetWidgetBackground (ReversiWidget rw)
-{
-    XColor		defs[3];
-    Colormap		cmap;
-
-    if (rw->core.background_pixel != rw->reversi.white &&
-        rw->core.background_pixel != rw->reversi.black)
-    {
-    	cmap = rw->core.colormap;
-    	defs[0].pixel = rw->core.background_pixel;
-    	defs[1].pixel = rw->reversi.white;
-    	defs[2].pixel = rw->reversi.black;
-    	XQueryColors (XtDisplay (rw), cmap, defs, 3);
-	if (DistinguishableColors (&defs[0], &defs[1]) &&
-	    DistinguishableColors (&defs[0], &defs[2]))
-	{
-	    return;
-	}
-    }
-    GetGrayTile (rw);
+    XkwInitializeWidgetSet();
 }
 
 /* ARGSUSED */
@@ -162,19 +86,12 @@ static void Initialize(Widget request, Widget new, Arg *args, Cardinal *count)
     (void) args;
     (void) count;
 
-    GetnormalGCs(rw);
-
     if (rw->core.width == 0)
         rw->core.width = 100;
     if (rw->core.height == 0)
         rw->core.height = 100;
 
     (*XtClass(new)->core_class.resize) ((Widget)rw);
-    SetTransform (&rw->reversi.t,
-		    0, rw->core.width,
- 		    0, rw->core.height,
-		    -0.5, BOARD_WIDTH - 0.5,
-		    -0.5, BOARD_HEIGHT - 0.5);
     for (y = 0; y < BOARD_HEIGHT; y++)
 	for (x = 0; x < BOARD_HEIGHT; x++) {
 	    rw->reversi.board[x][y] = StoneNone;
@@ -186,18 +103,10 @@ static void Initialize(Widget request, Widget new, Arg *args, Cardinal *count)
  * Repaint the widget window
  */
 
-static void PaintEntry (ReversiWidget rw, int x, int y)
+static void PaintEntry (ReversiWidget rw, cairo_t *cr, int x, int y)
 {
-    GC	gc;
-    double  dx, dy, dw, dh;
-    Display *dpy;
     ReversiStone    value;
 
-    dx = (double) x - STONE_WIDTH / 2.0;
-    dy = (double) y - STONE_WIDTH / 2.0;
-    dw = STONE_WIDTH;
-    dh = STONE_WIDTH;
-    dpy = XtDisplay (rw);
     switch (rw->reversi.animate[x][y].state)
     {
     case AnimateNone:
@@ -215,42 +124,46 @@ static void PaintEntry (ReversiWidget rw, int x, int y)
     switch (value)
     {
     case StoneBlack:
-	gc = rw->reversi.black_GC;
+	XkwSetSource(cr, &rw->reversi.black);
+	cairo_arc(cr, x + 0.5, y + 0.5, STONE_WIDTH / 2, 0, M_PI * 2);
 	break;
     case StoneWhite:
-	gc = rw->reversi.white_GC;
+	XkwSetSource(cr, &rw->reversi.white);
+	cairo_arc(cr, x + 0.5, y + 0.5, STONE_WIDTH / 2, 0, M_PI * 2);
 	break;
     default:
-	TClearArea (dpy, XtWindow (rw), &rw->reversi.t, dx, dy, dw, dh, FALSE);
-	return;
+	XkwSetSource(cr, &rw->ksimple.background);
+	cairo_rectangle(cr, x + 0.1, y + 0.1, 0.8, 0.8);
+	break;
     }
-    TFillArc (dpy, XtWindow (rw), gc, &rw->reversi.t, dx, dy, dw, dh, 0, 64 * 360);
+    cairo_fill(cr);
 }
 
 static void
-PaintGrid (ReversiWidget rw)
+PaintGrid (ReversiWidget rw, cairo_t *cr)
 {
-    int	i;
-    Display	*dpy;
-    Drawable	d;
-    Transform	*t;
-    double	v;
-    GC		gc;
-
-    dpy = XtDisplay (rw);
-    d = XtWindow (rw);
-    gc = rw->reversi.grid_GC;
-    t = &rw->reversi.t;
+    int i;
+    XkwSetSource(cr, &rw->reversi.grid);
     for (i = 1; i < BOARD_HEIGHT; i++)
     {
-	v = (double) i - 0.5;
-	TDrawLine (dpy, d, gc, t, -0.5, v, BOARD_WIDTH + 0.5, v);
+	cairo_move_to(cr, i, 0);
+	cairo_line_to(cr, i, BOARD_WIDTH);
     }
     for (i = 1; i < BOARD_WIDTH; i++)
     {
-	v = (double) i - 0.5;
-	TDrawLine (dpy, d, gc, t, v, -0.5, v, BOARD_HEIGHT + 0.5);
+	cairo_move_to(cr, 0, i);
+	cairo_line_to(cr, BOARD_HEIGHT, i);
     }
+    cairo_stroke(cr);
+}
+
+static cairo_t *
+draw_begin(ReversiWidget w, Region region)
+{
+    cairo_t *cr = XkwDrawBegin((Widget) w, region);
+    cairo_scale(cr, w->core.width / 8, w->core.height / 8);
+    cairo_set_line_width(cr, 0.025);
+    return cr;
 }
 
 /* ARGSUSED */
@@ -259,31 +172,16 @@ static void Redisplay(Widget w, XEvent *event, Region region)
     ReversiWidget rw = (ReversiWidget) w;
     int	x, y;
 
+    if (!XtIsRealized(w))
+	return;
     (void) event;
     (void) region;
-    PaintGrid (rw);
+    cairo_t *cr = draw_begin(rw, region);
+    PaintGrid (rw, cr);
     for (y = 0; y < BOARD_HEIGHT; y++)
 	for (x = 0; x < BOARD_WIDTH; x++)
-	    PaintEntry (rw, x, y);
-}
-
-static void Realize(Widget w, XtValueMask *value_mask, XSetWindowAttributes *attributes)
-{
-    ReversiWidget   rw = (ReversiWidget) w;
-
-    (*superclass->core_class.realize)(w, value_mask, attributes);
-    GetWidgetBackground (rw);
-}
-
-static void Resize(Widget w)
-{
-    ReversiWidget	rw = (ReversiWidget) w;
-
-    SetTransform (&rw->reversi.t,
-		    0, w->core.width,
- 		    0, w->core.height,
-		    -0.5, BOARD_WIDTH - 0.5,
-		    -0.5, BOARD_HEIGHT - 0.5);
+	    PaintEntry (rw, cr, x, y);
+    XkwDrawEnd(w, region, cr);
 }
 
 /*
@@ -299,14 +197,6 @@ static Boolean SetValues(Widget current, Widget request, Widget new, Arg *args, 
     (void) args;
     (void) count;
     return False;
-}
-
-static void Destroy(Widget w)
-{
-    ReversiWidget rw = (ReversiWidget)w;
-
-    XtReleaseGC( w, rw->reversi.white_GC );
-    XtReleaseGC( w, rw->reversi.black_GC);
 }
 
 void
@@ -325,11 +215,13 @@ XawReversiSetSpot (
 	rw->reversi.animate[x][y].state = AnimateNone;
     }
 
-    if (rw->reversi.board[x][y] != value)
-    {
-	rw->reversi.board[x][y] = value;
-	PaintEntry (rw, x, y);
-    }
+    rw->reversi.board[x][y] = value;
+}
+
+void
+XawReversiUpdate(Widget w)
+{
+    Redisplay(w, NULL, NULL);
 }
 
 static void
@@ -352,7 +244,7 @@ DoAnimate (XtPointer closure, XtIntervalId *interval)
 	    a->state = AnimateA;
 	a->timeout = XtAddTimeOut (a->delay, DoAnimate, (XtPointer) a);
     }
-    PaintEntry (a->rw, a->x, a->y);
+    Redisplay((Widget) a->rw, NULL, NULL);
 }
 
 void
@@ -377,7 +269,7 @@ XawReversiAnimateSpot (
     a->state = AnimateNone;
     if (repeat == 0)
     {
-	PaintEntry (rw, x, y);
+	Redisplay(w, NULL, NULL);
 	return;
     }
     a->delay = delay;
@@ -390,7 +282,7 @@ XawReversiAnimateSpot (
     a->state = AnimateA;
     if (!(a->timeout = XtAddTimeOut (delay, DoAnimate, (XtPointer) a)))
 	a->state = AnimateNone;
-    PaintEntry (rw, x, y);
+    Redisplay(w, NULL, NULL);
 }
 
 static void
@@ -418,10 +310,10 @@ Select (Widget w, XEvent *event, String *params, Cardinal *num_params)
     default:
 	return;
     }
-    dx = Tx (x, y, &rw->reversi.t);
-    dy = Ty (x, y, &rw->reversi.t);
-    move.x = rx = dx + 0.5;
-    move.y = ry = dy + 0.5;
+    dx = (double) x * 8 / rw->core.width;
+    dy = (double) y * 8 / rw->core.height;
+    move.x = rx = dx;
+    move.y = ry = dy;
     if (0 <= rx && rx < BOARD_WIDTH && 0 <= ry && ry < BOARD_HEIGHT)
 	XtCallCallbackList ((Widget) rw, rw->reversi.callbacks, (XtPointer) &move);
 }
@@ -445,7 +337,7 @@ ReversiClassRec reversiClassRec = {
     /* class_inited       	*/	FALSE,
     /* initialize	  	*/	Initialize,
     /* initialize_hook		*/	NULL,
-    /* realize		  	*/	Realize,
+    /* realize		  	*/	XtInheritRealize,
     /* actions		  	*/	actions,
     /* num_actions	  	*/	XtNumber (actions),
     /* resources	  	*/	resources,
@@ -455,8 +347,8 @@ ReversiClassRec reversiClassRec = {
     /* compress_exposure  	*/	TRUE,
     /* compress_enterleave	*/	TRUE,
     /* visible_interest	  	*/	FALSE,
-    /* destroy		  	*/	Destroy,
-    /* resize		  	*/	Resize,
+    /* destroy		  	*/	NULL,
+    /* resize		  	*/	XtInheritResize,
     /* expose		  	*/	Redisplay,
     /* set_values	  	*/	SetValues,
     /* set_values_hook		*/	NULL,

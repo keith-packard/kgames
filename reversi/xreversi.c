@@ -104,20 +104,20 @@ MakeRadioButton (
     return button;
 }
 
-static Widget 
+static Widget
 MakeStringBox(Widget parent, String name, String string)
 {
     Arg args[5];
     Cardinal numargs = 0;
     Widget StringW;
     Widget Source;
-    
+
     XtSetArg(args[numargs], XtNeditType, XawtextEdit); numargs++;
     XtSetArg(args[numargs], XtNstring, string); numargs++;
-    
-    StringW = XtCreateManagedWidget(name, asciiTextWidgetClass, 
+
+    StringW = XtCreateManagedWidget(name, asciiTextWidgetClass,
 			      parent, args, numargs);
-    
+
     Source = XawTextGetSource (StringW);
     XtAddCallback (Source, XtNcallback, DoSetLevel, (caddr_t) NULL);
     return(StringW);
@@ -365,6 +365,7 @@ display (boardT board)
 	    }
 	    XawReversiSetSpot (reversi, i-1, j-1, stone);
 	}
+    XawReversiUpdate(reversi);
     XFlush (XtDisplay (topLevel));
 }
 
@@ -416,7 +417,7 @@ dispTurn (int player)
 	if (player == EMPTY)
 	    sprintf (turnString, "Game over");
 	else
-	    sprintf (turnString, "%s's turn", 
+	    sprintf (turnString, "%s's turn",
 		     player == WHITE ? "white" : "black");
     	XtSetArg (args[0], XtNlabel, turnString);
     	XtSetValues (turn, args, 1);
@@ -435,7 +436,7 @@ dispMove (int x, int y, int player)
     else
 	A = StoneBlack;
     B = StoneNone;
-    XawReversiAnimateSpot (reversi, x - 1, y - 1, A, B, 
+    XawReversiAnimateSpot (reversi, x - 1, y - 1, A, B,
 			   (unsigned long) app_resources.animateTimeout,
 			   app_resources.animateRepeat);
     dispError ("");
