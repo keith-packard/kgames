@@ -93,7 +93,7 @@ KMenuButtonClassRec kmenuButtonClassRec = {
   /* core */
   {
     (WidgetClass)superclass,		/* superclass		  */
-    "KMenuButton",			/* class_name		  */
+    "MenuButton",			/* class_name		  */
     sizeof(KMenuButtonRec),		/* size			  */
     XkwKMenuButtonClassInitialize,	/* class_initialize	  */
     NULL,				/* class_part_initialize  */
