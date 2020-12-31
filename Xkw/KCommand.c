@@ -49,9 +49,6 @@ SOFTWARE.
  * KCommand.c - Command button widget
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 #include <stdio.h>
 #include <X11/IntrinsicP.h>
 #include <X11/StringDefs.h>
@@ -126,58 +123,6 @@ static XtActionsRec actionsList[] = {
 };
 
 #define SuperClass ((KLabelWidgetClass)&klabelClassRec)
-
-KCommandClassRec kcommandClassRec = {
-  /* core */
-  {
-    (WidgetClass)SuperClass,		/* superclass		  */
-    "Command",				/* class_name		  */
-    sizeof(KCommandRec),		/* size			  */
-    XkwKCommandClassInitialize,		/* class_initialize	  */
-    NULL,				/* class_part_initialize  */
-    False,				/* class_inited		  */
-    XkwKCommandInitialize,		/* initialize		  */
-    NULL,				/* initialize_hook	  */
-    XkwKCommandRealize,			/* realize		  */
-    actionsList,			/* actions		  */
-    XtNumber(actionsList),		/* num_actions		  */
-    resources,				/* resources		  */
-    XtNumber(resources),		/* num_resources	  */
-    NULLQUARK,				/* xrm_class		  */
-    False,				/* compress_motion	  */
-    True,				/* compress_exposure	  */
-    True,				/* compress_enterleave	  */
-    False,				/* visible_interest	  */
-    NULL,				/* destroy		  */
-    XkwKCommandResize,			/* resize		  */
-    XkwKCommandRedisplay,		/* expose		  */
-    XkwKCommandSetValues,		/* set_values		  */
-    NULL,				/* set_values_hook	  */
-    XtInheritSetValuesAlmost,		/* set_values_almost	  */
-    XkwKCommandGetValuesHook,		/* get_values_hook	  */
-    NULL,				/* accept_focus		  */
-    XtVersion,				/* version		  */
-    NULL,				/* callback_private	  */
-    defaultTranslations,		/* tm_table		  */
-    XtInheritQueryGeometry,		/* query_geometry	  */
-    XtInheritDisplayAccelerator,	/* display_accelerator	  */
-    NULL,				/* extension */
-  },
-  /* simple */
-  {
-    XtInheritChangeSensitive,		/* change_sensitive */
-  },
-  /* klabel */
-  {
-    0,					/* not used */
-  },
-  /* kcommand */
-  {
-    0,					/* not used */
-  },
-};
-
-WidgetClass kcommandWidgetClass = (WidgetClass)&kcommandClassRec;
 
 /*
  * Implementation
@@ -471,6 +416,22 @@ XkwKCommandClassInitialize(void)
 }
 
 static void
+XkwKCommandClassPartInitialize(WidgetClass cclass)
+{
+    KCommandWidgetClass	class = (KCommandWidgetClass) cclass;
+    KCommandWidgetClass	super = (KCommandWidgetClass) cclass->core_class.superclass;
+
+    if (class->kcommand_class.set == XtInheritSet)
+	class->kcommand_class.set = super->kcommand_class.set;
+
+    if (class->kcommand_class.unset == XtInheritSet)
+	class->kcommand_class.unset = super->kcommand_class.unset;
+
+    if (class->kcommand_class.notify == XtInheritSet)
+	class->kcommand_class.notify = super->kcommand_class.notify;
+}
+
+static void
 XkwKCommandRealize(Widget w, Mask *valueMask, XSetWindowAttributes *attributes)
 {
     (*kcommandWidgetClass->core_class.superclass->core_class.realize)
@@ -487,3 +448,61 @@ XkwKCommandResize(Widget w)
     if (kcommandWidgetClass->core_class.superclass->core_class.resize)
 	(*kcommandWidgetClass->core_class.superclass->core_class.resize)(w);
 }
+
+KCommandClassRec kcommandClassRec = {
+  /* core */
+  {
+    (WidgetClass)SuperClass,		/* superclass		  */
+    "Command",				/* class_name		  */
+    sizeof(KCommandRec),		/* size			  */
+    XkwKCommandClassInitialize,		/* class_initialize	  */
+    XkwKCommandClassPartInitialize,	/* class_part_initialize  */
+    False,				/* class_inited		  */
+    XkwKCommandInitialize,		/* initialize		  */
+    NULL,				/* initialize_hook	  */
+    XkwKCommandRealize,			/* realize		  */
+    actionsList,			/* actions		  */
+    XtNumber(actionsList),		/* num_actions		  */
+    resources,				/* resources		  */
+    XtNumber(resources),		/* num_resources	  */
+    NULLQUARK,				/* xrm_class		  */
+    False,				/* compress_motion	  */
+    True,				/* compress_exposure	  */
+    True,				/* compress_enterleave	  */
+    False,				/* visible_interest	  */
+    NULL,				/* destroy		  */
+    XkwKCommandResize,			/* resize		  */
+    XkwKCommandRedisplay,		/* expose		  */
+    XkwKCommandSetValues,		/* set_values		  */
+    NULL,				/* set_values_hook	  */
+    XtInheritSetValuesAlmost,		/* set_values_almost	  */
+    XkwKCommandGetValuesHook,		/* get_values_hook	  */
+    NULL,				/* accept_focus		  */
+    XtVersion,				/* version		  */
+    NULL,				/* callback_private	  */
+    defaultTranslations,		/* tm_table		  */
+    XtInheritQueryGeometry,		/* query_geometry	  */
+    XtInheritDisplayAccelerator,	/* display_accelerator	  */
+    NULL,				/* extension */
+  },
+  /* simple */
+  {
+    XtInheritChangeSensitive,		/* change_sensitive */
+  },
+  /* ksimple */
+  {
+      0,				/* not used */
+  },
+  /* klabel */
+  {
+    0,					/* not used */
+  },
+  /* kcommand */
+  {
+      Set,
+      Unset,
+      Notify,
+  },
+};
+
+WidgetClass kcommandWidgetClass = (WidgetClass)&kcommandClassRec;

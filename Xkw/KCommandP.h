@@ -65,8 +65,14 @@ typedef enum {
 
 /* New fields for the KCommand widget class record */
 typedef struct _KCommandClass {
-    int		notused;
+    XtActionProc	set;
+    XtActionProc	unset;
+    XtActionProc	notify;
 } KCommandClassPart;
+
+#define XtInheritSet	((XtActionProc)_XtInherit)
+#define XtInheritUnset	((XtActionProc)_XtInherit)
+#define XtInheritNotify	((XtActionProc)_XtInherit)
 
 /* Full class record declaration */
 typedef struct _KCommandClassRec {
