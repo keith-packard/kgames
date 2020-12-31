@@ -435,7 +435,7 @@ ThermoClassRec thermoClassRec = {
     /* compress_enterleave	*/	TRUE,
     /* visible_interest		*/	FALSE,
     /* destroy			*/	NULL,
-    /* resize			*/	NULL,
+    /* resize			*/	XtInheritResize,
     /* expose			*/	Redisplay,
     /* set_values		*/	SetValues,
     /* set_values_hook		*/	NULL,

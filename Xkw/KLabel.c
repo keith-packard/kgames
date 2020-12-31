@@ -236,7 +236,7 @@ KLabelClassRec klabelClassRec = {
     True,				/* compress_enterleave */
     False,				/* visible_interest */
     XkwKLabelDestroy,			/* destroy */
-    NULL,				/* resize */
+    XtInheritResize,			/* resize */
     XkwKLabelRedisplay,			/* expose */
     XkwKLabelSetValues,			/* set_values */
     NULL,				/* set_values_hook */

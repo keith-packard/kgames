@@ -100,7 +100,7 @@ KSmeClassRec ksmeClassRec = {
     False,				/* compress_enterleave */
     False,				/* visible_interest */
     NULL,				/* destroy */
-    NULL,				/* resize */
+    XtInheritResize,			/* resize */
     NULL,				/* expose */
     NULL,				/* set_values */
     NULL,				/* set_values_hook */

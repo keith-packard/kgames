@@ -90,7 +90,7 @@ KSmeLineClassRec ksmeLineClassRec = {
     False,				/* compress_enterleave */
     False,				/* visible_interest */
     XkwKSmeLineDestroy,			/* destroy */
-    NULL,				/* resize */
+    XtInheritResize,			/* resize */
     XkwKSmeLineRedisplay,		/* expose */
     XkwKSmeLineSetValues,		/* set_values */
     NULL,				/* set_values_hook */

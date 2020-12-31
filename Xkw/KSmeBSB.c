@@ -169,7 +169,7 @@ KSmeBSBClassRec ksmeBSBClassRec = {
     False,				/* compress_enterleave */
     False,				/* visible_interest */
     XkwKSmeBSBDestroy,			/* destroy */
-    NULL,				/* resize */
+    XtInheritResize,			/* resize */
     XkwKSmeBSBRedisplay,		/* expose */
     XkwKSmeBSBSetValues,		/* set_values */
     NULL,				/* set_values_hook */
