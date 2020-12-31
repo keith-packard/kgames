@@ -32,4 +32,6 @@ extern WidgetClass ktextLineWidgetClass;
 typedef struct _KTextLineClassRec	*KTextLineWidgetClass;
 typedef struct _KTextLineRec		*KTextLineWidget;
 
+#define XtNeditCallback "editCallback"
+
 #endif /* _XkwKTextLine_h */

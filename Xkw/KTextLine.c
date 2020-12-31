@@ -76,11 +76,11 @@ preferred_size(KTextLineWidget w, Dimension *width, Dimension *height)
     if (w->ktext_line.string && w->ktext_line.string[0])
 	string = w->ktext_line.string;
     else
-	string = "hello world";
+	string = "";
     cairo_text_extents(cr, string, &text_extents);
     cairo_destroy(cr);
 
-    *width = text_extents.width + pad(&font_extents) * 2;
+    *width = text_extents.x_advance + pad(&font_extents) * 2;
     *height = font_extents.height + pad(&font_extents) * 2;
 }
 
@@ -164,7 +164,6 @@ SetValues(Widget gcur, Widget greq, Widget gnew,
     KTextLineWidget new = (KTextLineWidget)gnew;
     Boolean redisplay = False;
 
-    (void) req;
     if (new->ktext_line.string != cur->ktext_line.string) {
 	XtFree(cur->ktext_line.string);
 	if (!new->ktext_line.string)
@@ -176,6 +175,15 @@ SetValues(Widget gcur, Widget greq, Widget gnew,
     if (new->ktext_line.font.font_face != cur->ktext_line.font.font_face ||
 	new->ktext_line.font.size != cur->ktext_line.font.size)
 	redisplay = True;
+
+    if (redisplay) {
+	Dimension width, height;
+	preferred_size(new, &width, &height);
+	if (XtHeight(cur) == XtHeight(req))
+	    XtHeight(new) = height;
+	if (XtWidth(cur) == XtWidth(req))
+	    XtWidth(new) = width;
+    }
 
     return redisplay;
 }
@@ -197,6 +205,18 @@ QueryGeometry(Widget gw, XtWidgetGeometry *intended,
 	return (XtGeometryNo);
 
     return (XtGeometryAlmost);
+}
+
+static void
+EditCallbacks(KTextLineWidget w, XEvent *ev)
+{
+    Dimension width, height;
+
+    XtCallCallbackList((Widget) w, w->ktext_line.edit_callbacks, (XtPointer) ev);
+    preferred_size(w, &width, &height);
+    if (width != w->core.width || height != w->core.height) {
+	XtMakeResizeRequest((Widget) w, width, height, &width, &height);
+    }
 }
 
 static void
@@ -232,6 +252,7 @@ DeleteBackwardChar(Widget gw, XEvent *ev, String *args, Cardinal *num)
 		strlen(w->ktext_line.string) - w->ktext_line.cursor + 1);
 	w->ktext_line.cursor--;
 	Redisplay(gw, NULL, NULL);
+	EditCallbacks(w, ev);
     }
 }
 
@@ -246,6 +267,7 @@ Delete(Widget gw, XEvent *ev, String *args, Cardinal *num)
 		w->ktext_line.string + w->ktext_line.cursor + 1,
 		strlen(w->ktext_line.string) - w->ktext_line.cursor);
 	Redisplay(gw, NULL, NULL);
+	EditCallbacks(w, ev);
     }
 }
 
@@ -254,7 +276,7 @@ Accept(Widget gw, XEvent *ev, String *args, Cardinal *num)
 {
     KTextLineWidget w = (KTextLineWidget) gw;
 
-    XtCallCallbackList(gw, w->ktext_line.callbacks, (XtPointer) NULL);
+    XtCallCallbackList(gw, w->ktext_line.callbacks, (XtPointer) w->ktext_line.string);
 }
 
 static void
@@ -280,6 +302,7 @@ InsertChar(Widget gw, XEvent *ev, String *args, Cardinal *num)
     memcpy(w->ktext_line.string + w->ktext_line.cursor, strbuf, new);
     w->ktext_line.cursor += new;
     Redisplay(gw, NULL, NULL);
+    EditCallbacks(w, ev);
 }
 
 static void
@@ -338,6 +361,8 @@ static XtResource resources[] = {
       offset (font), XtRString, XtDefaultFont },
     { XtNcallback, XtCCallback, XtRCallback, sizeof(XtPointer),
       offset(callbacks), XtRCallback, NULL },
+    { XtNeditCallback, XtCCallback, XtRCallback, sizeof(XtPointer),
+      offset(edit_callbacks), XtRCallback, NULL },
 #undef offset
 };
 
@@ -363,7 +388,7 @@ KTextLineClassRec ktextLineClassRec = {
     True,				/* compress_enterleave */
     False,				/* visible_interest */
     Destroy,				/* destroy */
-    NULL,				/* resize */
+    XtInheritResize,			/* resize */
     Redisplay,				/* expose */
     SetValues,				/* set_values */
     NULL,				/* set_values_hook */

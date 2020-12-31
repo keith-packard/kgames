@@ -45,7 +45,8 @@ typedef struct {
     /* resources */
     XkwFont		font;
     String		string;
-    XtCallbackList 	callbacks;
+    XtCallbackList 	callbacks;	/* on 'return' */
+    XtCallbackList	edit_callbacks;	/* on every text change */
 
     /* private */
     int			size;
