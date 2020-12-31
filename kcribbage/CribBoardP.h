@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include "CribBoard.h"
 /* include superclass private header file */
-#include <X11/Xaw/SimpleP.h>
+#include <Xkw/KSimpleP.h>
 
 #define New(t) (t *) malloc(sizeof (t))
 #define Dispose(p)  free((char *) p)
@@ -41,6 +41,7 @@ typedef struct {
 typedef struct _CribBoardClassRec {
     CoreClassPart	core_class;
     SimpleClassPart	simple_class;
+    KSimpleClassPart	ksimple_class;
     CribBoardClassPart	cribBoard_class;
 } CribBoardClassRec;
 
@@ -48,8 +49,8 @@ extern CribBoardClassRec cribBoardClassRec;
 
 typedef struct {
     /* resources */
-    unsigned long   pegColor;
-    unsigned long   holeColor;
+    XRenderColor    pegColor;
+    XRenderColor    holeColor;
     int		    pegSize;
     int		    holeSize;
     int		    numPegs;
@@ -59,13 +60,12 @@ typedef struct {
     int		    numRows;
     /* private state */
     int		    *pegs;
-    GC		    pegGC;
-    GC		    holeGC;
 } CribBoardPart;
 
 typedef struct _CribBoardRec {
     CorePart		core;
     SimplePart		simple;
+    KSimplePart		ksimple;
     CribBoardPart	cribBoard;
 } CribBoardRec;
 

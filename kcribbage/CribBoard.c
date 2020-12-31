@@ -23,14 +23,15 @@
 
 #include <X11/IntrinsicP.h>
 #include <X11/StringDefs.h>
+#include <math.h>
 #include "CribBoardP.h"
 
 static XtResource resources[] = {
 #define offset(field) XtOffsetOf(CribBoardRec, cribBoard.field)
     /* {name, class, type, size, offset, default_type, default_addr}, */
-    { XtNpegColor, XtCForeground, XtRPixel, sizeof (unsigned long),
+    { XtNpegColor, XtCForeground, XtRRenderColor, sizeof (XRenderColor),
       offset (pegColor), XtRString, XtDefaultForeground },
-    { XtNholeColor, XtCForeground, XtRPixel, sizeof (unsigned long),
+    { XtNholeColor, XtCForeground, XtRRenderColor, sizeof (XRenderColor),
       offset (holeColor), XtRString, XtDefaultForeground },
     { XtNpegSize, XtCPegSize, XtRInt, sizeof (int),
       offset (pegSize), XtRImmediate, (XtPointer) 7 },
@@ -58,20 +59,21 @@ getSize (CribBoardWidget w, Dimension *widthp, Dimension *heightp)
 }
 
 static void
+ClassInitialize (void)
+{
+    XkwInitializeWidgetSet();
+}
+
+static void
 Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     CribBoardWidget	req = (CribBoardWidget) greq,
 			new = (CribBoardWidget) gnew;
-    XGCValues		gcv;
     int			i;
 
     (void) args;
     (void) count;
     getSize (new, &new->core.width, &new->core.height);
-    gcv.foreground = new->cribBoard.pegColor;
-    new->cribBoard.pegGC = XtGetGC (gnew, GCForeground, &gcv);
-    gcv.foreground = new->cribBoard.holeColor;
-    new->cribBoard.holeGC = XtGetGC (gnew, GCForeground, &gcv);
     new->cribBoard.pegs = Some (int, req->cribBoard.numPegs);
     for (i = 0; i < req->cribBoard.numPegs; i++)
 	new->cribBoard.pegs[i] = CribBoardUnset;
@@ -82,13 +84,11 @@ Destroy (Widget gw)
 {
     CribBoardWidget    w = (CribBoardWidget) gw;
 
-    XtReleaseGC (gw, w->cribBoard.pegGC);
-    XtReleaseGC (gw, w->cribBoard.holeGC);
     Dispose (w->cribBoard.pegs);
 }
 
-#define RowPos(w, row)	((row + 1) * ((w)->cribBoard.holeSize + (w)->cribBoard.rowSpace))
-#define ColPos(w, col)	(((col) / 5) * (w)->cribBoard.groupSpace + (col+ 1) * (w)->cribBoard.pegSize * 2)
+#define RowPos(w, row)	((row + 1.0) * ((w)->cribBoard.holeSize + (w)->cribBoard.rowSpace))
+#define ColPos(w, col)	(((col) / 5.0) * (w)->cribBoard.groupSpace + (col+ 1) * (w)->cribBoard.pegSize * 2)
 
 /*
  * The peg is drawn as a trapezoid topped by a filled arc
@@ -123,12 +123,10 @@ Destroy (Widget gw)
 
 
 static void
-drawPeg (CribBoardWidget w, int value)
+drawPeg (CribBoardWidget w, cairo_t *cr, int value)
 {
     int	    row, col;
-    int	    x;
-    int	    y;
-    XPoint  p[4];
+    double	x, y;
 
     if (value == CribBoardUnset)
 	return;
@@ -138,23 +136,21 @@ drawPeg (CribBoardWidget w, int value)
 	col = (w->cribBoard.numCols - 1) - col;
     x = ColPos (w, col);
     y = RowPos (w, row);
-    p[0].x = x + POLY_X0;
-    p[0].y = y + POLY_Y0;
-    p[1].x = x + POLY_X1;
-    p[1].y = y + POLY_Y1;
-    p[2].x = x + POLY_X2;
-    p[2].y = y + POLY_Y2;
-    p[3].x = x + POLY_X3;
-    p[3].y = y + POLY_Y3;
-    XFillPolygon (XtDisplay (w), XtWindow (w), w->cribBoard.pegGC,
-		  p, 4, Convex, CoordModeOrigin);
-    XFillArc (XtDisplay (w), XtWindow (w), w->cribBoard.pegGC,
-	      (int) (x + CIRCLE_X - PEG_RAD), (int) (y + CIRCLE_Y - PEG_RAD),
-	      PEG_SIZE, PEG_SIZE, 0, 64 * 360);
+    cairo_save(cr);
+    XkwSetSource(cr, &w->cribBoard.pegColor);
+    cairo_translate(cr, x, y);
+    cairo_move_to(cr, POLY_X0, POLY_Y0);
+    cairo_line_to(cr, POLY_X1, POLY_Y1);
+    cairo_line_to(cr, POLY_X2, POLY_Y2);
+    cairo_line_to(cr, POLY_X3, POLY_Y3);
+    cairo_fill(cr);
+    cairo_arc(cr, CIRCLE_X, CIRCLE_Y, PEG_SIZE, 0, 2 * M_PI);
+    cairo_fill(cr);
+    cairo_restore(cr);
 }
 
 static void
-drawHole (CribBoardWidget w, int value)
+drawHole (CribBoardWidget w, cairo_t *cr, int value)
 {
     int	    row, col;
     int	    x;
@@ -164,9 +160,12 @@ drawHole (CribBoardWidget w, int value)
     col = value % w->cribBoard.numCols;
     x = ColPos (w, col);
     y = RowPos (w, row);
-    XFillArc (XtDisplay (w), XtWindow (w), w->cribBoard.pegGC,
-	      (int) (x - HOLE_RAD), (int) (y - HOLE_RAD),
-	      HOLE_SIZE, HOLE_SIZE, 0, 64 * 360);
+    cairo_save(cr);
+    XkwSetSource(cr, &w->cribBoard.holeColor);
+    cairo_translate(cr, x, y);
+    cairo_arc(cr, 0, 0, HOLE_SIZE, 0, 2 * M_PI);
+    cairo_fill(cr);
+    cairo_restore(cr);
 }
 
 static void
@@ -174,13 +173,14 @@ Redisplay (Widget gw, XEvent *event, Region region)
 {
     CribBoardWidget w = (CribBoardWidget) gw;
     int		    v;
+    cairo_t	    *cr = XkwDrawBegin(gw, region);
 
     (void) event;
-    (void) region;
     for (v = 0; v < w->cribBoard.numRows * w->cribBoard.numCols; v++)
-	drawHole (w, v);
+	drawHole (w, cr, v);
     for (v = 0; v < w->cribBoard.numPegs; v++)
-	drawPeg (w, w->cribBoard.pegs[v]);
+	drawPeg (w, cr, w->cribBoard.pegs[v]);
+    XkwDrawEnd(gw, region, cr);
 }
 
 static Boolean
@@ -189,26 +189,15 @@ SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
     CribBoardWidget    cur = (CribBoardWidget) gcur,
 		    req = (CribBoardWidget) greq,
 		    new = (CribBoardWidget) gnew;
-    XGCValues	    gcv;
     Boolean	    redraw = FALSE;
     Dimension	    width, height;
 
     (void) args;
     (void) count;
-    if (req->cribBoard.pegColor != cur->cribBoard.pegColor)
-    {
-	XtReleaseGC (gcur, cur->cribBoard.pegGC);
-	gcv.foreground = req->cribBoard.pegColor;
-	new->cribBoard.pegGC = XtGetGC (gnew, GCForeground, &gcv);
+    if (!XkwColorEqual(&req->cribBoard.pegColor, &cur->cribBoard.pegColor))
 	redraw = TRUE;
-    }
-    if (req->cribBoard.holeColor != cur->cribBoard.holeColor)
-    {
-	XtReleaseGC (gcur, cur->cribBoard.holeGC);
-	gcv.foreground = req->cribBoard.holeColor;
-	new->cribBoard.holeGC = XtGetGC (gnew, GCForeground, &gcv);
+    if (!XkwColorEqual(&req->cribBoard.holeColor, &cur->cribBoard.holeColor))
 	redraw = TRUE;
-    }
     if (req->cribBoard.groupSpace != cur->cribBoard.groupSpace ||
 	req->cribBoard.rowSpace != cur->cribBoard.rowSpace)
     {
@@ -221,10 +210,10 @@ SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 
 CribBoardClassRec cribBoardClassRec = {
   { /* core fields */
-    /* superclass		*/	(WidgetClass) &widgetClassRec,
+    /* superclass		*/	(WidgetClass) &ksimpleClassRec,
     /* class_name		*/	"CribBoard",
     /* widget_size		*/	sizeof(CribBoardRec),
-    /* class_initialize		*/	NULL,
+    /* class_initialize		*/	ClassInitialize,
     /* class_part_initialize	*/	NULL,
     /* class_inited		*/	FALSE,
     /* initialize		*/	Initialize,
@@ -254,8 +243,13 @@ CribBoardClassRec cribBoardClassRec = {
     /* display_accelerator	*/	XtInheritDisplayAccelerator,
     /* extension		*/	NULL
   },
-  { /* simple fields */
-    /* empty			*/	0
+  /* simple */
+  {
+    XtInheritChangeSensitive,		/* change_sensitive */
+  },
+  /* ksimple */
+  {
+      0,				/* not used */
   },
   { /* cribBoard fields */
     /* empty			*/	0
@@ -272,6 +266,6 @@ XkwCribBoardSetPeg (Widget gw, int i, int v)
     if (0 <= i && i < w->cribBoard.numPegs && w->cribBoard.pegs[i] != v)
     {
 	w->cribBoard.pegs[i] = v;
-	XClearArea (XtDisplay (w), XtWindow (w), 0, 0, 0, 0, True);
+	Redisplay(gw, NULL, NULL);
     }
 }
