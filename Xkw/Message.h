@@ -23,6 +23,8 @@
 #ifndef _MESSAGE_H_
 #define _MESSAGE_H_
 
+#include <stdarg.h>
+
 void
 MessageStart (void);
 
@@ -30,9 +32,15 @@ void
 MessageEnd (Widget w);
 
 void
-MessageAppend (char *format, ...);
+MessageAppend (const char *format, ...);
 
 void
-Message (Widget w, char *format, ...);
+MessageAppendV (const char *format, va_list ap);
+
+void
+Message (Widget w, const char *format, ...);
+
+void
+MessageV (Widget w, const char *format, va_list ap);
 
 #endif /* _MESSAGE_H_ */

@@ -17,12 +17,12 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
  */
- 
+
 # include	<X11/Intrinsic.h>
 # include	<X11/StringDefs.h>
 # include	<X11/Xos.h>
@@ -116,8 +116,8 @@ MessageInt (char *s, int i)
 static char MessageBuffer[1024];
 static char *MessagePtr;
 
-static void
-append (char *format, va_list args)
+void
+MessageAppendV (const char *format, va_list args)
 {
     char	*m;
 
@@ -166,23 +166,29 @@ MessageEnd (Widget w)
 }
 
 void
-MessageAppend (char *format, ...)
+MessageAppend (const char *format, ...)
 {
     va_list args;
 
     va_start (args, format);
-    append (format, args);
+    MessageAppendV (format, args);
     va_end (args);
 }
 
 void
-Message (Widget w, char *format, ...)
+MessageV (Widget w, const char *format, va_list args)
+{
+    MessageStart ();
+    MessageAppendV (format, args);
+    MessageEnd (w);
+}
+
+void
+Message (Widget w, const char *format, ...)
 {
     va_list args;
 
-    MessageStart ();
     va_start (args, format);
-    append (format, args);
+    MessageV(w, format, args);
     va_end (args);
-    MessageEnd (w);
 }
