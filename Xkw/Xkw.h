@@ -128,6 +128,12 @@ XkwDrawBegin(Widget gw, Region region);
 void
 XkwDrawEnd(Widget gw, Region region, cairo_t *cr);
 
+void
+XkwDrawRoundedRect(cairo_t *cr, double width, double height, double radius);
+
+void
+XkwDrawOval(cairo_t *cr, double width, double height);
+
 _XFUNCPROTOEND
 
 #endif /* _Xkw_h */

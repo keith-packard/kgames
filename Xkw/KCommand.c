@@ -109,6 +109,10 @@ static XtResource resources[] = {
       offset(callbacks), XtRCallback, NULL },
     { XtNhighlightThickness, XtCThickness, XtRDimension, sizeof(Dimension),
       offset(highlight_thickness), XtRImmediate, (XtPointer)DEFAULT_SHAPE_HIGHLIGHT },
+    { XtNshapeStyle, XtCShapeStyle, XtRShapeStyle, sizeof(int),
+      offset(shape_style), XtRImmediate, (XtPointer)XmuShapeRectangle },
+    { XtNcornerRoundPercent, XtCCornerRoundPercent, XtRDimension, sizeof(Dimension),
+      offset(corner_round), XtRImmediate, (XtPointer)25 },
 };
 #undef offset
 
@@ -385,6 +389,28 @@ PaintKCommandWidget(Widget w, XEvent *event, Region region, Bool change)
     (*SuperClass->core_class.expose)(w, event, region);
 }
 
+static Bool
+ShapeButton(KCommandWidget cbw, Bool checkRectangular)
+{
+    Dimension corner_size = 0;
+
+    if (cbw->kcommand.shape_style == XmuShapeRoundedRectangle) {
+	corner_size = XtWidth(cbw) < XtHeight(cbw) ?
+			XtWidth(cbw) : XtHeight(cbw);
+	corner_size = (corner_size * cbw->kcommand.corner_round) / 100;
+    }
+
+    if (checkRectangular || cbw->kcommand.shape_style != XmuShapeRectangle) {
+	if (!XmuReshapeWidget((Widget)cbw, cbw->kcommand.shape_style,
+			      corner_size, corner_size)) {
+	    cbw->kcommand.shape_style = XmuShapeRectangle;
+	    return (False);
+	}
+    }
+
+    return (True);
+}
+
 /*ARGSUSED*/
 static Boolean
 XkwKCommandSetValues(Widget current, Widget request, Widget cnew,
@@ -412,6 +438,10 @@ XkwKCommandSetValues(Widget current, Widget request, Widget cnew,
 	cbw->ksimple.foreground = foreground;
 	cbw->ksimple.background = background;
     }
+    if (XtIsRealized(cnew)
+	&& oldcbw->kcommand.shape_style != cbw->kcommand.shape_style
+	&& !ShapeButton(cbw, True))
+	cbw->kcommand.shape_style = oldcbw->kcommand.shape_style;
 
     return True;
 }
@@ -445,11 +475,15 @@ XkwKCommandRealize(Widget w, Mask *valueMask, XSetWindowAttributes *attributes)
 {
     (*kcommandWidgetClass->core_class.superclass->core_class.realize)
 	(w, valueMask, attributes);
+    ShapeButton((KCommandWidget)w, False);
 }
 
 static void
 XkwKCommandResize(Widget w)
 {
+    if (XtIsRealized(w))
+	ShapeButton((KCommandWidget)w, False);
+
     if (kcommandWidgetClass->core_class.superclass->core_class.resize)
 	(*kcommandWidgetClass->core_class.superclass->core_class.resize)(w);
 }

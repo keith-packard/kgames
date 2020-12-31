@@ -46,8 +46,6 @@ typedef struct {
     char		*label;
     XtJustify		justify;
     Boolean		resize;
-    int			shape_style;
-    Dimension		corner_round;
 } KLabelPart;
 
 /*

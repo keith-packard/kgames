@@ -378,28 +378,6 @@ paint_card(CardsWidget w, cairo_t *cr, int x, int y, CardsRank rank, CardsSuit s
 }
 
 static void
-rounded_rect(cairo_t *cr, double width, double height, double radius)
-{
-    cairo_move_to(cr, radius, 0);
-    /* top */
-    cairo_line_to(cr, width - radius, 0);
-    /* top right */
-    cairo_arc(cr, width - radius, radius, radius, -M_PI/2, 0);
-    /* right */
-    cairo_line_to(cr, width, height - radius);
-    /* bottom right */
-    cairo_arc(cr, width - radius, height - radius, radius, 0, M_PI/2);
-    /* bottom */
-    cairo_line_to(cr, radius, height);
-    /* bottom left */
-    cairo_arc(cr, radius, height - radius, radius, M_PI/2, M_PI);
-    /* left */
-    cairo_line_to(cr, 0, radius);
-    /* top left */
-    cairo_arc(cr, radius, radius, radius, M_PI, M_PI * 3 / 2);
-}
-
-static void
 FillCard (CardsWidget w, cairo_t *cr, int x, int y)
 {
     double	width, height;
@@ -413,7 +391,7 @@ FillCard (CardsWidget w, cairo_t *cr, int x, int y)
 
     cairo_save(cr);
     cairo_translate(cr, x + lw/2.0, y + lw/2.0);
-    rounded_rect(cr, width - lw, height - lw, radius);
+    XkwDrawRoundedRect(cr, width - lw, height - lw, radius);
     cairo_fill_preserve(cr);
     XkwSetSource(cr, &w->ksimple.foreground);
     cairo_set_line_width(cr, lw);

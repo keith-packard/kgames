@@ -82,8 +82,10 @@ extern KCommandClassRec kcommandClassRec;
 /* New fields for the KCommand widget record */
 typedef struct {
     /* resources */
-    Dimension   highlight_thickness;
-    XtCallbackList callbacks;
+    Dimension   	highlight_thickness;
+    XtCallbackList	callbacks;
+    int			shape_style;
+    Dimension		corner_round;
 
     /* private state */
     Boolean	set;

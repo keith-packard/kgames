@@ -410,29 +410,6 @@ ZoomOutAction (Widget w, XEvent *e, String *p, Cardinal *n)
 }
 
 static void
-rounded_rect(cairo_t *cr, double width, double height, double inset)
-{
-    inset *= 4;
-    cairo_move_to(cr, inset, 0);
-    /* top */
-    cairo_line_to(cr, width - inset, 0);
-    /* top right */
-    cairo_arc(cr, width - inset, inset, inset, -M_PI/2, 0);
-    /* right */
-    cairo_line_to(cr, width, height - inset);
-    /* bottom right */
-    cairo_arc(cr, width - inset, height - inset, inset, 0, M_PI/2);
-    /* bottom */
-    cairo_line_to(cr, inset, height);
-    /* bottom left */
-    cairo_arc(cr, inset, height - inset, inset, M_PI/2, M_PI);
-    /* left */
-    cairo_line_to(cr, 0, inset);
-    /* top left */
-    cairo_arc(cr, inset, inset, inset, M_PI, M_PI * 3 / 2);
-}
-
-static void
 set_source_render(cairo_t *cr, XRenderColor *color)
 {
     cairo_set_source_rgb(cr,
@@ -452,7 +429,7 @@ OutlineDomino (DominosWidget w, cairo_t *cr, DominoPtr d, double width, double h
 	cairo_move_to(cr, width / 2.0, 0);
 	cairo_line_to(cr, width / 2.0, height);
     }
-    rounded_rect(cr, width, height, INSET(w));
+    XkwDrawRoundedRect(cr, width, height, INSET(w));
     cairo_stroke(cr);
 }
 
@@ -466,7 +443,7 @@ FillDomino (DominosWidget w, cairo_t *cr, DominoPtr d)
     set_source_render(cr, &w->dominos.face_color);
     cairo_save(cr);
     cairo_translate(cr, INSET(w), INSET(w));
-    rounded_rect(cr, width, height, INSET(w));
+    XkwDrawRoundedRect(cr, width, height, INSET(w));
     cairo_fill(cr);
     OutlineDomino (w, cr, d, width, height);
     cairo_restore(cr);

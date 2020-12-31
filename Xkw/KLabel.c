@@ -33,10 +33,6 @@ static XtResource resources[] = {
       offset (font), XtRString, XtDefaultFont },
     { XtNjustify, XtCJustify, XtRJustify, sizeof(XtJustify),
       offset (justify), XtRImmediate, (XtPointer) XtJustifyCenter },
-    { XtNshapeStyle, XtCShapeStyle, XtRShapeStyle, sizeof(int),
-      offset(shape_style), XtRImmediate, (XtPointer)XmuShapeRectangle },
-    { XtNcornerRoundPercent, XtCCornerRoundPercent, XtRDimension, sizeof(Dimension),
-      offset(corner_round), XtRImmediate, (XtPointer)25 },
 #undef offset
 };
 
