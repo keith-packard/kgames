@@ -25,7 +25,9 @@
 # include	<Xkw/Thermo.h>
 # include	<Xkw/Layout.h>
 # include	<Xkw/Pad.h>
+# include	<Xkw/KTextLine.h>
 # include	<Xkw/Xkw.h>
+# include	<Xkw/Message.h>
 # include	<X11/Xutil.h>
 # include	"gray.bm"
 # include	"cards-svg.h"
@@ -125,28 +127,16 @@ static struct menuEntry fileMenuEntries[] = {
 
 int	iscolor;
 
-static void
-displayString (Widget w, char *string)
-{
-    Arg   arg[1];
-
-    XtSetArg (arg[0], XtNlabel, string);
-    XtSetValues (w, arg, 1);
-}
-
 void
-Message (char *string)
+MilleMessage (char *string)
 {
-    displayString (message, string);
+    Message (message, "%s", string);
 }
 
 void
 VError(const char *string, va_list ap)
 {
-    char	buf[512];
-
-    vsprintf (buf, string, ap);
-    displayString (errors, buf);
+    MessageV(errors, string, ap);
 }
 
 void
@@ -297,10 +287,7 @@ DisplayDiscard (int type)
 void
 DisplayDeck (int numberLeft)
 {
-    char	buffer[512];
-
-    sprintf (buffer, "Cards: %3d", numberLeft);
-    displayString (deck_count, buffer);
+    Message(deck_count, "Cards: %d", numberLeft);
 }
 
 void
@@ -820,7 +807,7 @@ init_ui (int *argc, char **argv)
 				prompted_shell, arg, ONE);
     prompted_label = XtCreateManagedWidget ("promptedLabel", klabelWidgetClass,
 				prompted_dialog, NULL, ZERO);
-    prompted_value = XtCreateManagedWidget ("promptedValue", asciiTextWidgetClass,
+    prompted_value = XtCreateManagedWidget ("promptedValue", ktextLineWidgetClass,
 				prompted_dialog, NULL, ZERO);
     XkwDialogAddButton (prompted_dialog, "promptedOk", YesFunc, NULL);
     XkwDialogAddButton (prompted_dialog, "promptedCancel", NoFunc, NULL);
@@ -939,7 +926,7 @@ getmove(void)
 	XtNextEvent (&event);
 	XtDispatchEvent (&event);
     }
-    Message ("");
+    MilleMessage ("");
     Error ("", "");
 }
 

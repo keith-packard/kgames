@@ -47,22 +47,20 @@ horizontal { \
 		PlayHorzShrink = (100% - $MinPlayWidth) \
 		computerPlay < -$PlayHorzShrink * +1 -$PlayVertShrink > \
 		horizontal { \
-			-1 \
 			vertical { \
 				computerMiles < +1 -100% * +1 >\
 				horizontal { \
-					0 < +inf > \
 					vertical { \
-						message < * +1 > \
-						errors \
-						0 < +1 > \
+						message < +inf -inf * > \
+						errors < +inf -inf * >\
+						0 < +inf > \
 					}\
+					0 < +inf > \
 					vertical { \
 						deckCount < +inf -100% * +inf >\
 						deck < -100% * +inf -100% > \
 						0 < +1 > \
 					} \
-					(width deck / 4) < -inf > \
 				} \
 				humanMiles < +1 -100% * +1 > \
 			} \
