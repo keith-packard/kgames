@@ -26,4 +26,4 @@ executable('kcanfield',
 	   link_with: [lib_xkw],
 	   install: true)
 install_man('kcanfield.6')
-install_data('KCanfield-color.ad',             rename: 'KCanfield-color',              install_dir : app_defaults)
+install_data('KCanfield.ad',             rename: 'KCanfield',              install_dir : app_defaults)

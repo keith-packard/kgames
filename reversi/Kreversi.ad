@@ -1,11 +1,15 @@
-*Command.shapeStyle:	oval
+*Command.shapeStyle: oval
+*Background: #fffff0
+*menuBar.Background: #337744
+*Cards.Background: #337744
+*frame.Background: #337744
+*reversi.Background:	#337744
+*borderWidth: 0
+*SimpleMenu.borderWidth: 1
+
 *Command.borderWidth:	1
 *Toggle.borderWidth:	1
-*borderWidth:		0
 
-*reversi.white:		white
-*reversi.black:		black
-*reversi.Background:	#337744
 *reversi.width:		600
 *reversi.height:	600
 *reversi.borderWidth:	0
@@ -34,12 +38,7 @@
 *turn.borderWidth: 0
 
 *layout.layout: horizontal {\n \
-	-1 \n \
-	vertical { \n \
-		-1 \n \
-		reversi < +inff -100% * +inff -100% > \n \
-		-1 \n \
-	} \n \
+	reversi < +inff -100% * +inff -100% > \n \
 	vertical { \n \
 		10 < +10 -100% > \n \
 		horizontal { \

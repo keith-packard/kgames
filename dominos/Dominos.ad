@@ -1,11 +1,18 @@
+*Background: #fffff0
+*menuBar.Background: #337744
+*score0.Foreground: white
+*score1.Foreground: white
+*score0.Background: #337744
+*score1.Background: #337744
+*Dominos.Background: #337744
+*frame.Background: #337744
+*panner.Foreground: #fffff0
+
 *allowShellResize: True
 *message.justify: left
 *message.label: Keith's Dominos, Version 1.0
-*stacks.borderWidth: 0
-*deck.borderWidth: 0
-*piles.borderWidth: 0
-*score0.borderWidth: 0
-*score1.borderWidth: 0
+*Command.borderWidth: 1
+*borderWidth: 0
 *menuBar.layout: vertical { \
 	spacing = (height score0 / 3 ) \
 	$spacing < -100% >\
@@ -35,9 +42,6 @@
 
 *board.width: 650
 *board.height: 500
-*player.borderWidth: 1
-*board.boderWidth: 0
-*porthole.borderWidth: 0
 *player_scrollbar.orientation: horizontal
 
 *player.translations: #override \
@@ -77,10 +81,11 @@
 		vertical { panner 0 < +inf > } \
 		-1 \
 		vertical { \
-			player_porthole < +inf -inf * > \
 			-1 \
 			player_scrollbar < +inf -inf * > \
 			0 < +1 > \
+			player_porthole < +inf -inf * > \
+			-1 \
 		} \
 		-1 \
 	} \

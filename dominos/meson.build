@@ -43,7 +43,3 @@ install_man('kdominos.6')
 install_data('Dominos.ad',
 	     rename: 'Dominos',
 	     install_dir : app_defaults)
-
-install_data('Dominos-color.ad',
-	     rename: 'Dominos-color',
-	     install_dir : app_defaults)

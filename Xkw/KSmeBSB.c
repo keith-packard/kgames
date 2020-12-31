@@ -208,9 +208,6 @@ static void
 XkwKSmeBSBClassInitialize(void)
 {
     XkwInitializeWidgetSet();
-    XtAddConverter(XtRString, XtRJustify, XmuCvtStringToJustify, NULL, 0);
-    XtSetTypeConverter(XtRJustify, XtRString, XmuCvtJustifyToString,
-		       NULL, 0, XtCacheNone, NULL);
 }
 
 /*

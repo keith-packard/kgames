@@ -1,3 +1,10 @@
+*Background: #fffff0
+*menuBar.Background: #337744
+*Cards.Background: #337744
+*frame.Background: #337744
+*borderWidth: 0
+*SimpleMenu.borderWidth: 1
+
 *cards.numCols: 13
 *cards.numRows: 4
 *cards.overlap: none
@@ -13,7 +20,6 @@
 	
 *message.justify: left
 *message.label: Keith's Montana, Version 1.0
-*cards.borderWidth: 0
 *menuBar.layout: vertical { \
 	5 < -5 >\
 	horizontal { \
@@ -32,22 +38,15 @@
 	5 < -5 > \
 }
 *frame.layout: vertical {\
-	-1 \
 	horizontal {\
-		-1 \
 		menuBar < +inff -100% * >\
-		-1 \
 	} \
 	10 < -inf > \
 	cards < +100% -100% * +100% -100% > \
 	horizontal { \
-		-1 \
 		dealDisplay < -100% * > \
-		-1 \
 		message < +inff -100% * > \
-		-1 \
 	} \
-	-1 \
 }
 
 *fileMenuButton.leftBitmap: menu12

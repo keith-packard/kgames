@@ -1,3 +1,16 @@
+*Command.shapeStyle: oval
+*Background: #fffff0
+*menuBar.Background: #337744
+*Cards.Background: #337744
+*frame.Background: #337744
+*borderWidth: 0
+*SimpleMenu.borderWidth: 1
+
+*wasteLabel.Background: #337744
+*wasteLabel.Foreground: #fffff0
+*deckCount.Background: #337744
+*deckCount.Foreground: #fffff0
+
 *cards.numCols: 5
 *cards.numRows: 5
 
@@ -50,38 +63,22 @@
 	5 < -5 > \
 }
 *frame.layout: vertical {\
-	-1 \
-	horizontal {\
-		-1 \
-		menuBar < +inff -100% * >\
-		-1 \
-	} \
+	menuBar < +inff -100% * >\
 	10 < -inf > \
 	horizontal { \
 	    10 < -inf > \
-            vertical { \
-		cards < +100% -100% * +100% -100% > \
-		10 < -inf > \
-                horizontal { \
-		    vertical { \
-			deckCount < +inf -inf * > \
-			deck < -75% * -90% > \
-		    } \
-		    0 < +inf > \
-		    vertical { \
-			wasteLabel < +inf -inf * > \
-			waste < -75% * -90% > \
-		    } \
-                } \
-            } \
+	    cards < +100% -100% * +100% -100% > \
+	    10 < -inf > \
+	    vertical { \
+		deck < -75% * -90% > \
+		deckCount < +inf -inf * > \
+		10 < +inf -inf > \
+		wasteLabel < +inf -inf * > \
+		waste < -75% * -90% > \
+	    } \
 	    10 < -inf > \
         } \
-	horizontal { \
-		-1 \
-		message < +inff -100% * > \
-		-1 \
-	} \
-	-1 \
+	message < +inff -100% * > \
 }
 
 *fileMenuButton.leftBitmap: menu12

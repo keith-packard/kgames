@@ -27,4 +27,3 @@ executable('kthieves',
 	   install: true)
 install_man('kthieves.6')
 install_data('KThieves.ad',             rename: 'KThieves',              install_dir : app_defaults)
-install_data('KThieves-color.ad',             rename: 'KThieves-color',              install_dir : app_defaults)

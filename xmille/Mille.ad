@@ -1,7 +1,4 @@
-*Font: -*-helvetica-bold-r-normal--12-*-*-*-*-*-iso8859-1
-?.Font: -*-helvetica-bold-r-normal--12-*-*-*-*-*-iso8859-1
-?.backFont: -*-helvetica-bold-r-normal--24-*-*-*-*-*-iso8859-1
-*score*Font: fixed
+*score*Font: monospace-12
 
 *layout.translations: #augment \n\
 	<Key>1:		milleReasonable(1)\n\

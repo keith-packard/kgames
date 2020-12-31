@@ -1,8 +1,0 @@
-#include "KCanfield"
-
-*frame.Background: #374
-*tableau.Background: #374
-*foundation.Background: #374
-*logo.Foreground: white
-*logo.Background: #374
-*stock.borderWidth: 1

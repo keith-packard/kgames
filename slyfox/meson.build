@@ -27,5 +27,4 @@ executable('kslyfox',
 	   install: true)
 install_man('kslyfox.6')
 install_data('KSlyFox.ad',             rename: 'KSlyFox',              install_dir : app_defaults)
-install_data('KSlyFox-color.ad',       rename: 'KSlyFox-color',        install_dir : app_defaults)
 install_data('KSlyFox-hard.ad',        rename: 'KSlyFox-hard',         install_dir : app_defaults)

@@ -1,14 +1,19 @@
-*deck.numCols: 1
-*deck.numRows: 1
+*Background: #fffff0
+*menuBar.Background: #337744
+*Cards.Background: #337744
+*frame.Background: #337744
+*borderWidth: 0
+*SimpleMenu.borderWidth: 1
+*gameState.Background: #337744
+*gameState.Foreground: #fffff0
+*deckCount.Background: #337744
+*deckCount.Foreground: #fffff0
+*reserveCount.Background: #337744
+*reserveCount.Foreground: #fffff0
 
-*draw.numCols: 1
-*draw.numRows: 1
-
-*aces.numCols: 1
 *aces.numRows: 4
 !*aces.rowMajor: False
 
-*kings.numCols: 1
 *kings.numRows: 4
 !*kings.rowMajor: True
 
@@ -72,18 +77,6 @@
 *message.justify: left
 *message.label: Sly Fox, Version 0.9
 
-*row1.borderWidth: 0
-*row2.borderWidth: 0
-*row3.borderWidth: 0
-*row4.borderWidth: 0
-*deck.borderWidth: 0
-*deckCount.borderWidth: 0
-*draw.borderWidth: 0
-*reserveCount.borderWidth: 0
-*aces.borderWidth: 0
-*kings.borderWidth: 0
-*gameState.borderWidth: 0
-
 *menuBar.layout: vertical { \
 	5 < -5 >\
 	horizontal { \
@@ -104,12 +97,7 @@
 	5 < -5 > \
 }
 *frame.layout: vertical {\
-	-1 \
-	horizontal {\
-		-1 \
-		menuBar < +inff -100% * >\
-		-1 \
-	} \
+	menuBar < +inff -100% * >\
 	10 < -inf > \
 	horizontal { \
 		10 < -inf > \
@@ -124,6 +112,12 @@
 			row2 < -100% * +100% -100% > \
 			row3 < -100% * +100% -100% > \
 			row4 < -100% * +100% -100% > \
+			horizontal { \
+				deckCount < -inf * > \
+				gameState < +inf -100% *> \
+				reserveCount < -inf * > \
+			} \
+			0 < +inf >  \
 		} \
 		30 < +inf -inf > \
 		vertical { \
@@ -133,21 +127,7 @@
 		} \
 		10 < -inf > \
 	} \
-	horizontal {\
-		deckCount < -inf * > \
-		0 < +inf > \
-		reserveCount < -inf * > \
-	} \
-	vertical { \
-		-height deckCount < -inf > \
-		gameState < +inff -100% * > \
-	} \
-	horizontal { \
-		-1 \
-		message < +inff -100% * > \
-		-1 \
-	} \
-	-1 \
+	message < +inf * > \
 }
 
 *fileMenuButton.leftBitmap: menu12
