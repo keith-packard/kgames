@@ -26,8 +26,8 @@ SOFTWARE.
 
 ******************************************************************/
 
-#ifndef _XawReversi_h
-#define _XawReversi_h
+#ifndef _XkwReversi_h
+#define _XkwReversi_h
 
 /***********************************************************************
  *
@@ -35,8 +35,7 @@ SOFTWARE.
  *
  ***********************************************************************/
 
-#include <X11/Xaw/Simple.h>
-#include <X11/Xmu/Converters.h>
+#include <Xkw/KSimple.h>
 
 /* Resources:
 
@@ -66,8 +65,6 @@ SOFTWARE.
 
 typedef enum _ReversiStone { StoneWhite, StoneBlack, StoneNone } ReversiStone;
 
-/* Class record constants */
-
 extern WidgetClass reversiWidgetClass;
 
 typedef struct _ReversiMove {
@@ -80,25 +77,19 @@ typedef struct _ReversiRec      *ReversiWidget;
 #define XtNstoneCallback "stoneCallback"
 #define XtCStoneCallback "StoneCallback"
 
-extern void	XawReversiSetSpot (
-#if NeedFunctionPrototypes
-				   Widget,
-				   int, int,
-				   ReversiStone
-#endif
-				   );
+void
+XkwReversiSetSpot (Widget, int, int, ReversiStone);
 
-void XawReversiUpdate(Widget);
+void
+XkwReversiUpdate(Widget);
 
-extern void	XawReversiAnimateSpot (
-#if NeedFunctionPrototypes
-				       Widget,
-				       int, int,
-				       ReversiStone, ReversiStone,
-				       unsigned long,
-				       int
-#endif
-				       );
+void
+XkwReversiAnimateSpot (Widget		w,
+		       int		x,
+		       int		y,
+		       ReversiStone	A,
+		       ReversiStone	B,
+		       unsigned long	delay,
+		       int		repeat);
 
-#endif /* _XawReversi_h */
-/* DON'T ADD STUFF AFTER THIS #endif */
+#endif /* _XkwReversi_h */

@@ -200,7 +200,7 @@ static Boolean SetValues(Widget current, Widget request, Widget new, Arg *args, 
 }
 
 void
-XawReversiSetSpot (
+XkwReversiSetSpot (
 		   Widget	w,
 		   int		x,
 		   int		y,
@@ -219,7 +219,7 @@ XawReversiSetSpot (
 }
 
 void
-XawReversiUpdate(Widget w)
+XkwReversiUpdate(Widget w)
 {
     Redisplay(w, NULL, NULL);
 }
@@ -248,15 +248,13 @@ DoAnimate (XtPointer closure, XtIntervalId *interval)
 }
 
 void
-XawReversiAnimateSpot (
-		       Widget		w,
+XkwReversiAnimateSpot (Widget		w,
 		       int		x,
 		       int		y,
 		       ReversiStone	A,
 		       ReversiStone	B,
 		       unsigned long	delay,
-		       int		repeat
-		       )
+		       int		repeat)
 {
     ReversiWidget   rw = (ReversiWidget) w;
     Animate	    *a;

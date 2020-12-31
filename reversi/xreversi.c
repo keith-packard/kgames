@@ -24,14 +24,11 @@
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
 #include <X11/Xaw/Cardinals.h>
-#include <X11/Xaw/AsciiText.h>
 #include <X11/Shell.h>
 #include <Xkw/KCommand.h>
-#include <X11/Xaw/Toggle.h>
+#include <Xkw/KTextLine.h>
+#include <Xkw/KToggle.h>
 #include <Xkw/KLabel.h>
-#include <X11/Xaw/Paned.h>
-#include <X11/Xaw/Box.h>
-#include <X11/Xaw/Form.h>
 #include <Xkw/Layout.h>
 #include "Reversi.h"
 #include <stdio.h>
@@ -97,7 +94,7 @@ MakeRadioButton (
     if (group) {
 	XtSetArg (args[n], XtNradioGroup, (caddr_t) (intptr_t) group); n++;
     }
-    button = XtCreateManagedWidget (name, toggleWidgetClass,
+    button = XtCreateManagedWidget (name, ktoggleWidgetClass,
 				       parent, args, n);
     if (callback != NULL)
 	XtAddCallback (button, XtNcallback, callback, (caddr_t) NULL);
@@ -110,16 +107,13 @@ MakeStringBox(Widget parent, String name, String string)
     Arg args[5];
     Cardinal numargs = 0;
     Widget StringW;
-    Widget Source;
 
-    XtSetArg(args[numargs], XtNeditType, XawtextEdit); numargs++;
     XtSetArg(args[numargs], XtNstring, string); numargs++;
 
-    StringW = XtCreateManagedWidget(name, asciiTextWidgetClass,
+    StringW = XtCreateManagedWidget(name, ktextLineWidgetClass,
 			      parent, args, numargs);
 
-    Source = XawTextGetSource (StringW);
-    XtAddCallback (Source, XtNcallback, DoSetLevel, (caddr_t) NULL);
+    XtAddCallback (StringW, XtNeditCallback, DoSetLevel, (caddr_t) NULL);
     return(StringW);
 }
 
@@ -186,7 +180,7 @@ DoPlay (Widget w, XtPointer closure, XtPointer call_data)
     (void) w;
     (void) closure;
     (void) call_data;
-    current = (intptr_t) XawToggleGetCurrent (playWhite);
+    current = (intptr_t) XkwKToggleGetCurrent (playWhite);
     switch (current)
     {
     case PLAY_WHITE:
@@ -211,7 +205,7 @@ SetPlay (void)
 {
     int	current, should_be = 0;
 
-    current = (intptr_t) XawToggleGetCurrent (playWhite);
+    current = (intptr_t) XkwKToggleGetCurrent (playWhite);
     switch (com)
     {
     case WHITE:
@@ -229,7 +223,7 @@ SetPlay (void)
     }
     if (current != should_be)
     {
-	XawToggleSetCurrent (playWhite, (caddr_t) (intptr_t) should_be);
+	XkwKToggleSetCurrent (playWhite, (caddr_t) (intptr_t) should_be);
     }
 }
 
@@ -269,15 +263,13 @@ DoSetLevelAction (Widget w, XEvent *event, String *string, Cardinal *num)
 static void
 SetLevel (void)
 {
-    Widget  source;
     Arg	    args[1];
     char    *value;
     int	    newlevel;
 
     levelChanged = FALSE;
-    source = XawTextGetSource (levelValue);
     XtSetArg (args[0], XtNstring, &value);
-    XtGetValues (source, args, 1);
+    XtGetValues (levelValue, args, 1);
     if (sscanf (value, "%d", &newlevel) == 1)
 	level = newlevel;
 }
@@ -363,9 +355,9 @@ display (boardT board)
 		stone = StoneNone;
 		break;
 	    }
-	    XawReversiSetSpot (reversi, i-1, j-1, stone);
+	    XkwReversiSetSpot (reversi, i-1, j-1, stone);
 	}
-    XawReversiUpdate(reversi);
+    XkwReversiUpdate(reversi);
     XFlush (XtDisplay (topLevel));
 }
 
@@ -436,7 +428,7 @@ dispMove (int x, int y, int player)
     else
 	A = StoneBlack;
     B = StoneNone;
-    XawReversiAnimateSpot (reversi, x - 1, y - 1, A, B,
+    XkwReversiAnimateSpot (reversi, x - 1, y - 1, A, B,
 			   (unsigned long) app_resources.animateTimeout,
 			   app_resources.animateRepeat);
     dispError ("");
