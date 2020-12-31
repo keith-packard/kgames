@@ -122,7 +122,7 @@ show_text(cairo_t *cr, XRenderColor *fg, XRenderColor *bg, double x, double y, c
     cairo_font_extents(cr, &font_extents);
     if (bg) {
 	XkwSetSource(cr, bg);
-	cairo_rectangle(cr, x, y - font_extents.ascent, x + text_extents.x_advance, y + font_extents.descent);
+	cairo_rectangle(cr, x, y - font_extents.ascent, text_extents.x_advance, font_extents.ascent + font_extents.descent);
 	cairo_fill(cr);
     }
     XkwSetSource(cr, fg);
@@ -298,13 +298,19 @@ RedrawText (PadWidget w, cairo_t *cr, int row, int start_col, int end_col)
 
     t = w->pad.lines[row].text + start_col;
     a = w->pad.lines[row].attr + start_col;
-    while (start_col < end_col && *t++ == ' ' && *a++ == XkwPadNormal)
+    while (start_col < end_col && *t == ' ' && *a == XkwPadNormal) {
+	t++;
+	a++;
 	start_col++;
+    }
 
-    t = w->pad.lines[row].text + end_col;
-    a = w->pad.lines[row].attr + end_col;
-    while (end_col > start_col && *--t == ' ' && *--a == XkwPadNormal)
+    t = w->pad.lines[row].text + end_col - 1;
+    a = w->pad.lines[row].attr + end_col - 1;
+    while (end_col > start_col && *t == ' ' && *a == XkwPadNormal) {
+	t--;
+	a--;
 	end_col--;
+    }
 
     if (start_col < end_col)
 	DrawText (w, cr, row, start_col, end_col);
