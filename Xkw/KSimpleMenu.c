@@ -284,7 +284,7 @@ KSimpleMenuClassRec ksimpleMenuClassRec = {
   /* core */
   {
     (WidgetClass)Superclass,		/* superclass */
-    "KSimpleMenu",			/* class_name */
+    "SimpleMenu",			/* class_name */
     sizeof(KSimpleMenuRec),		/* size */
     XkwKSimpleMenuClassInitialize,	/* class_initialize */
     XkwKSimpleMenuClassPartInitialize,	/* class_part_initialize */

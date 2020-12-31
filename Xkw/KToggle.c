@@ -191,7 +191,7 @@ KToggleClassRec ktoggleClassRec = {
   /* core */
   {
     (WidgetClass)superclass,		/* superclass */
-    "KToggle",				/* class_name */
+    "Toggle",				/* class_name */
     sizeof(KToggleRec),			/* widget_size */
     NULL,				/* class_initialize */
     NULL,				/* class_part_initialize */

@@ -214,7 +214,7 @@ KLabelClassRec klabelClassRec = {
   /* core */
   {
     (WidgetClass)superclass,		/* superclass */
-    "KLabel",				/* class_name */
+    "Label",				/* class_name */
     sizeof(KLabelRec),			/* widget_size */
     XkwKLabelClassInitialize,		/* class_initialize */
     NULL,				/* class_part_initialize */
