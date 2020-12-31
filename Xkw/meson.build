@@ -63,6 +63,7 @@ srcs_xkw = [
   'KSme.c',
   'KSmeBSB.c',
   'KSmeLine.c',
+  'KTextLine.c',
   'XkwInit.c',
 ]
 
