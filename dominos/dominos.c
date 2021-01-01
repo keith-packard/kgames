@@ -828,7 +828,7 @@ BoardCallback (Widget w, XtPointer closure, XtPointer data)
 
     (void) w;
     (void) closure;
-    if (strcmp (*input->params, "dest") != 0)
+    if (*input->num_params > 0 && strcmp (*input->params, "dest") != 0)
     {
 	selected_domino = 0;
 	selected_player = 0;
