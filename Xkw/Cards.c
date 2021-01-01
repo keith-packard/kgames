@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "CardsP.h"
-#include "cards.h"
+#include "cards-svg.h"
 
 #define offset(field)	XtOffsetOf(CardsRec, cards.field)
 
