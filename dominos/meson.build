@@ -30,6 +30,7 @@ srcs_dominos = [
   'util.c',
 ]
 
+
 executable('kdominos',
 	   srcs_dominos,
 	   include_directories: inc,
@@ -41,8 +42,4 @@ install_man('kdominos.6')
 
 install_data('Dominos.ad',
 	     rename: 'Dominos',
-	     install_dir : app_defaults)
-
-install_data('Dominos-color.ad',
-	     rename: 'Dominos-color',
 	     install_dir : app_defaults)

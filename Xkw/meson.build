@@ -35,10 +35,18 @@ bison_gen = generator(bison,
 			  
 bison_files = bison_gen.process('laygram.y')
 
+make_cards_svg = find_program('make-cards-svg')
+
+cards_files = custom_target('svg-cards',
+			    output : ['cards-svg.c', 'cards-svg.h'],
+			    command : [make_cards_svg, '@OUTPUT0@', '@OUTPUT1@'])
+
 srcs_xkw = [
   'Animate.c',
   'Cards.c',
   'CardsUtil.c',
+  'Dialog.c',
+  'Draw.c',
   'Hand.c',
   'Layout.c',
   'medium.c',
@@ -47,17 +55,36 @@ srcs_xkw = [
   'padtest.c',
   'SuitCards.c',
   'Thermo.c',
+  'Svg.c',
+  'KCommand.c',
+  'KLabel.c',
+  'KMenuButton.c',
+  'KSimple.c',
+  'KSimpleMenu.c',
+  'KSme.c',
+  'KSmeBSB.c',
+  'KSmeLine.c',
+  'KTextLine.c',
+  'KToggle.c',
+  'XkwInit.c',
 ]
 
 lib_xkw = library('Xkw',
-		  srcs_xkw, flex_files, bison_files,
+		  srcs_xkw, flex_files, bison_files, cards_files,
 		  dependencies: x_libs,
 		  install: true,
-		  version: '1.0.0',
+		  version: '2.0.0',
 		  include_directories: inc)
 
 executable('layout',
 	   'layout.c',
+	   dependencies: x_libs,
+	   include_directories: inc,
+	   link_with: [lib_xkw],
+	   install: false)
+
+executable('padtest',
+	   'padtest.c',
 	   dependencies: x_libs,
 	   include_directories: inc,
 	   link_with: [lib_xkw],

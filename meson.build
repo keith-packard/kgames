@@ -27,13 +27,22 @@ project('kgames', 'c',
 c_compiler = meson.get_compiler('c')
 
 lib_m = c_compiler.find_library('m')
-lib_x11 = c_compiler.find_library('X11')
-lib_xmu = c_compiler.find_library('Xmu')
-lib_xpm = c_compiler.find_library('Xpm')
-lib_xt = c_compiler.find_library('Xt')
-lib_xaw = c_compiler.find_library('Xaw')
+lib_x11 = dependency('x11')
+lib_xmu = dependency('xmu')
+lib_xpm = dependency('xpm')
+lib_xt = dependency('xt')
+lib_xaw = dependency('xaw7')
+lib_render = dependency('xrender')
+lib_freetype = dependency('freetype2')
+lib_fontconfig = dependency('fontconfig')
+lib_cairo = dependency('cairo')
+lib_cairo_ft = dependency('cairo-ft')
+lib_xft = dependency('xft')
+lib_rsvg2 = dependency('librsvg-2.0')
 
-x_libs = [lib_xaw, lib_xt, lib_xmu, lib_xpm, lib_x11, lib_m]
+x_libs = [lib_xft, lib_cairo_ft, lib_rsvg2, lib_cairo, lib_fontconfig,
+	  lib_freetype, lib_render, lib_xaw, lib_xt, lib_xmu,
+	  lib_xpm, lib_x11, lib_m]
 
 prefix = get_option('prefix')
 datadir = get_option('datadir')

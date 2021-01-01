@@ -30,13 +30,12 @@
 # include	<X11/Xos.h>
 # include	<X11/Xaw/Command.h>
 # include	<X11/Xaw/Box.h>
-# include	<X11/Xaw/Dialog.h>
-# include	<X11/Xaw/Label.h>
-# include	<X11/Xaw/MenuButton.h>
-# include	<X11/Xaw/SimpleMenu.h>
-# include	<X11/Xaw/SmeBSB.h>
-# include	<X11/Xaw/AsciiText.h>
 # include	<X11/Xaw/Cardinals.h>
+# include	<Xkw/KLabel.h>
+# include	<Xkw/KCommand.h>
+# include	<Xkw/KMenuButton.h>
+# include	<Xkw/KSimpleMenu.h>
+# include	<Xkw/KSmeBSB.h>
 # include	<Xkw/Cards.h>
 # include	<Xkw/Layout.h>
 # include	<X11/Xutil.h>
@@ -808,11 +807,11 @@ CreateMenu (Widget parent, char *name, struct menuEntry *entries, int count)
     Widget  entry;
     int	    i;
 
-    menu = XtCreatePopupShell (name, simpleMenuWidgetClass,
+    menu = XtCreatePopupShell (name, ksimpleMenuWidgetClass,
 			       parent, NULL, ZERO);
     for (i = 0; i < count; i++) {
 	entry = XtCreateManagedWidget (entries[i].name,
-				       smeBSBObjectClass, menu, NULL, ZERO);
+				       ksmeBSBObjectClass, menu, NULL, ZERO);
 	XtAddCallback (entry, XtNcallback, entries[i].function, NULL);
     }
     return menu;
@@ -844,6 +843,10 @@ main (int argc, char **argv)
     toplevel = XtInitialize (argv[0], "KAces", options, XtNumber(options),
 			     &argc, argv);
 
+    Arg	args[1];
+    XtSetArg(args[0], XtNinput, True);
+    XtSetValues(toplevel, args, ONE);
+
     XtGetApplicationResources (toplevel, (XtPointer)&acesResources, resources,
 			       XtNumber (resources), NULL, 0);
 
@@ -857,23 +860,23 @@ main (int argc, char **argv)
     frame = XtCreateManagedWidget ("frame", layoutWidgetClass, toplevel, NULL, 0);
     menuBar = XtCreateManagedWidget ("menuBar", layoutWidgetClass, frame, NULL, 0);
     fileMenuButton = XtCreateManagedWidget ("fileMenuButton",
-					    menuButtonWidgetClass,
+					    kmenuButtonWidgetClass,
 					    menuBar, NULL, ZERO);
     fileMenu = CreateMenu (fileMenuButton, "fileMenu",
 			   fileMenuEntries, XtNumber (fileMenuEntries));
-    newGame = XtCreateManagedWidget ("newGame", commandWidgetClass,
+    newGame = XtCreateManagedWidget ("newGame", kcommandWidgetClass,
 				     menuBar, NULL, ZERO);
     XtAddCallback(newGame, XtNcallback, NewGameCallback, NULL);
-    undo = XtCreateManagedWidget ("undo", commandWidgetClass,
+    undo = XtCreateManagedWidget ("undo", kcommandWidgetClass,
 				  menuBar, NULL, ZERO);
     XtAddCallback(undo, XtNcallback, UndoCallback, NULL);
-    hint = XtCreateManagedWidget ("hint", commandWidgetClass,
+    hint = XtCreateManagedWidget ("hint", kcommandWidgetClass,
 				  menuBar, NULL, ZERO);
     XtAddCallback(hint, XtNcallback, FindAMoveCallback, NULL);
-    score = XtCreateManagedWidget ("score", commandWidgetClass,
+    score = XtCreateManagedWidget ("score", kcommandWidgetClass,
 				   menuBar, NULL, ZERO);
     XtAddCallback(score, XtNcallback, ScoreCallback, NULL);
-    pileAll = XtCreateManagedWidget ("pileAll", commandWidgetClass,
+    pileAll = XtCreateManagedWidget ("pileAll", kcommandWidgetClass,
 				   menuBar, NULL, ZERO);
     XtAddCallback(pileAll, XtNcallback, PileAllCallback, NULL);
     deck = XtCreateManagedWidget ("deck", cardsWidgetClass, frame, NULL, 0);
@@ -882,7 +885,7 @@ main (int argc, char **argv)
     XtAddCallback (piles, XtNinputCallback, StackCallback, NULL);
     stacks = XtCreateManagedWidget ("stacks", cardsWidgetClass, frame, NULL, 0);
     XtAddCallback (stacks, XtNinputCallback, StackCallback, NULL);
-    message = XtCreateManagedWidget ("message", labelWidgetClass, frame, NULL, 0);
+    message = XtCreateManagedWidget ("message", klabelWidgetClass, frame, NULL, 0);
     srandom (getpid () ^ time ((long *) 0));
     NewGame ();
     XtRealizeWidget (toplevel);

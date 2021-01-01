@@ -28,26 +28,6 @@
 #include <X11/Xatom.h>
 #include "PadP.h"
 
-static XtResource resources[] = {
-#define offset(field) XtOffsetOf(PadRec, pad.field)
-    /* {name, class, type, size, offset, default_type, default_addr}, */
-    { XtNfont, XtCFont, XtRFontStruct, sizeof (XFontStruct *),
-      offset (font), XtRString, XtDefaultFont },
-    { XtNforeground, XtCForeground, XtRPixel, sizeof (unsigned long),
-      offset (foreground_pixel), XtRString, XtDefaultForeground },
-    { XtNbold, XtCBold, XtRPixel, sizeof (unsigned long),
-      offset (bold_pixel), XtRString, "red" },
-    { XtNnumRows, XtCNumRows, XtRDimension, sizeof (Dimension),
-      offset (rows), XtRImmediate, (XtPointer) 1},
-    { XtNnumCols, XtCNumCols, XtRDimension, sizeof (Dimension),
-      offset (cols), XtRImmediate, (XtPointer) 1},
-    {XtNinternalBorderWidth, XtCInternalBorderWidth, XtRDimension, sizeof (Dimension),
-     offset(internal_border), XtRImmediate, (XtPointer) 2},
-    {XtNresizeCallback, XtCCallback, XtRCallback,sizeof(XtPointer),
-      offset(resize_callbacks), XtRCallback, (XtPointer)NULL},
-#undef offset
-};
-
 static void
 Clear (PadLinePtr l, int n)
 {
@@ -60,7 +40,6 @@ Clear (PadLinePtr l, int n)
 	*a++ = XkwPadNormal;
     }
     *t = '\0';
-    l->serial = 0;
 }
 
 static void
@@ -84,11 +63,7 @@ ResizeBuffer (PadLinePtr *bp, Dimension old_rows, Dimension old_cols, Dimension 
 	if (max_row > old_rows)
 	    max_row = old_rows;
 	for (row = 0; row < max_row; row++)
-	{
 	    CopyText (&oldb[row], &b[row], 0, max_col);
-	    b[row].serial = oldb[row].serial;
-	    b[row].id = oldb[row].id;
-	}
 	for (row = 0; row < old_rows; row++)
 	    DisposeText (&oldb[row]);
 	Dispose (oldb);
@@ -99,74 +74,108 @@ ResizeBuffer (PadLinePtr *bp, Dimension old_rows, Dimension old_cols, Dimension 
 static void
 ResizeText (PadWidget w, Dimension rows, Dimension cols)
 {
-    int	    row;
-
-    ResizeBuffer (&w->pad.is, w->pad.rows, w->pad.cols, rows, cols);
-    ResizeBuffer (&w->pad.want, w->pad.rows, w->pad.cols, rows, cols);
+    ResizeBuffer (&w->pad.lines, w->pad.rows, w->pad.cols, rows, cols);
     w->pad.rows = rows;
     w->pad.cols = cols;
-    for (row = 0; row < rows; row++)
-	w->pad.is[row].id = w->pad.want[row].id = NextSerial (w);
     if (w->pad.resize_callbacks != NULL)
 	XtCallCallbackList ((Widget) w, w->pad.resize_callbacks, (XtPointer) NULL);
 }
 
 static void
+init_cairo(PadWidget w, cairo_t *cr)
+{
+    cairo_set_font_face(cr, w->pad.font.font_face);
+    cairo_set_font_size(cr, w->pad.font.size * w->ksimple.dpi / 72.0);
+}
+
+static cairo_t *
+get_cairo(PadWidget w)
+{
+    cairo_t *cr = XkwGetCairo((Widget) w);
+    init_cairo(w, cr);
+    return cr;
+}
+
+static cairo_t *
+draw_begin(PadWidget w, Region region)
+{
+    cairo_t *cr = XkwDrawBegin((Widget) w, region);
+    init_cairo(w, cr);
+    return cr;
+}
+
+static void
+draw_end(PadWidget w, Region region, cairo_t *cr)
+{
+    XkwDrawEnd((Widget) w, region, cr);
+}
+
+static int
+show_text(cairo_t *cr, XRenderColor *fg, XRenderColor *bg, double x, double y, char *text, int len)
+{
+    char save = text[len];
+    if (save != '\0')
+	text[len] = '\0';
+    cairo_text_extents_t text_extents;
+    cairo_font_extents_t font_extents;
+    cairo_text_extents(cr, text, &text_extents);
+    cairo_font_extents(cr, &font_extents);
+    if (bg) {
+	XkwSetSource(cr, bg);
+	cairo_rectangle(cr, x, y - font_extents.ascent, text_extents.x_advance, font_extents.ascent + font_extents.descent);
+	cairo_fill(cr);
+    }
+    XkwSetSource(cr, fg);
+    cairo_move_to(cr, x, y);
+    cairo_show_text(cr, text);
+    if (save != '\0')
+	text[len] = save;
+    return text_extents.x_advance;
+}
+
+static double
+text_width(cairo_t *cr, char *text, int len)
+{
+    char save = text[len];
+    if (save != '\0')
+	text[len] = '\0';
+    cairo_text_extents_t text_extents;
+    cairo_text_extents(cr, text, &text_extents);
+    if (save != '\0')
+	text[len] = save;
+   return text_extents.x_advance;
+}
+
+static void
 getSize (PadWidget w, Dimension rows, Dimension cols, Dimension *widthp, Dimension *heightp)
 {
-    int	size;
-    unsigned long   value, value2;
-    int		dir, font_ascent, font_descent;
-    XCharStruct	overall;
+    cairo_t *cr = get_cairo(w);
+    cairo_font_extents_t font_extents;
+    cairo_font_extents(cr, &font_extents);
 
-    w->pad.fixed_width = (w->pad.font->max_bounds.width ==
-			 w->pad.font->min_bounds.width);
-    if (XGetFontProperty (w->pad.font, XA_UNDERLINE_POSITION, &value))
-	w->pad.underline_pos = (int) value;
-    else
-	w->pad.underline_pos = (w->pad.font->max_bounds.descent + 1) >> 1;
+    w->pad.underline_pos = (font_extents.descent) / 2;
+    w->pad.underline_thickness = font_extents.height / 10;
 
-    if (XGetFontProperty (w->pad.font, XA_UNDERLINE_THICKNESS, &value))
-	w->pad.underline_thickness = (int) value;
-    else if (XGetFontProperty (w->pad.font, XA_WEIGHT, &value) &&
-	     XGetFontProperty (w->pad.font, XInternAtom (XtDisplay (w),
-							 "CAP_HEIGHT",
-							 False), &value2))
-    {
-	w->pad.underline_thickness = (int) value * value2 / 1000;
-    }
-    else
-    {
-	/* this is not quite right -- the thickness of an underscore
-	 * may not be what we want, but it should work OK
-	 */
-	XTextExtents (w->pad.font, "_", 1, &dir, &font_ascent, &font_descent,
-		      &overall);
-	size = overall.ascent + overall.descent;
-	if (size < (font_ascent + font_descent) / 2)
-	    w->pad.underline_thickness = size;
-	else
-	    w->pad.underline_thickness = (font_ascent + font_descent) / 2;
-    }
-    if (w->pad.underline_thickness <= 0)
+    if (w->pad.underline_thickness < 1)
 	w->pad.underline_thickness = 1;
-    if (w->pad.underline_pos + w->pad.underline_thickness > w->pad.font->descent)
+    if (w->pad.underline_pos + w->pad.underline_thickness > font_extents.descent)
     {
 	if (w->pad.underline_pos > 1)
-	    w->pad.underline_pos = w->pad.font->descent - w->pad.underline_thickness;
+	    w->pad.underline_pos = font_extents.descent - w->pad.underline_thickness;
 	if (w->pad.underline_pos <= 1)
 	{
 	    if (w->pad.underline_pos < 0)
 		w->pad.underline_pos = 0;
-	    w->pad.underline_thickness = w->pad.font->descent - w->pad.underline_pos;
+	    w->pad.underline_thickness = font_extents.descent - w->pad.underline_pos;
 	}
     }
-    w->pad.char_width = XTextWidth (w->pad.font, "0", 1);
-    w->pad.char_height = w->pad.font->ascent + w->pad.font->descent;
-    w->pad.char_vAdjust = w->pad.font->ascent;
+    w->pad.char_width = text_width(cr, "0", 1);
+    w->pad.char_height = font_extents.height * 1.1;
+    w->pad.char_vAdjust = font_extents.ascent;
     w->pad.char_hAdjust = 0;
     *widthp = w->pad.char_width * cols + 2 * w->pad.internal_border;
     *heightp = w->pad.char_height * rows + 2 * w->pad.internal_border;
+    cairo_destroy(cr);
 }
 
 static void
@@ -185,110 +194,80 @@ setSize (PadWidget w)
 }
 
 static void
+ClassInitialize(void)
+{
+    XkwInitializeWidgetSet();
+}
+
+static void
 Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     PadWidget	new = (PadWidget) gnew;
-    XGCValues	gcv;
 
     (void) greq;
     (void) args;
     (void) count;
     getSize (new, new->pad.rows, new->pad.cols,
 	     &new->core.width, &new->core.height);
-    gcv.foreground = new->pad.foreground_pixel;
-    gcv.background = new->core.background_pixel;
-    gcv.font = new->pad.font->fid;
-    new->pad.normal_gc = XtGetGC (gnew, GCForeground|GCBackground|GCFont, &gcv);
-    gcv.foreground = new->core.background_pixel;
-    gcv.background = new->pad.foreground_pixel;
-    gcv.font = new->pad.font->fid;
-    new->pad.inverse_gc = XtGetGC (gnew, GCForeground|GCBackground|GCFont, &gcv);
-    gcv.foreground = new->pad.bold_pixel;
-    gcv.background = new->core.background_pixel;
-    gcv.font = new->pad.font->fid;
-    new->pad.bold_gc = XtGetGC (gnew, GCForeground|GCBackground|GCFont, &gcv);
-    gcv.foreground = new->core.background_pixel;
-    gcv.background = new->pad.bold_pixel;
-    gcv.font = new->pad.font->fid;
-    new->pad.bold_inverse_gc = XtGetGC (gnew, GCForeground|GCBackground|GCFont, &gcv);
-    new->pad.is = 0;
-    new->pad.want = 0;
-    new->pad.serial = 0;
-    new->pad.copy = 0;
+    new->pad.lines = 0;
     ResizeText (new, new->pad.rows, new->pad.cols);
 }
 
-static void
-Destroy (Widget gw)
-{
-    PadWidget    w = (PadWidget) gw;
-
-    XtReleaseGC (gw, w->pad.normal_gc);
-    XtReleaseGC (gw, w->pad.inverse_gc);
-}
-
 static int
-XToCol(PadWidget w, int row, int x)
+XToCol(PadWidget w, cairo_t *cr, int row, int x)
 {
     char    *c;
     int	    col;
 
-    c = w->pad.is[row].text;
+    c = w->pad.lines[row].text;
     for (col = 0; col < w->pad.cols - 1; col++)
-	if (x < XTextWidth (w->pad.font, c, col))
+	if (x < text_width (cr, c, col))
 	    break;
     return col;
 }
 
 static void
-DrawText (PadWidget w, int row, int start_col, int end_col)
+DrawText (PadWidget w, cairo_t *cr, int row, int start_col, int end_col)
 {
-    GC		gc;
-    Display	*dpy = XtDisplay(w);
-    Window	win = XtWindow (w);
     int		change_col;
     char	attr;
-    char	*is_a, *is_t;
-    PadLinePtr	is;
+    char	*a, *t;
+    PadLinePtr	line;
     int		x, y;
     int		width;
 
-    is = &w->pad.is[row];
-    is_a = is->attr + start_col;
-    is_t = is->text + start_col;
+    line = &w->pad.lines[row];
+    a = line->attr + start_col;
+    t = line->text + start_col;
     change_col = start_col;
-    x = TextX (w, start_col);
-    y = TextY (w, row);
+    x = (w)->pad.internal_border + w->pad.char_hAdjust + text_width(cr, line->text, start_col);
+    y = (w)->pad.internal_border + w->pad.char_vAdjust + row * w->pad.char_height;
     while (start_col < end_col) {
-	attr = *is_a;
+	attr = *a;
 	do {
-	    ++is_a;
+	    ++a;
 	    ++change_col;
-	} while (change_col < end_col && *is_a == attr);
+	} while (change_col < end_col && *a == attr);
+
+	XRenderColor *fg = &w->ksimple.foreground;
+	XRenderColor *bg = NULL;
+
 	if (attr & XkwPadBold)
-	{
-	    gc = w->pad.bold_gc;
-	    if (attr & XkwPadInverse)
-		gc = w->pad.bold_inverse_gc;
+	    fg = &w->pad.bold;
+
+	if (attr & XkwPadInverse) {
+	    bg = fg;
+	    fg = &w->ksimple.background;
 	}
-	else
-	{
-	    gc = w->pad.normal_gc;
-	    if (attr & XkwPadInverse)
-		gc = w->pad.inverse_gc;
-	}
-	XDrawImageString (dpy, win, gc, x, y,
-			  is_t, change_col - start_col);
-	if (w->pad.fixed_width)
-	    width = (change_col - start_col) * w->pad.char_width;
-	else
-	    width = XTextWidth (w->pad.font, is_t, change_col - start_col);
+
+	width = show_text(cr, fg, bg, x, y, t, change_col - start_col);
 	if (attr & XkwPadUnderline)
 	{
-	    XFillRectangle (dpy, win, gc,
-			    x, y + w->pad.underline_pos,
+	    cairo_rectangle(cr, x, y + w->pad.underline_pos,
 			    width, w->pad.underline_thickness);
+	    cairo_fill(cr);
 	}
+/*
 	if (attr & XkwPadOutline)
 	{
 	    int	    o_col, o_x, o_y, o_w, o_h;
@@ -305,83 +284,142 @@ DrawText (PadWidget w, int row, int start_col, int end_col)
 		}
 	    }
 	}
+*/
 	x += width;
-	is_t += (change_col - start_col);
+	t += (change_col - start_col);
 	start_col = change_col;
     }
 }
 
 static void
-RedrawText (PadWidget w, int row, int start_col, int end_col)
+RedrawText (PadWidget w, cairo_t *cr, int row, int start_col, int end_col)
 {
     char    *t, *a;
 
-    t = w->pad.is[row].text + start_col;
-    a = w->pad.is[row].attr + start_col;
-    while (start_col < end_col && *t++ == ' ' && *a++ == XkwPadNormal)
+    t = w->pad.lines[row].text + start_col;
+    a = w->pad.lines[row].attr + start_col;
+    while (start_col < end_col && *t == ' ' && *a == XkwPadNormal) {
+	t++;
+	a++;
 	start_col++;
-    t = w->pad.is[row].text + end_col;
-    a = w->pad.is[row].attr + end_col;
-    while (end_col > start_col && *--t == ' ' && *--a == XkwPadNormal)
+    }
+
+    t = w->pad.lines[row].text + end_col - 1;
+    a = w->pad.lines[row].attr + end_col - 1;
+    while (end_col > start_col && *t == ' ' && *a == XkwPadNormal) {
+	t--;
+	a--;
 	end_col--;
+    }
+
     if (start_col < end_col)
-	DrawText (w, row, start_col, end_col);
-}
-
-static int
-UntilEqual(PadWidget w, int start)
-{
-    PadLinePtr	want = &w->pad.want[start],
-		is = &w->pad.is[start];
-
-    while (start < w->pad.rows && want->id != is->id) {
-	want++;
-	is++;
-	start++;
-    }
-
-    return start;
+	DrawText (w, cr, row, start_col, end_col);
 }
 
 static void
-CopyLines (PadWidget w, int top, int bottom, int count)
+Redisplay (Widget gw, XEvent *event, Region region)
 {
-    int		src, dst, amt;
-    PadCopyPtr	copy, *prev;
+    PadWidget   w = (PadWidget) gw;
+    int row;
 
-    if (count < 0)
+    if (!XtIsRealized (gw))
+	return;
+    if (!event || (event->type == Expose && event->xexpose.count == 0))
     {
-	src = top - count;
-	dst = top;
-	count = -count;
+	cairo_t *cr = draw_begin(w, region);
+
+	for (row = 0; row < w->pad.rows; row++)
+	    RedrawText (w, cr, row, 0, w->pad.cols);
+
+	draw_end(w, region, cr);
     }
-    else
-    {
-	src = top;
-	dst = top + count;
-    }
-    amt = bottom - top - count;
-    copy = New(PadCopyRec);
-    copy->next = 0;
-    copy->src = src;
-    copy->dst = dst;
-    copy->amt = amt;
-    copy->copy_serial = NextRequest (XtDisplay (w));
-    prev = &w->pad.copy;
-    while (*prev)
-	prev = &(*prev)->next;
-    *prev = copy;
-    XCopyArea (XtDisplay (w), XtWindow (w), XtWindow (w), w->pad.normal_gc,
-	       0, YPos(w, src), w->core.width, amt * w->pad.char_height,
-	       0, YPos(w, dst));
 }
 
 static void
-ClearLines (PadWidget w, int start, int amt)
+Resize (Widget gw)
 {
-    XClearArea (XtDisplay (w), XtWindow (w),
-		0, YPos (w, start), w->core.width, amt * w->pad.char_height,
-		False);
+    PadWidget   w = (PadWidget) gw;
+
+    setSize (w);
+}
+
+void
+XkwPadUpdate (Widget gw)
+{
+    Redisplay(gw, NULL, NULL);
+}
+
+void
+XkwPadText (Widget gw, int row, int col, char *text, int len)
+{
+    PadWidget	    w = (PadWidget) gw;
+    PadLinePtr	    line;
+
+    if (row >= w->pad.rows || col >= w->pad.cols)
+	return;
+    line = &w->pad.lines[row];
+    if (col + len > w->pad.cols)
+	len = w->pad.cols - col;
+    memcpy (line->text + col, text, len);
+}
+
+void
+XkwPadAttributes (Widget gw, int row, int col, char *attr, int len)
+{
+    PadWidget	    w = (PadWidget) gw;
+    PadLinePtr	    line;
+
+    if (row >= w->pad.rows || col >= w->pad.cols)
+	return;
+    line = &w->pad.lines[row];
+    if (col + len > w->pad.cols)
+	len = w->pad.cols - col;
+    memcpy (line->attr + col, attr, len);
+}
+
+void
+XkwPadTextAndAttributes (Widget gw, int row, int col, char *text, char *attr, int len)
+{
+    PadWidget	    w = (PadWidget) gw;
+    PadLinePtr	    line;
+
+    if (row >= w->pad.rows || col >= w->pad.cols)
+	return;
+    line = &w->pad.lines[row];
+    if (col + len > w->pad.cols)
+	len = w->pad.cols - col;
+    memcpy (line->text + col, text, len);
+    memcpy (line->attr + col, attr, len);
+}
+
+void
+XkwPadClearToEnd (Widget gw, int row, int col)
+{
+    PadWidget	    w = (PadWidget) gw;
+    PadLinePtr	    line;
+    char	    *t, *a;
+
+    if (row >= w->pad.rows || col >= w->pad.cols)
+	return;
+    line = &w->pad.lines[row];
+    t = line->text + col;
+    a = line->attr + col;
+    col = w->pad.cols - col;
+    while (col--)
+    {
+	*t++ = ' ';
+	*a++ = XkwPadNormal;
+    }
+}
+
+void
+XkwPadClear (Widget gw)
+{
+    PadWidget	    w = (PadWidget) gw;
+    int		    row;
+
+    for (row = 0; row < w->pad.rows; row++)
+	XkwPadClearToEnd (gw, row, 0);
 }
 
 static void
@@ -428,333 +466,12 @@ ScrollBuffer (PadWidget w, PadLinePtr b, int start_row, int end_row, int dist)
     }
 }
 
-static Boolean
-AddLines(PadWidget w, int at, int num)
-{
-    int	bottom = UntilEqual(w, at + num);
-
-    if (num == 0 || num >= ((bottom - 1) - at))
-	return False;	/* We did nothing */
-
-    CopyLines (w, at, bottom, num);
-    ClearLines (w, at, num);
-    ScrollBuffer (w, w->pad.is, at, bottom, num);
-
-    return True;	/* We did something. */
-}
-
-static Boolean
-DelLines(PadWidget w, int at, int num)
-{
-    int	bottom = UntilEqual(w, at + num);
-
-    if (num == 0 || num >= ((bottom - 1) - at))
-	return False;
-
-    CopyLines (w, at, bottom, -num);
-    ClearLines (w, bottom - num, num);
-    ScrollBuffer (w, w->pad.is, at, bottom, -num);
-
-    return True;
-}
-
-static void
-DoInsertDelete (PadWidget w, int start)
-{
-    PadLinePtr  is, want;
-    int		i, j;
-
-    /* Some changes have been made.  Try for insert or delete lines.
-    If either case has happened, Addlines and/or DelLines will do
-    necessary scrolling, also CONVERTING w->pad.is to account for the
-    physical changes.  The comparison continues from where the
-    insertion/deletion takes place; this doesn't happen very often,
-    usually it happens with more than one window with the same
-    buffer. */
-
-    is = &w->pad.is[start];
-    want = &w->pad.want[start];
-    for (i = start; i < w->pad.rows; i++, is++, want++)
-	if (want->id != is->id)
-	    break;
-
-    for (; i < w->pad.rows; i++) {
-	for (j = i + 1; j < w->pad.rows; j++) {
-	    want = &w->pad.want[j];
-	    is = &w->pad.is[j];
-	    if (want->id == is->id)
-		break;
-	    if (want->id == w->pad.is[i].id) {
-		if (AddLines(w, i, j - i)) {
-		    DoInsertDelete(w, j);
-		    return;
-		}
-		break;
-	    }
-	    if ((want = &w->pad.want[i])->id == is->id) {
-		if (DelLines(w, i, j - i)) {
-		    DoInsertDelete(w, i);
-		    return;
-		}
-		break;
-	    }
-	}
-    }
-}
-
-/*
- * Redisplay -- repaint damaged areas on the screen
- *  This is complicated by the CopyArea calls which may have
- *  copied exposed regions on the screen
- */
-
-static void
-Redisplay (Widget gw, XEvent *event, Region region)
-{
-    PadWidget   w = (PadWidget) gw;
-    int		start_row, end_row, row;
-    int		start_col = 0, end_col = 0;
-    PadCopyPtr  copy;
-    unsigned long   expose_serial;
-    Boolean	*repaint;
-    int		amt;
-    Boolean	*r;
-
-    (void) region;
-    if (!XtIsRealized (gw))
-	return;
-    if (event->type != NoExpose)
-    {
-
-	/* Mark rows for redisplay */
-	repaint = Some (Boolean, w->pad.rows);
-	for (row = 0; row < w->pad.rows; row++) repaint[row] = False;
-	start_row = RowPos (w, event->xexpose.y);
-	if (start_row < 0)
-	    start_row = 0;
-	end_row = RowPos (w, event->xexpose.y + event->xexpose.height - 1);
-	if (end_row >= w->pad.rows)
-	    end_row = w->pad.rows - 1;
-	for (row = start_row; row <= end_row; row++)
-	    repaint[row] = True;
-
-	/* Track effects of CopyArea calls on exposure events */
-	copy = w->pad.copy;
-	expose_serial = event->xexpose.serial;
-	for (copy = w->pad.copy; copy; copy = copy->next)
-	    if (copy->copy_serial > expose_serial)
-		break;
-	for (; copy; copy = copy->next)
-	{
-	    bcopy (repaint + copy->src, repaint + copy->dst, copy->amt * sizeof (Boolean));
-	    r = repaint;
-	    if (copy->src > copy->dst)
-		r += copy->dst + copy->amt;
-	    else
-		r += copy->src;
-	    amt = copy->amt;
-	    while (amt--)
-		*r++ = False;
-	}
-
-	/* repaint the resultant rows */
-	if (w->pad.fixed_width)
-	{
-	    start_col = ColPos (w, event->xexpose.x);
-	    if (start_col < 0)
-		start_col = 0;
-	    end_col = ColPos (w, event->xexpose.x + event->xexpose.width - 1);
-	    if (end_col >= w->pad.cols)
-		end_col = w->pad.cols - 1;
-	}
-	for (row = 0; row < w->pad.rows; row++)
-	{
-	    if (!repaint[row])
-		continue;
-	    if (!w->pad.fixed_width)
-	    {
-		start_col = XToCol (w, row, event->xexpose.x);
-		end_col = XToCol (w, row, event->xexpose.x + event->xexpose.width - 1);
-	    }
-	    RedrawText (w, row, start_col, end_col + 1);
-	}
-	Dispose (repaint);
-	if (event->xexpose.count != 0)
-	    return;
-    }
-    if (event->type != Expose)
-    {
-	copy = w->pad.copy;
-	if (!copy)
-	    abort ();
-	if (event->xexpose.serial != copy->copy_serial)
-	    abort ();
-	w->pad.copy = copy->next;
-	Dispose (copy);
-    }
-}
-
-static void
-Resize (Widget gw)
-{
-    PadWidget   w = (PadWidget) gw;
-
-    setSize (w);
-}
-
-void
-XkwPadUpdate (Widget gw)
-{
-    Display	*dpy = XtDisplay (gw);
-    Window	win = XtWindow (gw);
-    PadWidget	w = (PadWidget) gw;
-    int		row, start_col, end_col;
-    int		cols;
-    PadLinePtr	is, want;
-    char	*is_t, *want_t, *is_a, *want_a;
-    Boolean	DoneInsertDelete = False;
-
-    if (!XtIsRealized (gw))
-	return;
-    is = w->pad.is;
-    want = w->pad.want;
-    cols = w->pad.cols;
-    for (row = 0; row < w->pad.rows; row++, is++, want++)
-    {
-	if (is->serial == want->serial)
-	    continue;
-
-	if (is->id != want->id && !DoneInsertDelete)
-	{
-	    DoInsertDelete (w, row);
-	    DoneInsertDelete = True;
-	}
-	/*
-	 * This is simplistic -- painting a single range of
-	 * text which covers all the changed characters
-	 */
-
-	/* search for start of mismatching characters */
-	is_t = is->text;
-	is_a = is->attr;
-
-	want_t = want->text;
-	want_a = want->attr;
-	for (start_col = 0; start_col < cols; start_col++)
-	    if (*is_t++ != *want_t++ || *is_a++ != *want_a++)
-		break;
-
-	/* search for end of mismatching characters */
-	is_t = is->text + cols;
-	is_a = is->attr + cols;
-
-	want_t = want->text + cols;
-	want_a = want->attr + cols;
-	for (end_col = cols; end_col > start_col; end_col--)
-	    if (*--is_t != *--want_t || *--is_a != *--want_a)
-		break;
-
-	/* paint the range of mismatching characters */
-	if (start_col < end_col)
-	{
-	    CopyText (want, is, start_col, end_col - start_col);
-	    if (!w->pad.fixed_width)
-	    {
-		start_col = 0;
-		end_col = w->pad.cols;
-		XClearArea (dpy, win, 0, YPos(w, row),
-			    w->core.width, w->pad.char_height, False);
-	    }
-	    DrawText (w, row, start_col, end_col);
-	}
-	is->serial = want->serial;
-	is->id = want->id;
-    }
-}
-
-void
-XkwPadText (Widget gw, int row, int col, char *text, int len)
-{
-    PadWidget	    w = (PadWidget) gw;
-    PadLinePtr	    want;
-
-    if (row >= w->pad.rows || col >= w->pad.cols)
-	return;
-    want = &w->pad.want[row];
-    if (col + len > w->pad.cols)
-	len = w->pad.cols - col;
-    bcopy (text, want->text + col, len);
-    want->serial = NextSerial(w);
-}
-
-void
-XkwPadAttributes (Widget gw, int row, int col, char *attr, int len)
-{
-    PadWidget	    w = (PadWidget) gw;
-    PadLinePtr	    want;
-
-    if (row >= w->pad.rows || col >= w->pad.cols)
-	return;
-    want = &w->pad.want[row];
-    if (col + len > w->pad.cols)
-	len = w->pad.cols - col;
-    bcopy (attr, want->attr + col, len);
-    want->serial = NextSerial(w);
-}
-
-void
-XkwPadTextAndAttributes (Widget gw, int row, int col, char *text, char *attr, int len)
-{
-    PadWidget	    w = (PadWidget) gw;
-    PadLinePtr	    want;
-
-    if (row >= w->pad.rows || col >= w->pad.cols)
-	return;
-    want = &w->pad.want[row];
-    if (col + len > w->pad.cols)
-	len = w->pad.cols - col;
-    bcopy (text, want->text + col, len);
-    bcopy (attr, want->attr + col, len);
-    want->serial = NextSerial(w);
-}
-
-void
-XkwPadClearToEnd (Widget gw, int row, int col)
-{
-    PadWidget	    w = (PadWidget) gw;
-    PadLinePtr	    want;
-    char	    *t, *a;
-
-    if (row >= w->pad.rows || col >= w->pad.cols)
-	return;
-    want = &w->pad.want[row];
-    t = want->text + col;
-    a = want->attr + col;
-    col = w->pad.cols - col;
-    while (col--)
-    {
-	*t++ = ' ';
-	*a++ = XkwPadNormal;
-    }
-    want->serial = NextSerial (w);
-}
-
-void
-XkwPadClear (Widget gw)
-{
-    PadWidget	    w = (PadWidget) gw;
-    int		    row;
-
-    for (row = 0; row < w->pad.rows; row++)
-	XkwPadClearToEnd (gw, row, 0);
-}
-
 void
 XkwPadScroll (Widget gw, int start_row, int end_row, int dist)
 {
     PadWidget	    w = (PadWidget) gw;
 
-    ScrollBuffer (w, w->pad.want, start_row, end_row, dist);
+    ScrollBuffer (w, w->pad.lines, start_row, end_row, dist);
 }
 
 void
@@ -763,21 +480,23 @@ XkwPadXYToRowCol (Widget gw, int x, int y, int *rowp, int *colp)
     PadWidget	    w = (PadWidget) gw;
     int		    row, col;
 
+    cairo_t *cr = get_cairo(w);
     row = RowPos (w, y);
     if (row < 0)
 	row = 0;
     if (row >= w->pad.rows)
 	row = w->pad.rows - 1;
-    if (w->pad.fixed_width)
-	col = ColPos (w, x);
-    else
-	col = XToCol (w, row, x);
+//    if (w->pad.fixed_width)
+//	col = ColPos (w, x);
+//    else
+    col = XToCol (w, cr, row, x);
     if (col < 0)
 	col = 0;
     if (col >= w->pad.cols)
 	col = w->pad.cols - 1;
     *rowp = row;
     *colp = col;
+    cairo_destroy(cr);
 }
 
 static Boolean
@@ -786,28 +505,19 @@ SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
     PadWidget	    cur = (PadWidget) gcur,
 		    req = (PadWidget) greq,
 		    new = (PadWidget) gnew;
-    XGCValues	    gcv;
-    Boolean	    redraw = FALSE, newgc = FALSE, newsize = FALSE;
+    Boolean	    redraw = FALSE, newsize = FALSE;
     Dimension	    width, height;
 
     (void) args;
     (void) count;
-    if (req->pad.foreground_pixel != cur->pad.foreground_pixel)
-	newgc = TRUE;
-    if (req->pad.font != cur->pad.font)
-	newgc = newsize = TRUE;
+    if (memcmp(&req->ksimple.foreground, &cur->ksimple.foreground, sizeof(XRenderColor)) != 0)
+	redraw = TRUE;
+    if (req->pad.font.font_face != cur->pad.font.font_face || req->pad.font.size != cur->pad.font.size)
+	newsize = TRUE;
     if (req->pad.rows != cur->pad.rows ||
 	req->pad.cols != cur->pad.cols)
     {
 	newsize = TRUE;
-    }
-    if (newgc)
-    {
-	XtReleaseGC (gcur, cur->pad.normal_gc);
-	gcv.foreground = req->pad.foreground_pixel;
-	gcv.font = req->pad.font->fid;
-	new->pad.normal_gc = XtGetGC (gnew, GCForeground|GCFont, &gcv);
-	redraw = TRUE;
     }
     if (newsize)
     {
@@ -820,12 +530,30 @@ SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
     return redraw;
 }
 
+static XtResource resources[] = {
+#define offset(field) XtOffsetOf(PadRec, pad.field)
+    /* {name, class, type, size, offset, default_type, default_addr}, */
+    { XtNfont, XtCFont, XtRXkwFont, sizeof (XkwFont),
+      offset (font), XtRString, XtDefaultFont },
+    { XtNbold, XtCBold, XtRRenderColor, sizeof (XRenderColor),
+      offset (bold), XtRString, "red" },
+    { XtNnumRows, XtCNumRows, XtRDimension, sizeof (Dimension),
+      offset (rows), XtRImmediate, (XtPointer) 1},
+    { XtNnumCols, XtCNumCols, XtRDimension, sizeof (Dimension),
+      offset (cols), XtRImmediate, (XtPointer) 1},
+    {XtNinternalBorderWidth, XtCInternalBorderWidth, XtRDimension, sizeof (Dimension),
+     offset(internal_border), XtRImmediate, (XtPointer) 2},
+    {XtNresizeCallback, XtCCallback, XtRCallback,sizeof(XtPointer),
+      offset(resize_callbacks), XtRCallback, (XtPointer)NULL},
+#undef offset
+};
+
 PadClassRec padClassRec = {
   { /* core fields */
-    /* superclass		*/	(WidgetClass) &widgetClassRec,
+    /* superclass		*/	(WidgetClass) &ksimpleClassRec,
     /* class_name		*/	"Pad",
     /* widget_size		*/	sizeof(PadRec),
-    /* class_initialize		*/	NULL,
+    /* class_initialize		*/	ClassInitialize,
     /* class_part_initialize	*/	NULL,
     /* class_inited		*/	FALSE,
     /* initialize		*/	Initialize,
@@ -840,7 +568,7 @@ PadClassRec padClassRec = {
     /* compress_exposure	*/	XtExposeCompressSeries|XtExposeGraphicsExpose|XtExposeNoExpose,
     /* compress_enterleave	*/	TRUE,
     /* visible_interest		*/	FALSE,
-    /* destroy			*/	Destroy,
+    /* destroy			*/	NULL,
     /* resize			*/	Resize,
     /* expose			*/	Redisplay,
     /* set_values		*/	SetValues,
@@ -855,8 +583,13 @@ PadClassRec padClassRec = {
     /* display_accelerator	*/	XtInheritDisplayAccelerator,
     /* extension		*/	NULL
   },
-  { /* simple fields */
-    /* empty			*/	0
+  /* simple */
+  {
+    XtInheritChangeSensitive,		/* change_sensitive */
+  },
+  /* ksimple */
+  {
+    0,
   },
   { /* pad fields */
     /* empty			*/	0

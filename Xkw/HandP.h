@@ -2,7 +2,7 @@
  * $XConsortium: HandP.h,v 1.9 91/07/26 15:21:49 keith Exp $
  */
 
-/* 
+/*
  * HandP.h - Private definitions for Hand widget
  */
 
@@ -11,7 +11,7 @@
 
 #include <stdlib.h>
 #include "Hand.h"
-#include <X11/Xaw/SimpleP.h>
+#include <Xkw/KSimpleP.h>
 
 /***********************************************************************
  *
@@ -40,6 +40,7 @@ typedef struct _HandClass {
 typedef struct _HandClassRec {
     CoreClassPart	core_class;
     SimpleClassPart	simple_class;
+    KSimpleClassPart	ksimple_class;
     HandClassPart	hand_class;
 } HandClassRec;
 
@@ -47,7 +48,7 @@ extern HandClassRec handClassRec;
 
 /***************************************
  *
- *  Instance (widget) structure 
+ *  Instance (widget) structure
  *
  **************************************/
 
@@ -64,26 +65,12 @@ typedef enum { ClipUnclipped, ClipPartclipped, ClipAllclipped } HandClip;
 
 typedef struct _Card {
     struct _Card    *next, *prev;
-    Boolean	    redisplay;	    /* temp for redisplay routine */
-    Boolean	    isUp;
-    Boolean	    shouldBeUp;
-    Boolean	    delete;
-    Boolean	    forceRedraw;
-    XRectangle	    clip;
-    HandClip	    clipped;
     XtPointer	    private;
+    int		    x, y;
     int		    row, col;
     int		    offset;
-    int		    x, y;
+    Boolean	    shown;
 } CardRec, *CardPtr;
-
-typedef struct _Erased {
-    struct _Erased  *next;
-    XRectangle	    r;
-    Bool	    fill;
-    Bool	    isCard;
-    int		    cardX, cardY;
-} ErasedRec, *ErasedPtr;
 
 typedef struct {
     /*
@@ -106,15 +93,15 @@ typedef struct {
     Boolean	    col_insert;		/*  top get moved down/right */
     Boolean	    immediate_update;	/* redisplay after every edit */
     Boolean	    row_major;		/* stack cards in cols */
+    Boolean	    force_erase;	/* erase stack even if card replaces */
     XtCallbackList  display_callback;	/* func to display cards */
     XtCallbackList  input_callback;	/* func called on button press */
+
     /* List of cards could be changed by resource, but easier by func */
     CardPtr	    topCard, bottomCard;/* list of cards */
+    Region	    damage;		/* Damage caused by card changes */
     Dimension	    real_col_offset;	/* when widget gets reshaped, */
     Dimension	    real_row_offset;	/*  the offset values are adjusted */
-    ErasedPtr	    erased;		/* list of areas erased; for redisplay*/
-    XExposeEvent    lastExpose;		/* last rectangle exposed */
-    unsigned long   exposeTime;		/* serial number when exposed */
 } HandPart;
 
 /*
@@ -124,9 +111,8 @@ typedef struct {
 typedef struct _HandRec {
     CorePart	core;
     SimplePart	simple;
+    KSimplePart ksimple;
     HandPart	hand;
 } HandRec;
 
 #endif /* _XtHandP_h */
-
-

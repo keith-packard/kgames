@@ -1,12 +1,21 @@
-*Command.shapeStyle:	oval
+*Command.shapeStyle: oval
+*Background: #fffff0
+*menuBar.Background: #337744
+*Cards.Background: #337744
+*frame.Background: #337744
+*reversi.Background:	#337744
+*borderWidth: 0
+*SimpleMenu.borderWidth: 1
 
-*reversi.white:		white
-*reversi.black:		black
-*reversi.background:	#30d030
-*reversi.width:		450
-*reversi.height:	450
+*Command.borderWidth:	1
+*Toggle.borderWidth:	1
+
+*reversi.width:		600
+*reversi.height:	600
+*reversi.borderWidth:	0
 
 *error.justify:		left
+*error.borderWidth:	0
 *error.Label:
 
 *quit.Label:		Quit
@@ -24,19 +33,12 @@
 *levelLabel.Label:	level:
 
 *levelLabel.borderWidth:	0
-*levelValue.borderWidth:	1
+*levelValue.borderWidth:	0
 
 *turn.borderWidth: 0
 
 *layout.layout: horizontal {\n \
-	-1 \n \
-	vertical { \n \
-		-1 \n \
-		reversi < +inff -100% * +inff -100% > \n \
-		-1 \n \
-		error < +inff -100% * +0 -0 > \
-		-1 \n \
-	} \n \
+	reversi < +inff -100% * +inff -100% > \n \
 	vertical { \n \
 		10 < +10 -100% > \n \
 		horizontal { \
@@ -89,6 +91,7 @@
 			turn \n \
 			5 < +inf -100% > \n \
 		} \n \
+		error < +inff -100% * +0 -0 > \
 		10 < +1000 -100% > \n \
 	} \n \
 }

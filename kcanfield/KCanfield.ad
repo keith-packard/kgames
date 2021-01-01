@@ -1,3 +1,15 @@
+*Background: #fffff0
+*menuBar.Background: #337744
+*Cards.Background: #337744
+*frame.Background: #337744
+*logo.Background: #337744
+*logo.Foreground: #fffff0
+*baseRank.Background:  #337744
+*baseRank.Foreground: #fffff0
+
+*borderWidth: 0
+*SimpleMenu.borderWidth: 1
+
 *Cards.immediateUpdate: False
 
 *talon.numCols: 2
@@ -27,12 +39,6 @@
 	
 *message.justify: left
 *message.label: Keith's Canfield, Version 1.0
-*baseRank.borderWidth: 0
-*tableau.borderWidth: 0
-*talon.borderWidth: 1
-*foundation.borderWidth: 0
-*stock.borderWidth: 0
-*logo.borderWidth: 0
 *logo.font: -*-helvetica-bold-r-normal--*-180-*-*-*-*-*-*
 *logo.label: Canfield
 *menuBar.layout: vertical { \

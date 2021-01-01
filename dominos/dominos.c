@@ -27,14 +27,8 @@
 # include	<X11/StringDefs.h>
 # include	<X11/Shell.h>
 # include	<X11/Xos.h>
-# include	<X11/Xaw/Command.h>
 # include	<X11/Xaw/Box.h>
 # include	<X11/Xaw/Dialog.h>
-# include	<X11/Xaw/Label.h>
-# include	<X11/Xaw/MenuButton.h>
-# include	<X11/Xaw/SimpleMenu.h>
-# include	<X11/Xaw/SmeBSB.h>
-# include	<X11/Xaw/AsciiText.h>
 # include	<X11/Xaw/Cardinals.h>
 # include	<X11/Xaw/Porthole.h>
 # include	<X11/Xaw/Panner.h>
@@ -43,6 +37,11 @@
 # include	<Xkw/Layout.h>
 # include 	<Xkw/Message.h>
 # include	<Xkw/Animate.h>
+# include	<Xkw/KLabel.h>
+# include	<Xkw/KCommand.h>
+# include	<Xkw/KMenuButton.h>
+# include	<Xkw/KSimpleMenu.h>
+# include	<Xkw/KSmeBSB.h>
 # include	<X11/Xutil.h>
 # include	"dominos.h"
 # include	<stdio.h>
@@ -64,6 +63,8 @@ Widget	    undo;
 Widget	    hint;
 Widget	    computerCount;
 Widget	    draw;
+Widget	    zoom_in;
+Widget	    zoom_out;
 Widget	    score_w[MAX_PLAYERS];
 
 int	    total_score[MAX_PLAYERS];
@@ -498,10 +499,10 @@ YesOrNo (Widget original, char *prompt)
 				      args, ONE);
     dialog = XtCreateManagedWidget ("yesOrNoDialog", layoutWidgetClass,
 				shell, NULL, ZERO);
-    label = XtCreateManagedWidget ("yesOrNoLabel", labelWidgetClass,
+    label = XtCreateManagedWidget ("yesOrNoLabel", klabelWidgetClass,
 				dialog, NULL, ZERO);
-    XawDialogAddButton (dialog, "yesOrNoOk", YesFunc, NULL);
-    XawDialogAddButton (dialog, "yesOrNoNo", NoFunc, NULL);
+    XkwDialogAddButton (dialog, "yesOrNoOk", YesFunc, NULL);
+    XkwDialogAddButton (dialog, "yesOrNoNo", NoFunc, NULL);
 
     XtSetArg (args[0], XtNlabel, prompt);
     XtSetValues (label, args, 1);
@@ -722,6 +723,20 @@ MakeLastPlayerVisible (void)
 }
 
 static void
+Zoom(double ratio)
+{
+    Arg		args[1];
+    Dimension	size;
+
+    XtSetArg(args[0], XtNsize, &size);
+    XtGetValues(board_w, args, 1);
+    size = (Dimension) (size * ratio + 0.5);
+    XtSetArg(args[0], XtNsize, size);
+    XtSetValues(board_w, args, 1);
+    MakeLastPlayerVisible();
+}
+
+static void
 NewGameCallback (Widget w, XtPointer closure, XtPointer data)
 {
     (void) w;
@@ -755,6 +770,24 @@ DrawCallback (Widget w, XtPointer closure, XtPointer data)
     (void) closure;
     (void) data;
     Draw ();
+}
+
+static void
+ZoomInCallback (Widget w, XtPointer closure, XtPointer data)
+{
+    (void) w;
+    (void) closure;
+    (void) data;
+    Zoom (1.25);
+}
+
+static void
+ZoomOutCallback (Widget w, XtPointer closure, XtPointer data)
+{
+    (void) w;
+    (void) closure;
+    (void) data;
+    Zoom (0.8);
 }
 
 static void
@@ -896,6 +929,26 @@ DrawAction (Widget w, XEvent *e, String *p, Cardinal *n)
 }
 
 static void
+ZoomInAction (Widget w, XEvent *e, String *p, Cardinal *n)
+{
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
+    Zoom (1.25);
+}
+
+static void
+ZoomOutAction (Widget w, XEvent *e, String *p, Cardinal *n)
+{
+    (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
+    Zoom (0.8);
+}
+
+static void
 YesAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
     (void) w;
@@ -927,6 +980,8 @@ XtActionsRec	actions[] = {
     { "dominosDraw",	DrawAction, },
     { "dominosYes",	YesAction, },
     { "dominosNo",	NoAction, },
+    { "dominosZoomIn",	ZoomInAction },
+    { "dominosZoomOut",	ZoomOutAction },
 };
 
 struct menuEntry {
@@ -947,11 +1002,11 @@ CreateMenu (Widget parent, char *name, struct menuEntry *entries, int count)
     Widget  entry;
     int	    i;
 
-    menu = XtCreatePopupShell (name, simpleMenuWidgetClass,
+    menu = XtCreatePopupShell (name, ksimpleMenuWidgetClass,
 			       parent, NULL, ZERO);
     for (i = 0; i < count; i++) {
 	entry = XtCreateManagedWidget (entries[i].name,
-				       smeBSBObjectClass, menu, NULL, ZERO);
+				       ksmeBSBObjectClass, menu, NULL, ZERO);
 	XtAddCallback (entry, XtNcallback, entries[i].function, NULL);
     }
     return menu;
@@ -967,7 +1022,7 @@ XtResource resources[] = {
 };
 
 XrmOptionDescRec options[] = {
-    { "-squareCards",	"*Cards.roundCards",	XrmoptionNoArg, "False", },
+    { "-size",		"*Dominos.size",	XrmoptionSepArg, NULL, },
 };
 
 static void
@@ -996,6 +1051,10 @@ main (int argc, char **argv)
     toplevel = XtInitialize (argv[0], "Dominos", options, XtNumber(options),
 			     &argc, argv);
 
+    Arg	args[1];
+    XtSetArg(args[0], XtNinput, True);
+    XtSetValues(toplevel, args, ONE);
+
     XtGetApplicationResources (toplevel, (XtPointer)&dominosResources, resources,
 			       XtNumber (resources), NULL, 0);
 
@@ -1011,30 +1070,38 @@ main (int argc, char **argv)
     frame = XtCreateManagedWidget ("frame", layoutWidgetClass, toplevel, NULL, 0);
     menuBar = XtCreateManagedWidget ("menuBar", layoutWidgetClass, frame, NULL, 0);
     fileMenuButton = XtCreateManagedWidget ("fileMenuButton",
-					    menuButtonWidgetClass,
+					    kmenuButtonWidgetClass,
 					    menuBar, NULL, ZERO);
     fileMenu = CreateMenu (fileMenuButton, "fileMenu",
 			   fileMenuEntries, XtNumber (fileMenuEntries));
-    newGame = XtCreateManagedWidget ("newGame", commandWidgetClass,
+    newGame = XtCreateManagedWidget ("newGame", kcommandWidgetClass,
 				     menuBar, NULL, ZERO);
     XtAddCallback(newGame, XtNcallback, NewGameCallback, NULL);
-    undo = XtCreateManagedWidget ("undo", commandWidgetClass,
+    undo = XtCreateManagedWidget ("undo", kcommandWidgetClass,
 				  menuBar, NULL, ZERO);
     XtAddCallback(undo, XtNcallback, UndoCallback, NULL);
-    hint = XtCreateManagedWidget ("hint", commandWidgetClass,
+    hint = XtCreateManagedWidget ("hint", kcommandWidgetClass,
 				  menuBar, NULL, ZERO);
     XtAddCallback(hint, XtNcallback, HintCallback, NULL);
 
-    draw = XtCreateManagedWidget ("draw", commandWidgetClass,
+    draw = XtCreateManagedWidget ("draw", kcommandWidgetClass,
 				  menuBar, NULL, ZERO);
     XtAddCallback(draw, XtNcallback, DrawCallback, NULL);
+
+    zoom_in = XtCreateManagedWidget ("zoom_in", kcommandWidgetClass,
+				     menuBar, NULL, ZERO);
+    XtAddCallback(zoom_in, XtNcallback, ZoomInCallback, NULL);
+
+    zoom_out = XtCreateManagedWidget ("zoom_out", kcommandWidgetClass,
+				      menuBar, NULL, ZERO);
+    XtAddCallback(zoom_out, XtNcallback, ZoomOutCallback, NULL);
 
     for (i = 0; i < NumPlayers; i++)
     {
 	char	foo[32];
 
 	sprintf (foo, "score%d", i);
-	score_w[i] = XtCreateManagedWidget(foo, labelWidgetClass,
+	score_w[i] = XtCreateManagedWidget(foo, klabelWidgetClass,
 					   menuBar, NULL, ZERO);
     }
     porthole = XtCreateManagedWidget("porthole", portholeWidgetClass,
@@ -1070,9 +1137,9 @@ main (int argc, char **argv)
 
     XtAddCallback(player_w, XtNinputCallback, PlayerCallback, NULL);
 
-    message = XtCreateManagedWidget ("message", labelWidgetClass, frame, NULL, 0);
+    message = XtCreateManagedWidget ("message", klabelWidgetClass, frame, NULL, 0);
 
-    computerCount = XtCreateManagedWidget ("computerCount", labelWidgetClass, frame, NULL, ZERO);
+    computerCount = XtCreateManagedWidget ("computerCount", klabelWidgetClass, frame, NULL, ZERO);
 
     srandom (getpid () ^ time ((long *) 0));
 

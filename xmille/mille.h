@@ -88,7 +88,7 @@
 # define	C_100		3
 # define	C_200		4
 # define	C_EMPTY		5
-# define	C_FLAT		6	
+# define	C_FLAT		6
 # define	C_CRASH		7
 # define	C_STOP		8
 # define	C_LIMIT		9
@@ -195,7 +195,7 @@ char *
 GetpromptedInput (char *string);
 
 void
-Message (char *string);
+MilleMessage (char *string);
 
 void
 stand(int y, int x, char *str);
@@ -398,4 +398,3 @@ FlushInput (void);
 /* varpush.c */
 int
 varpush(int file, int (*func)(int, void *, size_t));
-

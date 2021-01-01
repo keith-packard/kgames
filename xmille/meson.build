@@ -39,10 +39,15 @@ srcs_xmille = [
 
 subdir('cards')
 
-srcs_xmille += cards_xmille
+make_cards_svg = find_program('make-cards-svg')
+
+cards_files = custom_target('svg-cards',
+			    depend_files : cards_xmille + ['card-names'],
+			    output : ['cards-svg.c', 'cards-svg.h'],
+			    command : [make_cards_svg, '@OUTPUT0@', '@OUTPUT1@'])
 
 executable('xmille',
-	   srcs_xmille,
+	   srcs_xmille, cards_files,
 	   include_directories: inc,
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],

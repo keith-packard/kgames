@@ -26,6 +26,7 @@
 #ifndef _XtDominos_h
 #define _XtDominos_h
 #include "dominos.h"
+#include <Xkw/Xkw.h>
 
 /* define exposed functions */
 

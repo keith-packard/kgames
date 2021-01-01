@@ -13,6 +13,7 @@
 
 extern int	iscolor;
 
+extern double scale;
 double	animation_speed = .5;
 
 static void
@@ -73,7 +74,7 @@ do_animate (int ox, int oy, int dx, int dy)
 	dist = sqrt ((double) xd * xd + yd * yd);
 	rx = (double) xd / dist;
 	ry = (double) yd / dist;
-	speed = animation_speed;
+	speed = animation_speed * scale;
 	xc = speed * rx;
 	yc = speed * ry;
 	xp = yp = -32767;

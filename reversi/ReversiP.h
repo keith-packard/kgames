@@ -9,13 +9,13 @@ and the Massachusetts Institute of Technology, Cambridge, Massachusetts.
 
                         All Rights Reserved
 
-Permission to use, copy, modify, and distribute this software and its 
-documentation for any purpose and without fee is hereby granted, 
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
 provided that the above copyright notice appear in all copies and that
-both that copyright notice and this permission notice appear in 
+both that copyright notice and this permission notice appear in
 supporting documentation, and that the names of Digital or MIT not be
 used in advertising or publicity pertaining to distribution of the
-software without specific, written prior permission.  
+software without specific, written prior permission.
 
 DIGITAL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
 ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
@@ -27,13 +27,13 @@ SOFTWARE.
 
 ******************************************************************/
 
-/* 
+/*
  * ReversiP.h - Private definitions for Reversi widget
- * 
+ *
  */
 
-#ifndef _XawReversiP_h
-#define _XawReversiP_h
+#ifndef _ReversiP_h
+#define _ReversiP_h
 
 /***********************************************************************
  *
@@ -43,7 +43,7 @@ SOFTWARE.
 
 #include "Reversi.h"
 #include "transform.h"
-#include <X11/Xaw/SimpleP.h>
+#include <Xkw/KSimpleP.h>
 
 /* New fields for the Reversi widget class record */
 
@@ -53,6 +53,7 @@ typedef struct {int foo;} ReversiClassPart;
 typedef struct _ReversiClassRec {
     CoreClassPart	core_class;
     SimpleClassPart	simple_class;
+    KSimpleClassPart	ksimple_class;
     ReversiClassPart	reversi_class;
 } ReversiClassRec;
 
@@ -76,18 +77,14 @@ typedef struct _Animate {
 /* New fields for the Reversi widget record */
 typedef struct {
     /* resources */
-    Pixel	    white;
-    Pixel	    black;
-    Pixel	    grid;
+    XRenderColor    white;
+    XRenderColor    black;
+    XRenderColor    grid;
     XtCallbackList  callbacks;
 
     /* private state */
-    GC		    white_GC;
-    GC		    black_GC;
-    GC		    grid_GC;
     ReversiStone    board[BOARD_WIDTH][BOARD_HEIGHT];
     Animate	    animate[BOARD_WIDTH][BOARD_HEIGHT];
-    Transform	    t;
 } ReversiPart;
 
 
@@ -100,6 +97,7 @@ typedef struct {
 typedef struct _ReversiRec {
     CorePart	core;
     SimplePart	simple;
+    KSimplePart	ksimple;
     ReversiPart	reversi;
 } ReversiRec;
 

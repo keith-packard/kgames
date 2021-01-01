@@ -26,4 +26,4 @@ executable('kspider',
 	   link_with: [lib_xkw],
 	   install: true)
 install_man('kspider.6')
-install_data('KSpider-color.ad',             rename: 'KSpider-color',              install_dir : app_defaults)
+install_data('KSpider.ad',             rename: 'KSpider',              install_dir : app_defaults)

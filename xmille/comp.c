@@ -53,7 +53,7 @@ calcmove(void)
 	int		valbuf[HAND_SZ], count[NUM_CARDS];
 	bool		playit[HAND_SZ];
 
-	Message("");
+	MilleMessage("");
 	pp = &Player[COMP];
 	op = &Player[PLAYER];
 	safe = 0;

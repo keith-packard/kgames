@@ -1,0 +1,50 @@
+#!/bin/bash
+
+dir=`dirname $0`
+
+case $# in
+    2)
+    ;;
+    *)
+	echo "usage: $0 cards.c cards.h"
+	exit 1
+	;;
+esac
+
+(
+    echo '#include "uiXt.h"'
+    echo '#include "'"$2"'"'
+    
+    IFS=':'
+    while read file name card; do
+	file="$dir"/cards/"$file".svg
+	echo "const char svg_$name[]" =
+	sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/^/    "/' -e 's/$/\\n"/' "$file"
+	echo "    ;";
+	echo ""
+    done < "$dir"/card-names
+
+    echo "struct card svg_cards[] = {"
+    while read file name card; do
+	if [ "$card" = "" ]; then
+	    echo "    { .svg = svg_$name, .label = \"$file\", .rsvg_handle = NULL },";
+	fi
+    done < "$dir"/card-names
+    echo "};"
+    while read file name card; do
+	if [ "$card" != "" ]; then
+	    echo "struct card $card = { .svg = svg_$name, .label = \"$file\", .rsvg_handle = NULL };";
+	fi
+    done < "$dir"/card-names
+    echo ""
+) > "$1"
+
+(
+    echo "extern struct card svg_cards[];"
+    IFS=':'
+    while read file name card; do
+	if [ "$card" != "" ]; then
+	    echo "extern struct card $card;"
+	fi
+    done < "$dir"/card-names
+) > "$2"

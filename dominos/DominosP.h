@@ -58,17 +58,14 @@ extern DominosClassRec cardsClassRec;
 
 typedef struct {
     /* resources */
-    Pixel	    pips_pixel;
-    Pixel	    face_pixel;
+    XRenderColor    pips_color;
+    XRenderColor    face_color;
+    XRenderColor    background;
     Boolean	    round_dominos;
     Dimension	    size;
     XtCallbackList  input_callback;	/* func called on button press */
     /* private state */
-    GC		    pips_gc;
-    GC		    face_gc;
-    GC		    bg_gc;
     DominoPtr	    *board;
-    Pixmap	    tmp_map;
     Position	    x_off, y_off;
 } DominosPart;
 

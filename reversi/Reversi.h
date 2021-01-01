@@ -8,13 +8,13 @@ and the Massachusetts Institute of Technology, Cambridge, Massachusetts.
 
                         All Rights Reserved
 
-Permission to use, copy, modify, and distribute this software and its 
-documentation for any purpose and without fee is hereby granted, 
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
 provided that the above copyright notice appear in all copies and that
-both that copyright notice and this permission notice appear in 
+both that copyright notice and this permission notice appear in
 supporting documentation, and that the names of Digital or MIT not be
 used in advertising or publicity pertaining to distribution of the
-software without specific, written prior permission.  
+software without specific, written prior permission.
 
 DIGITAL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
 ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
@@ -26,8 +26,8 @@ SOFTWARE.
 
 ******************************************************************/
 
-#ifndef _XawReversi_h
-#define _XawReversi_h
+#ifndef _XkwReversi_h
+#define _XkwReversi_h
 
 /***********************************************************************
  *
@@ -35,8 +35,7 @@ SOFTWARE.
  *
  ***********************************************************************/
 
-#include <X11/Xaw/Simple.h>
-#include <X11/Xmu/Converters.h>
+#include <Xkw/KSimple.h>
 
 /* Resources:
 
@@ -66,8 +65,6 @@ SOFTWARE.
 
 typedef enum _ReversiStone { StoneWhite, StoneBlack, StoneNone } ReversiStone;
 
-/* Class record constants */
-
 extern WidgetClass reversiWidgetClass;
 
 typedef struct _ReversiMove {
@@ -80,22 +77,19 @@ typedef struct _ReversiRec      *ReversiWidget;
 #define XtNstoneCallback "stoneCallback"
 #define XtCStoneCallback "StoneCallback"
 
-extern void	XawReversiSetSpot (
-#if NeedFunctionPrototypes
-				   Widget,
-				   int, int,
-				   ReversiStone
-#endif
-				   );
-extern void	XawReversiAnimateSpot (
-#if NeedFunctionPrototypes
-				       Widget,
-				       int, int,
-				       ReversiStone, ReversiStone,
-				       unsigned long,
-				       int
-#endif
-				       );
-				       
-#endif /* _XawReversi_h */
-/* DON'T ADD STUFF AFTER THIS #endif */
+void
+XkwReversiSetSpot (Widget, int, int, ReversiStone);
+
+void
+XkwReversiUpdate(Widget);
+
+void
+XkwReversiAnimateSpot (Widget		w,
+		       int		x,
+		       int		y,
+		       ReversiStone	A,
+		       ReversiStone	B,
+		       unsigned long	delay,
+		       int		repeat);
+
+#endif /* _XkwReversi_h */

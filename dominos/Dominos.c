@@ -26,20 +26,24 @@
 #include <X11/IntrinsicP.h>
 #include <X11/StringDefs.h>
 #include <X11/Xmu/Converters.h>
+#include <Xkw/Xkw.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <math.h>
 #include "DominosP.h"
+#include <cairo/cairo-xlib.h>
 
 #define offset(field)	XtOffsetOf(DominosRec, dominos.field)
 
 #define COLOR_UNSET 10
 
 static XtResource resources[] = {
-    {XtNfaceColor, XtCFaceColor, XtRPixel, sizeof (Pixel),
-     offset(face_pixel), XtRString, (XtPointer) "black"},
-    {XtNpipsColor, XtCPipsColor, XtRPixel, sizeof (Pixel),
-     offset(pips_pixel), XtRString, (XtPointer) "white"},
+    {XtNfaceColor, XtCFaceColor, XtRRenderColor, sizeof (XRenderColor),
+     offset(face_color), XtRString, (XtPointer) "black"},
+    {XtNpipsColor, XtCPipsColor, XtRRenderColor, sizeof (XRenderColor),
+     offset(pips_color), XtRString, (XtPointer) "white"},
+    {XtNbackground, XtCBackground, XtRRenderColor, sizeof (XRenderColor),
+     offset(background), XtRString, (XtPointer) "white"},
     {XtNroundDominos, XtCRoundDominos, XtRBoolean, sizeof (Boolean),
      offset(round_dominos), XtRImmediate, (XtPointer) True},
     {XtNsize, XtCSize, XtRDimension, sizeof (Dimension),
@@ -54,15 +58,20 @@ static XtResource resources[] = {
 #include	<X11/Xmu/Drawing.h>
 
 static char defaultTranslations[] =
-"<BtnDown>: select()";
+"<Btn1Down>: select()\n"
+"<Btn2Down>: select()\n"
+"<Btn3Down>: select()\n"
+"<Btn4Down>: zoomout()\n"
+"<Btn5Down>: zoomin()";
 
 #define SuperClass  ((SimpleWidgetClass)&simpleClassRec)
 
-#define	ROUND_W(w)	((w)->dominos.size / 12)
-#define	ROUND_H(w)	ROUND_W(w)
-#define INSET(w)	((w)->dominos.size / 20)
+#define INSET(w)	((w)->dominos.size / 20.0)
 
+#ifndef MAX
 #define MAX(a,b)	    ((a) < (b) ? (b) : (a))
+#endif
+#define LINE_WIDTH(w)	    MAX (((w)->dominos.size / 30), 2)
 #define PIP_SIZE(w)	    MAX (((w)->dominos.size / 10), 2)
 #define PIP_OFF(w)    	    ((w)->dominos.size / 5)
 
@@ -103,6 +112,7 @@ DominoHeight (DominosWidget w, DominoPtr d)
 static void
 ClassInitialize(void)
 {
+    XkwInitializeWidgetSet();
 }
 
 #define UsualSuspects(w)	Display *dpy = XtDisplay ((Widget) w); \
@@ -110,51 +120,6 @@ ClassInitialize(void)
 				Pixmap tmp_map = (w)->dominos.tmp_map
 
 #define GetScreen(w)		int screen = ScreenNo(w)
-
-static void
-GetGCs (DominosWidget w)
-{
-    XGCValues	gcv;
-    XtGCMask	mask;
-
-    mask = GCForeground | GCGraphicsExposures;
-    gcv.graphics_exposures = False;
-    /* pips GC */
-    gcv.foreground = w->dominos.pips_pixel;
-    w->dominos.pips_gc = XtGetGC ((Widget) w, mask, &gcv);
-    /* face GC */
-    gcv.foreground = w->dominos.face_pixel;
-    w->dominos.face_gc = XtGetGC ((Widget) w, mask, &gcv);
-    /* bg GC */
-    gcv.foreground = w->core.background_pixel;
-    w->dominos.bg_gc = XtGetGC ((Widget) w, mask, &gcv);
-}
-
-static void
-ReleaseGCs (DominosWidget w)
-{
-    XtReleaseGC ((Widget) w, w->dominos.pips_gc);
-    XtReleaseGC ((Widget) w, w->dominos.face_gc);
-    XtReleaseGC ((Widget) w, w->dominos.bg_gc);
-}
-
-static void
-GetTmpMap (DominosWidget w)
-{
-    Display *dpy = XtDisplay(w);
-    GetScreen(w);
-
-    w->dominos.tmp_map = XCreatePixmap (dpy, RootWindow(dpy, screen),
-					DOMINO_MAJOR_WIDTH(w),
-					DOMINO_MAJOR_HEIGHT(w),
-					w->core.depth);
-}
-
-static void
-ReleaseTmpMap (DominosWidget w)
-{
-    XFreePixmap (XtDisplay(w), w->dominos.tmp_map);
-}
 
 /*ARGSUSED*/
 static void
@@ -169,8 +134,6 @@ Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 	new->core.width = DOMINO_MAJOR_WIDTH(new);
     if (!new->core.height)
 	new->core.height = DOMINO_MAJOR_HEIGHT(new);
-    GetGCs (new);
-    GetTmpMap (new);
 }
 
 #define MotionMask ( \
@@ -210,41 +173,45 @@ Realize (Widget widget, XtValueMask *value_mask, XSetWindowAttributes *attribute
 static void
 Destroy (Widget gw)
 {
-    DominosWidget	w = (DominosWidget) gw;
-
-    ReleaseGCs (w);
-    ReleaseTmpMap(w);
+    (void) gw;
 }
+
+static void
+BoardSize (DominosWidget w, DominoPtr b, RectPtr r, int x, int y);
 
 static Boolean
 SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
-    DominosWidget	cur = (DominosWidget) gcur,
-			req = (DominosWidget) greq,
-			new = (DominosWidget) gnew;
-    Boolean		ret = FALSE;
+    DominosWidget cur = (DominosWidget) gcur;
+    DominosWidget new = (DominosWidget) gnew;
 
+    (void) greq;
     (void) args;
     (void) count;
-    if (cur->dominos.pips_pixel !=
-	req->dominos.pips_pixel ||
-	cur->dominos.face_pixel !=
-	req->dominos.face_pixel ||
-	cur->core.background_pixel !=
-	req->core.background_pixel)
+    if (cur->dominos.size != new->dominos.size && new->dominos.board && *new->dominos.board)
     {
-	if (new->dominos.pips_gc)
-	    ReleaseGCs (cur);
-	GetGCs (new);
-	ret = TRUE;
+	RectRec			size;
+	Dimension		prefered_width, prefered_height, width, height;
+	XtGeometryResult	result;
+
+	BoardSize (new, *(new->dominos.board), &size, 0, 0);
+	prefered_width = size.x2 - size.x1;
+	prefered_height = size.y2 - size.y1;
+	if (prefered_width < DOMINO_MAJOR_WIDTH(new))
+	    prefered_width = DOMINO_MAJOR_WIDTH(new);
+	if (prefered_height < DOMINO_MAJOR_HEIGHT(new))
+	    prefered_height = DOMINO_MAJOR_HEIGHT(new);
+	if (prefered_width != new->core.width || prefered_height != new->core.height)
+	{
+	    result = XtMakeResizeRequest ((Widget) new,
+					  prefered_width, prefered_height,
+					  &width, &height);
+	    if (result == XtGeometryAlmost)
+		result = XtMakeResizeRequest ((Widget) new,
+					      width, height, NULL, NULL);
+	}
     }
-    if (cur->dominos.size != req->dominos.size)
-    {
-	ReleaseTmpMap(new);
-	GetTmpMap(new);
-	ret = TRUE;
-    }
-    return ret;
+    return TRUE;
 }
 
 static int
@@ -412,60 +379,74 @@ ActionSelect (Widget gw, XEvent *event, String *params, Cardinal *num_params)
 }
 
 static void
-OutlineDomino (DominosWidget w, DominoPtr d, int x, int y)
+Zoom(Widget w, double ratio)
 {
-    Display *dpy = XtDisplay(w);
-    Pixmap  tmp_map = w->dominos.tmp_map;
-    int	    width, height;
+    Arg		args[1];
+    Dimension	size;
 
-    width = DominoWidth(w, d);
-    height = DominoHeight(w, d);
-    if (w->dominos.round_dominos)
-    {
-	XmuDrawRoundedRectangle (dpy, tmp_map, w->dominos.pips_gc,
-				 x + INSET(w)/2, y + INSET(w)/2,
-				 width - INSET(w), height - INSET(w),
-				 ROUND_W(w), ROUND_H(w));
-    }
-    else
-    {
-	XDrawRectangle (dpy, tmp_map, w->dominos.pips_gc,
-			x + INSET(w)/2, y + INSET(w)/2,
-			width - INSET(w), height - INSET(w));
-    }
-    if (DominoUpright (d))
-	XFillRectangle (dpy, tmp_map, w->dominos.pips_gc,
-			x + INSET(w)*2, y + height/2,
-			width - INSET(w)*4, 1);
-    else
-	XFillRectangle (dpy, tmp_map, w->dominos.pips_gc,
-			x + width/2, y + INSET(w)*2,
-			1, height - INSET(w)*4);
+    XtSetArg(args[0], XtNsize, &size);
+    XtGetValues(w, args, 1);
+    size = (Dimension) (size * ratio + 0.5);
+    XtSetArg(args[0], XtNsize, size);
+    XtSetValues(w, args, 1);
 }
 
 static void
-FillDomino (DominosWidget w, DominoPtr d, int x, int y)
+ZoomInAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
-    Display *dpy = XtDisplay(w);
-    Pixmap  tmp_map = w->dominos.tmp_map;
-    int	width, height;
+    (void) e;
+    (void) p;
+    (void) n;
+    Zoom (w, 1.25);
+}
 
-    width = DominoWidth(w, d);
-    height = DominoHeight(w, d);
-    if (w->dominos.round_dominos)
-    {
-	XmuFillRoundedRectangle(dpy, tmp_map, w->dominos.face_gc,
-				x + INSET(w), y + INSET(w),
-				width - 2*INSET(w), height - 2 * INSET(w),
-				ROUND_W(w), ROUND_H(w));
+static void
+ZoomOutAction (Widget w, XEvent *e, String *p, Cardinal *n)
+{
+    (void) e;
+    (void) p;
+    (void) n;
+    Zoom (w, 0.8);
+}
+
+static void
+set_source_render(cairo_t *cr, XRenderColor *color)
+{
+    cairo_set_source_rgb(cr,
+			 color->red / 65535.0,
+			 color->green / 65535.0,
+			 color->blue / 65535.0);
+}
+
+static void
+OutlineDomino (DominosWidget w, cairo_t *cr, DominoPtr d, double width, double height)
+{
+    set_source_render(cr, &w->dominos.pips_color);
+    if (DominoUpright (d)) {
+	cairo_move_to(cr, 0, height/2.0);
+	cairo_line_to(cr, width, height/2.0);
+    } else {
+	cairo_move_to(cr, width / 2.0, 0);
+	cairo_line_to(cr, width / 2.0, height);
     }
-    else
-    {
-	XFillRectangle(dpy, tmp_map, w->dominos.face_gc,
-		       x + INSET(w), y + INSET(w),
-		       width - 2*INSET(w), height - 2*INSET(w));
-    }
-    OutlineDomino (w, d, x, y);
+    XkwDrawRoundedRect(cr, width, height, INSET(w));
+    cairo_stroke(cr);
+}
+
+static void
+FillDomino (DominosWidget w, cairo_t *cr, DominoPtr d)
+{
+    double	width, height;
+
+    width = DominoWidth(w, d) - INSET(w) * 2;
+    height = DominoHeight(w, d) - INSET(w) * 2;
+    set_source_render(cr, &w->dominos.face_color);
+    cairo_save(cr);
+    cairo_translate(cr, INSET(w), INSET(w));
+    XkwDrawRoundedRect(cr, width, height, INSET(w));
+    cairo_fill(cr);
+    OutlineDomino (w, cr, d, width, height);
+    cairo_restore(cr);
 }
 
 static void
@@ -497,20 +478,20 @@ BoardSize (DominosWidget w, DominoPtr b, RectPtr r, int x, int y)
 }
 
 static void
-DrawPip (DominosWidget w, int x, int y)
+DrawPip (cairo_t *cr, double x, double y, double radius)
 {
-    XFillArc (XtDisplay (w), w->dominos.tmp_map,
-	      w->dominos.pips_gc,
-	      x - PIP_SIZE(w) / 2, y - PIP_SIZE(w) / 2, PIP_SIZE(w), PIP_SIZE(w), 0,
-	      64 * 360);
+    cairo_arc(cr, x, y, radius, 0, M_PI * 2);
+    cairo_fill(cr);
 }
 
 static void
-DrawPips (DominosWidget w, Pips p, int x, int y, int flip)
+DrawPips (DominosWidget w, cairo_t *cr, Pips p, int flip)
 {
     int	off_x, off_y;
     int	half_x, half_y;
+    double radius = PIP_SIZE(w) / 2.0;
 
+    set_source_render(cr, &w->dominos.pips_color);
     off_x = PIP_OFF(w);
     off_y = PIP_OFF(w);
     half_x = 0;
@@ -524,70 +505,90 @@ DrawPips (DominosWidget w, Pips p, int x, int y, int flip)
 
     if (p & 1)
     {
-	DrawPip (w, x, y);
+	DrawPip (cr, 0, 0, radius);
 	p = p - 1;
     }
     switch (p) {
     case 8:
-	DrawPip (w, x - half_x, y - half_y);
-	DrawPip (w, x + half_x, y + half_y);
+	DrawPip (cr, - half_x, - half_y, radius);
+	DrawPip (cr, + half_x, + half_y, radius);
 	/* fall through */
     case 6:
-	DrawPip (w, x - half_y, y - half_x);
-	DrawPip (w, x + half_y, y + half_x);
+	DrawPip (cr, - half_y, - half_x, radius);
+	DrawPip (cr, + half_y, + half_x, radius);
 	/* fall through */
     case 4:
-	DrawPip (w, x + off_x, y - off_y);
-	DrawPip (w, x - off_x, y + off_y);
+	DrawPip (cr, + off_x, - off_y, radius);
+	DrawPip (cr, - off_x, + off_y, radius);
 	/* fall through */
     case 2:
-	DrawPip (w, x - off_x, y - off_y);
-	DrawPip (w, x + off_x, y + off_y);
+	DrawPip (cr, - off_x, - off_y, radius);
+	DrawPip (cr, + off_x, + off_y, radius);
     }
 }
 
 static void
-DrawDomino(DominosWidget w, DominoPtr d, int x, int y)
+DrawDomino(DominosWidget w, cairo_t *cr_w, cairo_surface_t *s, DominoPtr d, int x, int y)
 {
-    UsualSuspects(w);
+    cairo_surface_t *t = cairo_surface_create_similar(s,
+						      CAIRO_CONTENT_COLOR,
+						      DominoWidth(w, d),
+						      DominoHeight(w, d));
+    cairo_t *cr = cairo_create(t);
     int	off_x, off_y;
     Pips    p;
     int	    flip;
 
-    XFillRectangle (dpy, tmp_map, w->dominos.bg_gc, 0, 0,
-		    32767, 32767);
-    FillDomino (w, d, 0, 0);
-    flip = !DominoUpright(d);
-    if (d->orientation == North || d->orientation == West)
-	p = d->pips[0];
-    else
-	p = d->pips[1];
-    off_x = DOMINO_MINOR_WIDTH(w) / 2;
-    off_y = DOMINO_MINOR_HEIGHT(w) / 2;
-    DrawPips (w, p, off_x, off_y, flip);
-    if (d->orientation == North || d->orientation == West)
-	p = d->pips[1];
-    else
-	p = d->pips[0];
-    if (!flip)
-	off_y = DominoY(w, d) + DOMINO_MINOR_HEIGHT(w) / 2;
-    else
-	off_x = DominoX(w, d) + DOMINO_MINOR_WIDTH(w) / 2;
-    DrawPips (w, p, off_x, off_y, flip);
-    XCopyArea (dpy, tmp_map, window, w->dominos.pips_gc,
-	       0, 0, DominoWidth(w, d), DominoHeight(w, d),
-	       x - DominoX(w, d),  y - DominoY(w, d));
+    cairo_set_line_width(cr, LINE_WIDTH(w));
+    cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
+    set_source_render(cr, &w->dominos.background);
+    cairo_rectangle(cr, 0, 0, DominoWidth(w, d), DominoHeight(w, d));
+    cairo_fill(cr);
+    cairo_save(cr);
+    {
+	FillDomino (w, cr, d);
+	flip = !DominoUpright(d);
+	if (d->orientation == North || d->orientation == West)
+	    p = d->pips[0];
+	else
+	    p = d->pips[1];
+	off_x = DOMINO_MINOR_WIDTH(w) / 2;
+	off_y = DOMINO_MINOR_HEIGHT(w) / 2;
+	cairo_save(cr);
+	{
+	    cairo_translate(cr, off_x, off_y);
+	    DrawPips (w, cr, p, flip);
+	}
+	cairo_restore(cr);
+	if (d->orientation == North || d->orientation == West)
+	    p = d->pips[1];
+	else
+	    p = d->pips[0];
+	if (!flip)
+	    off_y = DominoY(w, d) + DOMINO_MINOR_HEIGHT(w) / 2;
+	else
+	    off_x = DominoX(w, d) + DOMINO_MINOR_WIDTH(w) / 2;
+	cairo_save(cr);
+	{
+	    cairo_translate(cr, off_x, off_y);
+	    DrawPips (w, cr, p, flip);
+	}
+	cairo_restore(cr);
+    }
+    cairo_restore(cr);
+    cairo_set_source_surface(cr_w, t, x - DominoX(w, d),  y - DominoY(w, d));
+    cairo_paint(cr_w);
 }
 
 static void
-DrawDominos (DominosWidget w, DominoPtr b, int x, int y)
+DrawDominos (DominosWidget w, cairo_t *cr, cairo_surface_t *s, DominoPtr b, int x, int y)
 {
     Direction	dir;
 
-    DrawDomino (w, b, x, y);
+    DrawDomino (w, cr, s,b, x, y);
     for (dir = North; dir <= West; dir++)
 	if (b->peer[dir])
-	    DrawDominos (w, b->peer[dir],
+	    DrawDominos (w, cr, s, b->peer[dir],
 			 x + PeerX(w, b, dir), y + PeerY(w, b, dir));
 }
 
@@ -621,11 +622,19 @@ DrawBoard (DominosWidget w, DominoPtr b, Boolean ok_resize)
     }
     if (XtIsRealized ((Widget) w))
     {
+	cairo_surface_t	*s = cairo_xlib_surface_create(XtDisplay(w),
+						       XtWindow(w),
+						       XtScreen(w)->root_visual,
+						       w->core.width,
+						       w->core.height);
+	cairo_t *cr = cairo_create(s);
 	xoff = (w->core.width - prefered_width) / 2 - size.x1;
 	yoff = (w->core.height- prefered_height) / 2 - size.y1;
 	w->dominos.x_off = xoff;
 	w->dominos.y_off = yoff;
-	DrawDominos (w, b, xoff, yoff);
+	DrawDominos (w, cr, s, b, xoff, yoff);
+	cairo_destroy (cr);
+	cairo_surface_destroy (s);
     }
 }
 
@@ -654,6 +663,8 @@ Redisplay (Widget gw, XEvent *event, Region region)
 
 static XtActionsRec actions[] = {
     { "select", ActionSelect },		    /* select card */
+    { "zoomin", ZoomInAction },
+    { "zoomout", ZoomOutAction },
 };
 
 DominosClassRec	dominosClassRec = {

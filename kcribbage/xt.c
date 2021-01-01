@@ -31,12 +31,12 @@
 # include	<X11/Xaw/Paned.h>
 # include	<X11/Xaw/Form.h>
 # include	<X11/Xaw/Box.h>
-# include	<X11/Xaw/Command.h>
+# include	<Xkw/KCommand.h>
 # include	<X11/Xaw/Dialog.h>
-# include	<X11/Xaw/Label.h>
-# include	<X11/Xaw/MenuButton.h>
-# include	<X11/Xaw/SimpleMenu.h>
-# include	<X11/Xaw/SmeBSB.h>
+# include	<Xkw/KLabel.h>
+# include	<Xkw/KMenuButton.h>
+# include	<Xkw/KSimpleMenu.h>
+# include	<Xkw/KSmeBSB.h>
 # include	<X11/Xaw/AsciiText.h>
 /* # include	<X11/Xaw/Cardinals.h> */
 # include	<Xkw/Hand.h>
@@ -155,11 +155,11 @@ CreateMenu (Widget  parent,
     Widget  entry;
     int	    i;
 
-    menu = XtCreatePopupShell (name, simpleMenuWidgetClass,
+    menu = XtCreatePopupShell (name, ksimpleMenuWidgetClass,
 			       parent, NULL, 0);
     for (i = 0; i < count; i++) {
 	entry = XtCreateManagedWidget (entries[i].name,
-				       smeBSBObjectClass, menu, NULL, 0);
+				       ksmeBSBObjectClass, menu, NULL, 0);
 	XtAddCallback (entry, XtNcallback, entries[i].function, NULL);
     }
     return menu;
@@ -197,6 +197,10 @@ UIInit (int argc, char **argv)
 
     toplevel = XtInitialize (argv[0], "Cribbage", options, XtNumber(options), &argc, argv);
 
+    Arg	args[1];
+    XtSetArg(args[0], XtNinput, True);
+    XtSetValues(toplevel, args, 1);
+
     XtGetApplicationResources (toplevel, (XtPointer)&cribbageResources, resources,
 			       XtNumber (resources), NULL, 0);
 
@@ -208,7 +212,7 @@ UIInit (int argc, char **argv)
     layout = XtCreateManagedWidget ("layout", layoutWidgetClass, toplevel, NULL, 0);
     menuBar = XtCreateManagedWidget ("menuBar", layoutWidgetClass, layout, NULL, 0);
     fileMenuButton = XtCreateManagedWidget ("fileMenuButton",
-					    menuButtonWidgetClass,
+					    kmenuButtonWidgetClass,
 					    menuBar, NULL, 0);
     fileMenu = CreateMenu (fileMenuButton, "fileMenu",
 			   fileMenuEntries, XtNumber (fileMenuEntries));
@@ -216,7 +220,7 @@ UIInit (int argc, char **argv)
     XtAddCallback (player, XtNinputCallback, PlayerCallback, NULL);
     computer = XtCreateManagedWidget ("computer", cardsWidgetClass, layout, NULL, 0);
     table = XtCreateManagedWidget ("table", cardsWidgetClass, layout, NULL, 0);
-    tableScore = XtCreateManagedWidget ("tableScore", labelWidgetClass, layout, NULL, 0);
+    tableScore = XtCreateManagedWidget ("tableScore", klabelWidgetClass, layout, NULL, 0);
     playScore = XtCreateManagedWidget ("playscore", cribBoardWidgetClass, layout, NULL, 0);
     compScore = XtCreateManagedWidget ("compscore", cribBoardWidgetClass, layout, NULL, 0);
     playcrib = XtCreateManagedWidget ("playcrib", cardsWidgetClass, layout, NULL, 0);

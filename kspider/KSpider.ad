@@ -1,3 +1,10 @@
+*Background: #fffff0
+*menuBar.Background: #337744
+*Cards.Background: #337744
+*frame.Background: #337744
+*borderWidth: 0
+*SimpleMenu.borderWidth: 1
+
 *deck.numCols: 1
 *deck.numRows: 1
 
@@ -38,9 +45,6 @@
 
 *message.justify: left
 *message.label: Keith's Spider, Version 1.0
-*stacks.borderWidth: 0
-*deck.borderWidth: 0
-*piles.borderWidth: 0
 *menuBar.layout: vertical { \
 	5 < -5 >\
 	horizontal { \
@@ -59,12 +63,7 @@
 	5 < -5 > \
 }
 *frame.layout: vertical {\
-	-1 \
-	horizontal {\
-		-1 \
-		menuBar < +inff -100% * >\
-		-1 \
-	} \
+	menuBar < +inff -100% * >\
 	10 < -inf > \
 	horizontal { \
 		10 < -inf > \
@@ -75,12 +74,7 @@
 	} \
 	10 < -inf > \
 	stacks < -50% * +inf -50% > \
-	horizontal { \
-		-1 \
-		message < +inff -100% * > \
-		-1 \
-	} \
-	-1 \
+	message < +inff -100% * > \
 }
 
 *fileMenuButton.leftBitmap: menu12
