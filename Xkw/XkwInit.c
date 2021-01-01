@@ -28,6 +28,7 @@
 #include <cairo/cairo-ft.h>
 #include <cairo/cairo-xlib.h>
 #include <X11/Xft/Xft.h>
+#include <X11/Xregion.h>
 
 const char _XtRRenderColor[] = "RenderColor";
 const char _XtRXkwFont[] = "XkwFont";
@@ -203,28 +204,36 @@ XkwGetCairo(Widget w)
 static XRectangle
 XkwDrawRect(Widget gw, Region region)
 {
-    XRectangle ret = { .x = 0, .y = 0, .width = XtWidth(gw), .height = XtHeight(gw) };
+    int	x1 = 0;
+    int x2 = XtWidth(gw);
+    int y1 = 0;
+    int y2 = XtHeight(gw);
 
     if (region) {
-	XRectangle clip;
+	int cx1 = region->extents.x1;
+	int cx2 = region->extents.x2;
+	int cy1 = region->extents.y1;
+	int cy2 = region->extents.y2;
 
-	XClipBox(region, &clip);
-	if (clip.x > 0) {
-	    ret.x = clip.x;
-	    ret.width -= clip.x;
-	} else
-	    clip.width += clip.x;
-	if (clip.y > 0) {
-	    ret.y = clip.y;
-	    ret.height -= clip.y;
-	} else
-	    clip.height += clip.y;
+	if (cx1 > x1)
+	    x1 = cx1;
 
-	if (ret.width > clip.width)
-	    ret.width = clip.width;
-	if (ret.height > clip.height)
-	    clip.height = clip.height;
+	if (cy1 > y1)
+	    y1 = cy1;
+
+	if (cx2 < x2)
+	    x2 = cx2;
+
+	if (cy2 < y2)
+	    y2 = cy2;
+
+	if (x2 < x1)
+	    x1 = x2 = 0;
+
+	if (y2 < y1)
+	    y1 = y2 = 0;
     }
+    XRectangle ret = { .x = x1, .y = y1, .width = x2 - x1, .height = y2 - y1 };
     return ret;
 }
 
@@ -314,8 +323,18 @@ XkwDrawEnd(Widget gw, Region region, cairo_t *cr)
 	y += XtY(gw);
     }
     cairo_set_source_surface(dest, cairo_get_target(cr), x, y);
+    if (region) {
+	long i;
+	BOX *b = region->rects;
 
-    cairo_paint(dest);
+	for (i = 0; i < region->numRects; i++) {
+	    cairo_rectangle(dest, b->x1, b->y1, b->x2 - b->x1, b->y2 - b->y1);
+	    b++;
+	}
+	cairo_fill(dest);
+    } else {
+	cairo_paint(dest);
+    }
     cairo_destroy(cr);
     cairo_destroy(dest);
 }

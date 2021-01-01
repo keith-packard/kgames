@@ -345,7 +345,7 @@ make_card_maps(CardsWidget w)
 }
 
 static void
-paint_card(CardsWidget w, cairo_t *cr, int x, int y, CardsRank rank, CardsSuit suit)
+paint_card(CardsWidget w, cairo_t *cr, CardsRank rank, CardsSuit suit)
 {
     int card_number = 0;
 
@@ -370,15 +370,12 @@ paint_card(CardsWidget w, cairo_t *cr, int x, int y, CardsRank rank, CardsSuit s
 
     RsvgHandle *rsvg_handle = svg_map[card_number];
     if (rsvg_handle) {
-	cairo_save(cr);
-	cairo_translate(cr, x, y);
 	XkwRsvgDraw(cr, CARD_WIDTH(w), CARD_HEIGHT(w), rsvg_handle);
-	cairo_restore(cr);
     }
 }
 
 static void
-FillCard (CardsWidget w, cairo_t *cr, int x, int y)
+FillCard (CardsWidget w, cairo_t *cr)
 {
     double	width, height;
     double	lw;
@@ -390,12 +387,13 @@ FillCard (CardsWidget w, cairo_t *cr, int x, int y)
     lw = width / 200.0;
 
     cairo_save(cr);
-    cairo_translate(cr, x + lw/2.0, y + lw/2.0);
+    cairo_translate(cr, lw/2.0, lw/2.0);
     XkwDrawRoundedRect(cr, width - lw, height - lw, radius);
     cairo_fill_preserve(cr);
     XkwSetSource(cr, &w->ksimple.foreground);
     cairo_set_line_width(cr, lw);
     cairo_stroke(cr);
+    cairo_restore(cr);
 }
 
 static void
@@ -404,38 +402,31 @@ DisplayCallback (Widget gw, XtPointer closure, XtPointer data)
     CardsWidget	    w = (CardsWidget) gw;
     HandDisplayPtr  display = (HandDisplayPtr) data;
     CardsCardPtr    card = (CardsCardPtr) display->private;
-    int		    x, y;
-
-    (void) closure;
-    x = display->x;
-    y = display->y;
-
-    cairo_t *cr = XkwGetCairo((Widget) w);
+    cairo_t	    *cr = display->cr;
 
     cairo_matrix_t back_matrix;
 
     switch (card->suit) {
     case CardsEmpty:
 	XkwSetSource(cr, &w->ksimple.background);
-	FillCard (w, cr, x, y);
+	FillCard (w, cr);
 	break;
     case CardsBack:
 	/* change the origin so cards will have the same back anywhere
 	 * on the table
 	 */
-	cairo_matrix_init(&back_matrix, 1, 0, 0, 1, x, y);
+	cairo_matrix_init(&back_matrix, 1, 0, 0, 1, 0, 0);
 	cairo_pattern_set_matrix(w->cards.back_pattern,
 				 &back_matrix);
 	cairo_set_source(cr, w->cards.back_pattern);
-	FillCard (w, cr, x, y);
+	FillCard (w, cr);
 	break;
     case CardsNone:
 	break;
     default:
-	paint_card (w, cr, x, y, card->rank, card->suit);
+	paint_card (w, cr, card->rank, card->suit);
 	break;
     }
-    cairo_destroy(cr);
 }
 
 CardsClassRec	cardsClassRec = {

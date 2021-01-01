@@ -539,18 +539,10 @@ static void
 DisplayCallback (Widget w, XtPointer closure, XtPointer data)
 {
     HandDisplayPtr  display = (HandDisplayPtr) data;
-    XRectangle	    *clip = 0;
     int		    card_no;
     struct card	    *card;
+    cairo_t	    *cr = display->cr;
 
-    cairo_t *cr = XkwGetCairo(w);
-    if (display->clipped) {
-	clip = &display->clip;
-	cairo_rectangle(cr, clip->x, clip->y, clip->x + clip->width, clip->y + clip->height);
-	cairo_clip(cr);
-    }
-    /* position card */
-    cairo_translate(cr, display->x, display->y);
     cairo_scale(cr, scale, scale);
     card_no = (int) (intptr_t) display->private;
     if (card_no == -2)
@@ -561,7 +553,6 @@ DisplayCallback (Widget w, XtPointer closure, XtPointer data)
 	card = &svg_cards[card_no];
 
     XkwRsvgDraw(cr, WIDTH, HEIGHT, card->rsvg_handle);
-    cairo_destroy(cr);
 }
 
 static void

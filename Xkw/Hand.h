@@ -4,7 +4,8 @@
 
 #ifndef _XtHand_h
 #define _XtHand_h
-#include <X11/Xaw/Simple.h>
+#include <Xkw/Xkw.h>
+#include <Xkw/KSimple.h>
 
 /***********************************************************************
  *
@@ -44,9 +45,7 @@ extern WidgetClass handWidgetClass;
 
 typedef struct _HandDisplay {
     Widget	    w;
-    Position	    x, y;
-    XRectangle	    clip;
-    Boolean	    clipped;
+    cairo_t	    *cr;
     XtPointer	    private;
 } HandDisplayRec, *HandDisplayPtr;
 

@@ -151,7 +151,7 @@ ColsInRow (HandWidget w, int row)
     int	    maxCol = -1;
     CardPtr c;
     for (c = w->hand.bottomCard; c; c = c->prev)
-	if (c->shouldBeUp && c->row == row && c->col > maxCol)
+	if (c->row == row && c->col > maxCol)
 	    maxCol = c->col;
     return maxCol;
 }
@@ -162,7 +162,7 @@ RowsInCol (HandWidget w, int col)
     int	maxRow = -1;
     CardPtr c;
     for (c = w->hand.bottomCard; c; c = c->prev)
-	if (c->shouldBeUp && c->col == col && c->row > maxRow)
+	if (c->col == col && c->row > maxRow)
 	    maxRow = c->row;
     return maxRow;
 }
@@ -189,7 +189,7 @@ XPos (HandWidget w, int row, int col)
 	numDefault = 0;
 	for (c = w->hand.bottomCard; c; c = c->prev)
 	{
-	    if (c->shouldBeUp && c->row == row && c->col >= lastCol && c->col < col)
+	    if (c->row == row && c->col >= lastCol && c->col < col)
 	    {
 		numDefault += (c->col - lastCol);
 		if (c->offset == XkwHandDefaultOffset ||
@@ -264,7 +264,7 @@ YPos (HandWidget w, int row, int col)
 	numDefault = 0;
 	for (c = w->hand.bottomCard; c; c = c->prev)
 	{
-	    if (c->shouldBeUp && c->col == col && c->row >= lastRow && c->row < row)
+	    if (c->col == col && c->row >= lastRow && c->row < row)
 	    {
 		numDefault += (c->row - lastRow);
 		if (c->offset == XkwHandDefaultOffset ||
@@ -330,9 +330,7 @@ Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
     new->hand.real_col_offset = new->hand.col_offset;
     new->hand.topCard = NULL;
     new->hand.bottomCard = NULL;
-    new->hand.erased = NULL;
-    new->hand.exposeTime = 0;
-    new->hand.force_erase = False;
+    new->hand.damage = NULL;
 }
 
 #define MotionMask ( \
@@ -497,251 +495,37 @@ static void ActionSelect (Widget gw, XEvent *event, String *params, Cardinal *nu
     XtCallCallbackList ((Widget) w, w->hand.input_callback, (XtPointer) &input);
 }
 
-static Bool CardInRect (HandWidget w, XRectangle *rect, CardPtr c)
+static void
+CardRectangle(HandWidget w, CardPtr card, XRectangle *c)
 {
-    XRectangle	*card = &c->clip;
-
-    (void) w;
-    return rect->x < card->x + card->width &&
-	   card->x < rect->x + rect->width &&
-	   rect->y < card->y + card->height &&
-	   card->y < rect->y + rect->height;
-}
-
-#define ClipRects(allClipped) { \
-    if (cx1 <= x1 && x2 <= cx2) \
-    { \
-	if (cy1 <= y1 && y1 < cy2) \
-	    y1 = cy2; \
-	if (cy1 < y2 && y2 <= cy2) \
-	    y2 = cy1; \
-	if (y2 < y1) \
-	    y2 = y1; \
-	if (y1 == y2) \
-	    allClipped; \
-    } \
-    if (cy1 <= y1 && y2 <= cy2) \
-    { \
-	if (cx1 <= x1 && x1 < cx2) \
-	    x1 = cx2; \
-	if (cx1 < x2 && x2 <= cx2) \
-	    x2 = cx1; \
-	if (x2 < x1) \
-	    x2 = x1; \
-	if (x1 == x2) \
-	    allClipped; \
-    } \
-}
-
-static void MarkCard (HandWidget w, CardPtr c)
-{
-    XRectangle	*r;
-    ErasedPtr	e, *p;
-    int		cx1, cy1, cx2, cy2;
-    int		x1, y1, x2, y2;
-    Boolean	allClipped;
-
-    c->redisplay = TRUE;
-    if (w->hand.erased)
-    {
-	cx1 = c->x + w->hand.display_x;
-	cy1 = c->y + w->hand.display_y;
-	cx2 = cx1 + w->hand.display_width;
-	cy2 = cy1 + w->hand.display_height;
-	if (cx1 < c->clip.x)
-	    cx1 = c->clip.x;
-	if (cx2 > c->clip.x + c->clip.width)
-	    cx2 = c->clip.x + c->clip.width;
-	if (cy1 < c->clip.y)
-	    cy1 = c->clip.y;
-	if (cy2 > c->clip.y + c->clip.height)
-	    cy2 = c->clip.y + c->clip.height;
-	for (p = &w->hand.erased; (e = *p);)
-	{
-	    allClipped = False;
-	    x1 = e->r.x;
-	    x2 = x1 + e->r.width;
-	    y1 = e->r.y;
-	    y2 = y1 + e->r.height;
-	    ClipRects (allClipped = True);
-	    if (allClipped)
-	    {
-		*p = e->next;
-		Dispose (e);
-	    }
-	    else
-	    {
-		e->r.x = x1;
-		e->r.y = y1;
-		e->r.width = x2 - x1;
-		e->r.height = y2 - y1;
-		p = &e->next;
-	    }
-	}
-    }
-    r = &c->clip;
-    for (c = c->prev; c; c = c->prev)
-	if (!c->redisplay && CardInRect (w, r, c))
-	    MarkCard (w, c);
-}
-
-static void MarkRectangle (HandWidget w, XRectangle *r)
-{
-    CardPtr c;
-
-    for (c = w->hand.bottomCard; c; c = c->prev)
-	if (!c->redisplay && CardInRect (w, r, c))
-	    MarkCard (w, c);
+    c->x = card->x;
+    c->y = card->y;
+    c->width = w->hand.card_width;
+    c->height = w->hand.card_height;
 }
 
 static void
-EraseCard (HandWidget w, CardPtr c)
+DamageCard(HandWidget w, CardPtr card)
 {
-    ErasedPtr	e = New(ErasedRec);
+    XRectangle c;
 
-    e->r = c->clip;
-    e->next = w->hand.erased;
-    e->fill = True;
-    e->isCard = True;
-    e->cardX = c->x;
-    e->cardY = c->y;
-    w->hand.erased = e;
+    if (card->shown) {
+	CardRectangle(w, card, &c);
+	if (!w->hand.damage)
+	    w->hand.damage = XCreateRegion();
+	XUnionRectWithRegion(&c, w->hand.damage, w->hand.damage);
+    }
 }
 
-static void
-ComputeClip (HandWidget w, CardPtr card)
+static Bool
+CardInRegion (HandWidget w, CardPtr card, Region region)
 {
-    int	    x1, y1, x2, y2;
-    int	    cx1, cy1, cx2, cy2;
-    int	    ox1, oy1, ox2, oy2;
-    CardPtr c;
+    if (region == NULL)
+	return True;
 
-    ox1 = x1 = card->x;
-    oy1 = y1 = card->y;
-    ox2 = x2 = x1 + w->hand.card_width;
-    oy2 = y2 = y1 + w->hand.card_height;
-    c = card;
-    while ((c = c->prev))
-    {
-	if (!c->shouldBeUp)
-	    continue;
-	cx1 = c->x + w->hand.display_x;
-	cy1 = c->y + w->hand.display_y;
-	cx2 = cx1 + w->hand.display_width;
-	cy2 = cy1 + w->hand.display_height;
-	ClipRects (break);
-    }
-    card->clip.x = x1;
-    card->clip.y = y1;
-    card->clip.width = x2 - x1;
-    card->clip.height = y2 - y1;
-    if (x1 == ox1 && y1 == oy1 && x2 == ox2 && y2 == oy2)
-	card->clipped = ClipUnclipped;
-    else if (x2 > x1 && y2 > y1)
-	card->clipped = ClipPartclipped;
-    else
-	card->clipped = ClipAllclipped;
-}
-
-void
-HandUpdateDisplay (Widget gw)
-{
-    HandWidget	    w = (HandWidget) gw;
-    CardPtr	    c, nc;
-    ErasedPtr	    e;
-    HandDisplayRec  display;
-    int		    x, y;
-
-    if (!XtIsRealized (gw))
-	return;
-
-    /* Mark cards for redisplay */
-    for (c = w->hand.topCard; c; c = nc)
-    {
-	nc = c->next;
-	if (c->shouldBeUp)
-	{
-	    x = XPos (w, c->row, c->col);
-	    y = YPos (w, c->row, c->col);
-	    if (c->isUp)
-	    {
-		if (c->x != x || c->y != y)
-		{
-		    EraseCard (w, c);
-		    c->isUp = False;
-		}
-	    }
-	    c->x = x;
-	    c->y = y;
-	    ComputeClip (w, c);
-	}
-	else if (c->isUp)
-	    EraseCard (w, c);
-	if (c->delete)
-	{
-	    if (c->prev)
-		c->prev->next = c->next;
-	    else
-		w->hand.topCard = c->next;
-	    if (c->next)
-		c->next->prev = c->prev;
-	    else
-		w->hand.bottomCard = c->prev;
-	    Dispose (c);
-	}
-    }
-    /* mark effects of redisplay */
-    for (c = w->hand.bottomCard; c; c = c->prev)
-    {
-	if ((c->shouldBeUp && !c->isUp) || c->forceRedraw)
-	{
-	    MarkCard (w, c);
-	    c->isUp = True;
-	    c->forceRedraw = False;
-	}
-    }
-
-    /* clear out the blank areas */
-    while ((e = w->hand.erased))
-    {
-	w->hand.erased = e->next;
-	c = 0;
-	if (e->isCard && 0)
-	{
-	    for (c = w->hand.bottomCard; c; c = c->prev)
-		if (c->redisplay && c->x == e->cardX && c->y == e->cardY)
-		    break;
-	}
-	if (!c)
-	{
-	    MarkRectangle (w, &e->r);
-	    if (e->fill)
-	    {
-		XClearArea (XtDisplay(w), XtWindow (w),
-			    e->r.x, e->r.y, e->r.width, e->r.height, False);
-	    }
-	}
-	Dispose (e);
-    }
-
-    /* redisplay cards */
-    for (c = w->hand.bottomCard; c; c = c->prev)
-	if (c->redisplay)
-	{
-	    if (c->clipped != ClipAllclipped)
-	    {
-		display.w = (Widget) w;
-		display.x = c->x;
-		display.y = c->y;
-		display.private = c->private;
-		display.clipped = False;
-		display.clip = c->clip;
-		if (c->clipped == ClipPartclipped)
-		    display.clipped = True;
-		XtCallCallbackList ((Widget) w, w->hand.display_callback, (XtPointer) &display);
-	    }
-	    c->redisplay = FALSE;
-	}
+    XRectangle c;
+    CardRectangle(w, card, &c);
+    return XRectInRegion(region, c.x, c.y, c.width, c.height);
 }
 
 /*
@@ -757,7 +541,53 @@ Resize (Widget gw)
 
     w->hand.real_col_offset = BestColOffset (w, w->hand.num_cols);
     w->hand.real_row_offset = BestRowOffset (w, w->hand.num_rows);
-    w->hand.exposeTime = 0;
+}
+
+static void
+UpdateCards (HandWidget w)
+{
+    CardPtr c;
+    for (c = w->hand.bottomCard; c; c = c->prev) {
+	int x = XPos(w, c->row, c->col);
+	int y = YPos(w, c->row, c->col);
+
+	if (!c->shown || x != c->x || y != c->y) {
+	    if (c->shown)
+		DamageCard(w, c);
+	    c->x = x;
+	    c->y = y;
+	    c->shown = True;
+	    DamageCard(w, c);
+	}
+    }
+}
+
+static void
+Paint (HandWidget w, Region region)
+{
+    if (XtIsRealized((Widget) w)) {
+	cairo_t 	*cr = XkwDrawBegin ((Widget) w, region);
+	HandDisplayRec	display;
+	CardPtr		c;
+
+	display.w = (Widget) w;
+	display.cr = cr;
+	/* redisplay cards */
+	for (c = w->hand.bottomCard; c; c = c->prev) {
+	    if (CardInRegion(w, c, region)) {
+		cairo_save(cr);
+		cairo_translate(cr, c->x, c->y);
+		display.private = c->private;
+		XtCallCallbackList ((Widget) w, w->hand.display_callback, (XtPointer) &display);
+		cairo_restore(cr);
+	    }
+	}
+	XkwDrawEnd((Widget) w, region, cr);
+    }
+    if (w->hand.damage) {
+	XDestroyRegion(w->hand.damage);
+	w->hand.damage = NULL;
+    }
 }
 
 /*
@@ -768,40 +598,16 @@ static void
 Redisplay (Widget gw, XEvent *event, Region region)
 {
     HandWidget	    w = (HandWidget) gw;
-    ErasedPtr	    e;
-    int		    cx1, cy1, cx2, cy2;
-    int		    x1, y1, x2, y2;
 
-    (void) region;
-    x1 = event->xexpose.x;
-    x2 = x1 + event->xexpose.width;
-    y1 = event->xexpose.y;
-    y2 = y1 + event->xexpose.height;
-    if (event->xexpose.serial <= w->hand.exposeTime)
-    {
-	cx1 = w->hand.lastExpose.x;
-	cy1 = w->hand.lastExpose.y;
-	cx2 = cx1 + w->hand.lastExpose.width;
-	cy2 = cy1 + w->hand.lastExpose.height;
-	ClipRects (return)
+    if (!XtIsRealized (gw))
+	return;
+
+    UpdateCards(w);
+    if (region && w->hand.damage) {
+	XUnionRegion(region, w->hand.damage, w->hand.damage);
+	region = w->hand.damage;
     }
-    e = New(ErasedRec);
-    e->r.x = x1;
-    e->r.y = y1;
-    e->r.width = x2 - x1;
-    e->r.height = y2 - y1;
-    e->next = w->hand.erased;
-    e->fill = False;
-    e->isCard = False;
-    w->hand.erased = e;
-    if (event->xexpose.count == 0) {
-	w->hand.exposeTime = NextRequest (XtDisplay (w));
-	w->hand.lastExpose.x = x1;
-	w->hand.lastExpose.y = y1;
-	w->hand.lastExpose.width = x2 - x1;
-	w->hand.lastExpose.height = y2 - y1;
-	HandUpdateDisplay (gw);
-    }
+    Paint (w, region);
 }
 
 /*
@@ -820,6 +626,7 @@ SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 
     (void) args;
     (void) count;
+    (void) new;
     getHandSize (cur, &curwidth, &curheight);
     getHandSize (req, &reqwidth, &reqheight);
     if (curwidth != reqwidth || curheight != reqheight)
@@ -828,8 +635,17 @@ SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 	if (width != curwidth || height != curheight)
 	    Resize (gnew);
     }
-    new->hand.exposeTime = 0;
     return TRUE;
+}
+
+void
+HandUpdateDisplay (Widget gw)
+{
+    HandWidget w = (HandWidget) gw;
+
+    UpdateCards (w);
+    if (w->hand.damage)
+	Paint(w, w->hand.damage);
 }
 
 /* Insert a card */
@@ -901,15 +717,11 @@ HandAddCard (Widget	gw,
 	}
     }
     c = New(CardRec);
-    c->redisplay = False;
-    c->forceRedraw = False;
-    c->isUp = False;
-    c->shouldBeUp = True;
-    c->delete = False;
     c->private = private;
     c->row = row;
     c->col = col;
     c->offset = offset;
+    c->shown = False;
     /* insert the new card on the list */
     c->next = sib;	/* c is above sib */
 
@@ -942,7 +754,6 @@ HandAddCard (Widget	gw,
 	    if (sib->row == c->row && sib->col == col)
 		sib->col = ++col;
     }
-    w->hand.exposeTime = 0;
     if (XtIsRealized(gw) && w->hand.immediate_update)
 	HandUpdateDisplay (gw);
     return (XtPointer) c;
@@ -961,8 +772,6 @@ HandRemoveCard (Widget gw, XtPointer card)
 	    break;
     if (!c)
 	return;
-    c->shouldBeUp = False;
-    c->delete = True;
     if (w->hand.row_insert)
     {
 	row = c->row;
@@ -977,7 +786,16 @@ HandRemoveCard (Widget gw, XtPointer card)
 	    if (sib->row == c->row && sib->col == col + 1)
 		sib->col = col++;
     }
-    w->hand.exposeTime = 0;
+    if (c->prev)
+	c->prev->next = c->next;
+    else
+	w->hand.topCard = c->next;
+    if (c->next)
+	c->next->prev = c->prev;
+    else
+	w->hand.bottomCard = c->prev;
+    DamageCard(w, c);
+    Dispose (c);
     if (XtIsRealized (gw) && w->hand.immediate_update)
 	HandUpdateDisplay (gw);
 }
@@ -994,9 +812,8 @@ HandReplaceCard (Widget gw, XtPointer card, XtPointer private, int offset)
     if (!c)
 	return;
     c->private = private;
-    c->forceRedraw = True;
     c->offset = offset;
-    w->hand.exposeTime = 0;
+    DamageCard(w, c);
     if (XtIsRealized (gw) && w->hand.immediate_update)
     	HandUpdateDisplay (gw);
 }
@@ -1062,9 +879,8 @@ HandRemoveAllCards (Widget gw)
     }
     w->hand.topCard = 0;
     w->hand.bottomCard = 0;
-    w->hand.exposeTime = 0;
     if (XtIsRealized (gw))
-	XClearWindow (XtDisplay (w), XtWindow (w));
+	Redisplay(gw, NULL, NULL);
 }
 
 static XtActionsRec actions[] = {
@@ -1088,7 +904,7 @@ HandClassRec handClassRec = {
     /* num_resources		*/	XtNumber(resources),
     /* xrm_class		*/	NULLQUARK,
     /* compress_motion		*/	TRUE,
-    /* compress_exposure	*/	FALSE,
+    /* compress_exposure	*/	TRUE,
     /* compress_enterleave	*/	TRUE,
     /* visible_interest		*/	FALSE,
     /* destroy			*/	Destroy,
@@ -1106,9 +922,13 @@ HandClassRec handClassRec = {
     /* display_accelerator	*/	XtInheritDisplayAccelerator,
     /* extension		*/	NULL
   },
-  { /* simple fields */
-    /* change_sensitive		*/	XtInheritChangeSensitive,
-    /* extension                */      NULL,
+  /* simple */
+  {
+    XtInheritChangeSensitive,		/* change_sensitive */
+  },
+  {
+    /* ksimple fields */
+    /* empty			*/	0
   },
   { /* hand fields */
     /* ignore                   */	0
