@@ -2,7 +2,9 @@ Source: kgames
 Section: games
 Priority: optional
 Maintainer: Keith Packard <keithp@keithp.com>
-Build-Depends: debhelper-compat (= 13), libxaw7-dev, meson, ninja-build, bison, flex, libncurses-dev
+Build-Depends: debhelper-compat (= 13), libcairo2-dev, libxft-dev,
+	librsvg2-dev,
+	libxaw7-dev, meson, ninja-build, bison, flex, libncurses-dev
 Standards-Version: 4.5.1
 Homepage: https://keithp.com
 Vcs-Browser: https://salsa.debian.org/debian/kgames

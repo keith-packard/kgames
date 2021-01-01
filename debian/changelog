@@ -1,3 +1,9 @@
+kgames (2.0-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Keith Packard <keithp@keithp.com>  Thu, 31 Dec 2020 17:21:53 -0800
+
 kgames (1.0-2) unstable; urgency=medium
 
   * Mark kgames as 'Replaces: xmille'
