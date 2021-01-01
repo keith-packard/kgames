@@ -539,6 +539,9 @@ Resize (Widget gw)
 {
     HandWidget	w = (HandWidget) gw;
 
+    if (*SuperClass->core_class.resize != NULL)
+	(*SuperClass->core_class.resize)(gw);
+
     w->hand.real_col_offset = BestColOffset (w, w->hand.num_cols);
     w->hand.real_row_offset = BestRowOffset (w, w->hand.num_rows);
 }
