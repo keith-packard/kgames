@@ -55,11 +55,11 @@ XkwDrawOval(cairo_t *cr, double width, double height)
 	/* top */
 	cairo_line_to(cr, width - radius, 0);
 	/* right */
-	cairo_arc(cr, width - radius, radius, radius, -M_PI/2, M_PI);
+	cairo_arc(cr, width - radius, radius, radius, -M_PI/2, M_PI/2);
 	/* bottom */
 	cairo_line_to(cr, radius, height);
 	/* left */
-	cairo_arc(cr, radius, radius, radius, M_PI, M_PI * 3/2);
+	cairo_arc(cr, radius, radius, radius, M_PI/2, M_PI * 3/2);
     } else {
 	cairo_move_to(cr, width, radius);
 	/* right */
