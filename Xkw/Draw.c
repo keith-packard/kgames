@@ -48,9 +48,9 @@ XkwDrawRoundedRect(cairo_t *cr, double width, double height, double radius)
 void
 XkwDrawOval(cairo_t *cr, double width, double height)
 {
-    double	radius = height / 2.0;
-
     if (width >= height) {
+	double	radius = height / 2.0;
+
 	cairo_move_to(cr, radius, 0);
 	/* top */
 	cairo_line_to(cr, width - radius, 0);
@@ -61,6 +61,8 @@ XkwDrawOval(cairo_t *cr, double width, double height)
 	/* left */
 	cairo_arc(cr, radius, radius, radius, M_PI/2, M_PI * 3/2);
     } else {
+	double	radius = width / 2.0;
+
 	cairo_move_to(cr, width, radius);
 	/* right */
 	cairo_line_to(cr, width, height - radius);
