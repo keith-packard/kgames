@@ -98,8 +98,6 @@ static void
 Redisplay(Widget gw, XEvent *event, Region region)
 {
     KScrollbarWidget w = (KScrollbarWidget)gw;
-    if (*superclass->core_class.expose != NULL)
-	(*superclass->core_class.expose)(gw, event, region);
 
     double thick = Thickness(w);
     double pos = w->kscrollbar.position * Avail(w) + Pad(w);
@@ -151,7 +149,7 @@ QueryGeometry(Widget gw, XtWidgetGeometry *intended,
 	    return XtGeometryNo;
     } else {
 	preferred->request_mode = CWWidth;
-	preferred->height = PreferredSize(w);
+	preferred->width = PreferredSize(w);
 	if (intended->request_mode & CWWidth &&
 	    intended->width == preferred->width)
 	    return XtGeometryYes;
@@ -280,7 +278,7 @@ static XtResource resources[] = {
     { XtNorientation, XtCOrientation, XtROrientation, sizeof(XtOrientation),
       offset(orientation), XtRImmediate, (XtPointer)XtorientVertical },
     { XtNthickness, XtCThickness, XtRDouble, sizeof(double),
-      offset(thickness), XtRString, "12" },
+      offset(thickness), XtRString, "9" },
     { XtNsize, XtCSize, XtRDouble, sizeof(double),
       offset(size), XtRString, (XtPointer) "1" },
     { XtNposition, XtCPosition, XtRDouble, sizeof(double),

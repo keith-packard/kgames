@@ -22,7 +22,7 @@
 
 #include <Xkw/KSimpleP.h>
 
-#define superclass	(&simpleClassRec)
+#define SuperClass	(&simpleClassRec)
 
 static void
 KSimpleClassInitialize(void)
@@ -42,6 +42,16 @@ KSimpleInitialize(Widget request, Widget cnew,
 }
 
 static void
+KSimpleRealize(Widget w, Mask *valueMask, XSetWindowAttributes *attributes)
+{
+    *valueMask &= ~(CWBackPixel);
+    *valueMask |= (CWBackPixmap);
+    attributes->background_pixmap = None;
+    (*ksimpleWidgetClass->core_class.superclass->core_class.realize)
+	(w, valueMask, attributes);
+}
+
+static void
 KSimpleDestroy(Widget gw)
 {
     KSimpleWidget w = (KSimpleWidget) gw;
@@ -50,6 +60,17 @@ KSimpleDestroy(Widget gw)
 	cairo_surface_destroy(w->ksimple.surface);
 	w->ksimple.surface = NULL;
     }
+}
+
+static void
+KSimpleRedisplay(Widget gw, XEvent *event, Region region)
+{
+    KSimpleWidget w = (KSimpleWidget) gw;
+    cairo_t *cr = XkwGetCairo(gw);
+
+    XkwSetSource(cr, &w->ksimple.background);
+    cairo_paint(cr);
+    cairo_destroy(cr);
 }
 
 static Boolean
@@ -81,7 +102,7 @@ static XtResource resources[] = {
 KSimpleClassRec ksimpleClassRec = {
   /* core */
   {
-    (WidgetClass)&simpleClassRec,	/* superclass */
+    (WidgetClass)SuperClass,		/* superclass */
     "KSimple",				/* class_name */
     sizeof(KSimpleRec),			/* widget_size */
     KSimpleClassInitialize,		/* class_initialize */
@@ -89,7 +110,7 @@ KSimpleClassRec ksimpleClassRec = {
     False,				/* class_inited */
     KSimpleInitialize,			/* initialize */
     NULL,				/* initialize_hook */
-    XtInheritRealize,			/* realize */
+    KSimpleRealize,			/* realize */
     NULL,				/* actions */
     0,					/* num_actions */
     resources,				/* resources */
@@ -101,7 +122,7 @@ KSimpleClassRec ksimpleClassRec = {
     False,				/* visible_interest */
     KSimpleDestroy,			/* destroy */
     NULL,				/* resize */
-    NULL,				/* expose */
+    KSimpleRedisplay,			/* expose */
     KSimpleSetValues,			/* set_values */
     NULL,				/* set_values_hook */
     XtInheritSetValuesAlmost,		/* set_values_almost */

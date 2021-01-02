@@ -131,10 +131,6 @@ static void
 Redisplay(Widget gw, XEvent *event, Region region)
 {
     KTextLineWidget w = (KTextLineWidget) gw;
-
-    if (*superclass->core_class.expose != NULL)
-	(*superclass->core_class.expose)(gw, event, region);
-
     cairo_t *cr = draw_begin(w, region);
 
     cairo_font_extents_t font_extents;

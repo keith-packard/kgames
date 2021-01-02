@@ -128,9 +128,6 @@ static void
 XkwKLabelRedisplay(Widget gw, XEvent *event, Region region)
 {
     KLabelWidget w = (KLabelWidget)gw;
-    if (*superclass->core_class.expose != NULL)
-	(*superclass->core_class.expose)(gw, event, region);
-
     cairo_t *cr = draw_begin(w, region);
 
     if (!XtIsSensitive(gw))
