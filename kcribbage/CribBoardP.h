@@ -51,13 +51,10 @@ typedef struct {
     /* resources */
     XRenderColor    pegColor;
     XRenderColor    holeColor;
-    int		    pegSize;
-    int		    holeSize;
     int		    numPegs;
-    int		    groupSpace;
-    int		    rowSpace;
     int		    numCols;
     int		    numRows;
+
     /* private state */
     int		    *pegs;
 } CribBoardPart;

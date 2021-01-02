@@ -82,15 +82,15 @@
 			} \
 			horizontal { \
 				0 < +inf > \
-				playcrib \
+				playcrib < +1 -1 * +1 -1 >\
 				0 < +inf > \
-				compcrib \
+				compcrib < +1 -1 * +1 -1 >\
 				0 < +inf > \
 			} \
 		} \
 		vertical { \
-			playscore \
-			compscore \
+			playscore < +1 -1 * +1 -1 >\
+			compscore < +1 -1 * +1 -1 >\
 			message < * +inf -inf > \
 		} \
 		-1 \
