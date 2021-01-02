@@ -646,6 +646,7 @@ QueryGeometry(Widget gw, XtWidgetGeometry *intended,
 {
     DominosWidget   w = (DominosWidget) gw;
 
+    preferred->request_mode = intended->request_mode & (CWWidth|CWHeight);
     PreferredSize(w, &preferred->width, &preferred->height, NULL, NULL);
     if (((intended->request_mode & (CWWidth | CWHeight)) == (CWWidth | CWHeight))
 	&& intended->width == preferred->width

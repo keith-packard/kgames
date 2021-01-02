@@ -44,6 +44,10 @@
 *board.height: 500
 *player_scrollbar.orientation: horizontal
 
+*Scrollbar.Foreground: gray
+*scroll_h.orientation: horizontal
+*scroll_v.orientation: vertical
+
 *player.translations: #override \
 	<Btn1Down>:	select(source)\n\
 	<Btn1Up>:	select(dest)
@@ -65,31 +69,24 @@
 	<Btn5Down>:	zoomout()
 
 *frame.layout: vertical {\
-	-1 \
 	horizontal { -1 menuBar < +inff -100% * > -1 } \
-	-1 \
 	horizontal { \
-		-1 \
 		computerCount < -100% * > \
-		-1 \
 		message < +inff -100% * > \
-		-1 \
 	} \
-	-1 \
+	player_porthole < +inf -inf * > \
+	player_scrollbar < +inf -inf * > \
 	horizontal { \
-		-1 \
-		vertical { panner 0 < +inf > } \
-		-1 \
-		vertical { \
-			-1 \
-			player_scrollbar < +inf -inf * > \
-			0 < +1 > \
-			player_porthole < +inf -inf * > \
-			-1 \
-		} \
-		-1 \
+		porthole < +inf -inf * +inf -inf > \
+		scroll_v < * +inff > \
 	} \
-	porthole < +inf -inf * +inf -inf > \
+	horizontal { \
+		scroll_h < +inff * > \
+		vertical { \
+			width scroll_v, 0 \
+			corner < +inff -inff * +inff -inff > \
+		}\
+	} \
 }
 
 *panner.resize: False

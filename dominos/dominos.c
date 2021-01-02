@@ -30,9 +30,7 @@
 # include	<X11/Xaw/Box.h>
 # include	<X11/Xaw/Dialog.h>
 # include	<X11/Xaw/Cardinals.h>
-# include	<X11/Xaw/Porthole.h>
 # include	<X11/Xaw/Panner.h>
-# include	<X11/Xaw/Scrollbar.h>
 # include	"Dominos.h"
 # include	<Xkw/Layout.h>
 # include 	<Xkw/Message.h>
@@ -40,16 +38,20 @@
 # include	<Xkw/KLabel.h>
 # include	<Xkw/KCommand.h>
 # include	<Xkw/KMenuButton.h>
+# include	<Xkw/KSimple.h>
 # include	<Xkw/KSimpleMenu.h>
 # include	<Xkw/KSmeBSB.h>
 # include	<Xkw/KScrollbar.h>
+# include	<Xkw/KPorthole.h>
 # include	<X11/Xutil.h>
 # include	"dominos.h"
 # include	<stdio.h>
 
 Widget	    toplevel;
 Widget	    frame;
-Widget	    panner;
+Widget	    scroll_h;
+Widget	    corner;
+Widget	    scroll_v;
 Widget	    porthole;
 Widget	    board_w;
 Widget	    player_porthole;
@@ -616,114 +618,124 @@ MakeFirstMove (void)
     return FALSE;
 }
 
-/*	Function Name: PannerCallback
- *	Description: called when the panner has moved.
- *	Arguments: panner - the panner widget.
- *                 closure - *** NOT USED ***.
- *                 report_ptr - the panner record.
- *	Returns: none.
- */
-
 static void
-PannerCallback(Widget w, XtPointer closure, XtPointer report_ptr)
+SetScrollbar(Widget w,
+	     Position p,
+	     Dimension child,
+	     Dimension parent)
 {
-    Arg args[2];
-    XawPannerReport *report = (XawPannerReport *) report_ptr;
-    Widget child = (Widget) closure;
-
-    (void) w;
-    XtSetArg (args[0], XtNx, -report->slider_x);
-    XtSetArg (args[1], XtNy, -report->slider_y);
-
-    XtSetValues(child, args, TWO);
+    double pos = -(double) p / ((double) child - (double) parent);
+    XkwScrollbarSetThumb(w, pos, (double) parent / (double) child);
 }
 
-/*	Function Name: PortholeCallback
- *	Description: called when the porthole or its child has
- *                   changed
- *	Arguments: porthole - the porthole widget.
- *                 panner_ptr - the panner widget.
- *                 report_ptr - the porthole record.
- *	Returns: none.
- */
-
 static void
-PortholeCallback(Widget w, XtPointer panner_ptr, XtPointer report_ptr)
+UpdateScrollbars(Widget child,
+		 Position x, Position y,
+		 Dimension child_width, Dimension child_height,
+		 Dimension parent_width, Dimension parent_height)
 {
-    Arg args[10];
-    Cardinal n = 0;
-    XawPannerReport *report = (XawPannerReport *) report_ptr;
-    Widget panner = (Widget) panner_ptr;
-
-    (void) w;
-    XtSetArg (args[n], XtNsliderX, report->slider_x); n++;
-    XtSetArg (args[n], XtNsliderY, report->slider_y); n++;
-    if (report->changed != (XawPRSliderX | XawPRSliderY)) {
-	XtSetArg (args[n], XtNsliderWidth, report->slider_width); n++;
-	XtSetArg (args[n], XtNsliderHeight, report->slider_height); n++;
-	XtSetArg (args[n], XtNcanvasWidth, report->canvas_width); n++;
-	XtSetArg (args[n], XtNcanvasHeight, report->canvas_height); n++;
+    if (child == player_w) {
+	SetScrollbar(player_scrollbar, x, child_width, parent_width);
     }
-    XtSetValues (panner, args, n);
+    if (child == board_w) {
+	SetScrollbar(scroll_h, x, child_width, parent_width);
+	SetScrollbar(scroll_v, y, child_height, parent_height);
+    }
 }
 
+/* Called when scrollbar is moved */
 static void
-PlayerScrollbarCallback (Widget w, XtPointer closure, XtPointer data)
+ScrollbarCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    Widget	player_w = (Widget) closure;
-    double	pos = *((double *) data);
-    Arg		args[10];
-    Cardinal	n;
-    Dimension	player_width;
-    Dimension	port_width;
-    Position	player_x;
+    Widget child = (Widget) closure;
+    double pos = *((double *) data);
+    Arg args[4];
+    Position	child_x, child_y;
+    Dimension	child_width, child_height;
+    Dimension  	parent_width, parent_height;
+    XtOrientation orientation;
 
-    (void) w;
-    n = 0;
-    XtSetArg (args[n], XtNwidth, &player_width); n++;
-    XtSetArg (args[n], XtNx, &player_x); n++;
-    XtGetValues (player_w, args, n);
+    /* child geometry */
+    XtSetArg(args[0], XtNx, &child_x);
+    XtSetArg(args[1], XtNy, &child_y);
+    XtSetArg(args[2], XtNwidth, &child_width);
+    XtSetArg(args[3], XtNheight, &child_height);
+    XtGetValues(child, args, 4);
 
-    n = 0;
-    XtSetArg(args[n], XtNwidth, &port_width); n++;
-    XtGetValues (player_porthole, args, n);
+    /* parent geometry */
+    XtSetArg(args[0], XtNwidth, &parent_width);
+    XtSetArg(args[1], XtNheight, &parent_height);
+    XtGetValues(XtParent(child), args, 2);
+
+    /* scrollbar direction */
+    XtSetArg(args[0], XtNorientation, &orientation);
+    XtGetValues(w, args, 1);
+
+    Dimension	parent_length, child_length;
+    Position	child_position, new_child_position;
+    if (orientation == XtorientVertical) {
+	parent_length = parent_height;
+	child_position = child_y;
+	child_length = child_height;
+    } else {
+	parent_length = parent_width;
+	child_position = child_x;
+	child_length = child_width;
+    }
 
     if (pos == XkwScrollbarPageDown)
-	player_x -= port_width * .75;
+	new_child_position = child_position - parent_length * 0.75;
     else if (pos == XkwScrollbarPageUp)
-	player_x += port_width * .75;
+	new_child_position = child_position + parent_length * 0.75;
     else
-	player_x = -((double) player_width - (double) port_width) * pos;
+	new_child_position = ((double) parent_length - (double) child_length) * pos;
 
-    if (player_x < port_width - player_width)
-	player_x = port_width - player_width;
-    if (player_x > 0)
-	player_x = 0;
+    if (new_child_position < (Position) (parent_length - child_length))
+	new_child_position = (Position) (parent_length - child_length);
 
-    n = 0;
-    XtSetArg (args[n], XtNx, player_x); n++;
-    XtSetValues (player_w, args, n);
+    if (new_child_position > 0)
+	new_child_position = 0;
 
-    (void) w;
-    n = 0;
-    XtSetArg (args[n], XtNx, &player_x); n++;
-    XtGetValues (player_w, args, n);
-
-    pos = -(double) player_x / ((double) player_width - (double) port_width);
-    XkwScrollbarSetThumb(player_scrollbar, pos, (double) port_width / (double) player_width);
+    if (new_child_position != child_position) {
+	if (orientation == XtorientVertical)
+	    child_y = new_child_position;
+	else
+	    child_x = new_child_position;
+	Arg args[2];
+	XtSetArg(args[0], XtNx, child_x);
+	XtSetArg(args[1], XtNy, child_y);
+	XtSetValues(child, args, 2);
+	UpdateScrollbars(child, child_x, child_y,
+			 child_width, child_height,
+			 parent_width, parent_height);
+    }
 }
 
+/* Called when porthole has moved */
 static void
-PlayerPortholeCallback (Widget w, XtPointer closure, XtPointer data)
+PortholeCallback(Widget w, XtPointer closure, XtPointer data)
 {
-    double  top, shown;
-    XawPannerReport *report = (XawPannerReport *) data;
-    Widget scrollbar = (Widget) closure;
+    Widget child = (Widget) data;
+    Arg args[4];
+    Position	child_x, child_y;
+    Dimension	child_width, child_height;
+    Dimension  	parent_width, parent_height;
 
-    (void) w;
-    top = ((double) report->slider_x) / ((double) report->canvas_width);
-    shown = ((double) report->slider_width) / ((double) report->canvas_width);
-    XkwScrollbarSetThumb (scrollbar, top, shown);
+    /* child geometry */
+    XtSetArg(args[0], XtNx, &child_x);
+    XtSetArg(args[1], XtNy, &child_y);
+    XtSetArg(args[2], XtNwidth, &child_width);
+    XtSetArg(args[3], XtNheight, &child_height);
+    XtGetValues(child, args, 4);
+
+    /* parent geometry */
+    XtSetArg(args[0], XtNwidth, &parent_width);
+    XtSetArg(args[1], XtNheight, &parent_height);
+    XtGetValues(XtParent(child), args, 2);
+
+    UpdateScrollbars(child, child_x, child_y,
+		     child_width, child_height,
+		     parent_width, parent_height);
 }
 
 static void
@@ -1131,23 +1143,29 @@ main (int argc, char **argv)
 	score_w[i] = XtCreateManagedWidget(foo, klabelWidgetClass,
 					   menuBar, NULL, ZERO);
     }
-    porthole = XtCreateManagedWidget("porthole", portholeWidgetClass,
+    porthole = XtCreateManagedWidget("porthole", kportholeWidgetClass,
 				     frame, NULL, ZERO);
 
-    panner = XtCreateManagedWidget("panner", pannerWidgetClass,
+    scroll_h = XtCreateManagedWidget("scroll_h", kscrollbarWidgetClass,
+				     frame, NULL, ZERO);
+
+    corner = XtCreateManagedWidget("corner", ksimpleWidgetClass,
 				   frame, NULL, ZERO);
+
+    scroll_v = XtCreateManagedWidget("scroll_v", kscrollbarWidgetClass,
+				     frame, NULL, ZERO);
 
     board_w = XtCreateManagedWidget ("board", dominosWidgetClass, porthole, NULL, 0);
 
     XtAddCallback (board_w, XtNinputCallback, BoardCallback, NULL);
 
-    XtAddCallback(porthole, XtNreportCallback, PortholeCallback,
-		  (XtPointer) panner);
+    XtAddCallback (porthole, XtNcallback, PortholeCallback, NULL);
 
-    XtAddCallback(panner, XtNreportCallback, PannerCallback,
-		  (XtPointer) board_w);
+    XtAddCallback(scroll_h, XtNcallback, ScrollbarCallback, (XtPointer) board_w);
 
-    player_porthole = XtCreateManagedWidget("player_porthole", portholeWidgetClass,
+    XtAddCallback(scroll_v, XtNcallback, ScrollbarCallback, (XtPointer) board_w);
+
+    player_porthole = XtCreateManagedWidget("player_porthole", kportholeWidgetClass,
 					  frame, NULL, ZERO);
 
     player_scrollbar = XtCreateManagedWidget("player_scrollbar", kscrollbarWidgetClass,
@@ -1156,10 +1174,9 @@ main (int argc, char **argv)
     player_w = XtCreateManagedWidget ("player", dominosWidgetClass,
 				      player_porthole, NULL, 0);
 
-    XtAddCallback (player_porthole, XtNreportCallback, PlayerPortholeCallback,
-		   (XtPointer) player_scrollbar);
+    XtAddCallback (player_porthole, XtNcallback, PortholeCallback, NULL);
 
-    XtAddCallback (player_scrollbar, XtNcallback, PlayerScrollbarCallback,
+    XtAddCallback (player_scrollbar, XtNcallback, ScrollbarCallback,
 		   (XtPointer) player_w);
 
     XtAddCallback(player_w, XtNinputCallback, PlayerCallback, NULL);
