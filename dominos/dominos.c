@@ -42,6 +42,7 @@
 # include	<Xkw/KMenuButton.h>
 # include	<Xkw/KSimpleMenu.h>
 # include	<Xkw/KSmeBSB.h>
+# include	<Xkw/KScrollbar.h>
 # include	<X11/Xutil.h>
 # include	"dominos.h"
 # include	<stdio.h>
@@ -670,33 +671,59 @@ static void
 PlayerScrollbarCallback (Widget w, XtPointer closure, XtPointer data)
 {
     Widget	player_w = (Widget) closure;
-    float	pos = *((float *) data);
+    double	pos = *((double *) data);
     Arg		args[10];
     Cardinal	n;
     Dimension	player_width;
+    Dimension	port_width;
     Position	player_x;
 
     (void) w;
     n = 0;
     XtSetArg (args[n], XtNwidth, &player_width); n++;
+    XtSetArg (args[n], XtNx, &player_x); n++;
     XtGetValues (player_w, args, n);
-    player_x = -((float) player_width) * pos;
+
+    n = 0;
+    XtSetArg(args[n], XtNwidth, &port_width); n++;
+    XtGetValues (player_porthole, args, n);
+
+    if (pos == XkwScrollbarPageDown)
+	player_x -= port_width * .75;
+    else if (pos == XkwScrollbarPageUp)
+	player_x += port_width * .75;
+    else
+	player_x = -((double) player_width - (double) port_width) * pos;
+
+    if (player_x < port_width - player_width)
+	player_x = port_width - player_width;
+    if (player_x > 0)
+	player_x = 0;
+
     n = 0;
     XtSetArg (args[n], XtNx, player_x); n++;
     XtSetValues (player_w, args, n);
+
+    (void) w;
+    n = 0;
+    XtSetArg (args[n], XtNx, &player_x); n++;
+    XtGetValues (player_w, args, n);
+
+    pos = -(double) player_x / ((double) player_width - (double) port_width);
+    XkwScrollbarSetThumb(player_scrollbar, pos, (double) port_width / (double) player_width);
 }
 
 static void
 PlayerPortholeCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    float  top, shown;
+    double  top, shown;
     XawPannerReport *report = (XawPannerReport *) data;
     Widget scrollbar = (Widget) closure;
 
     (void) w;
-    top = ((float) report->slider_x) / ((float) report->canvas_width);
-    shown = ((float) report->slider_width) / ((float) report->canvas_width);
-    XawScrollbarSetThumb (scrollbar, top, shown);
+    top = ((double) report->slider_x) / ((double) report->canvas_width);
+    shown = ((double) report->slider_width) / ((double) report->canvas_width);
+    XkwScrollbarSetThumb (scrollbar, top, shown);
 }
 
 static void
@@ -1123,7 +1150,7 @@ main (int argc, char **argv)
     player_porthole = XtCreateManagedWidget("player_porthole", portholeWidgetClass,
 					  frame, NULL, ZERO);
 
-    player_scrollbar = XtCreateManagedWidget("player_scrollbar", scrollbarWidgetClass,
+    player_scrollbar = XtCreateManagedWidget("player_scrollbar", kscrollbarWidgetClass,
 					     frame, NULL, ZERO);
 
     player_w = XtCreateManagedWidget ("player", dominosWidgetClass,
@@ -1132,7 +1159,7 @@ main (int argc, char **argv)
     XtAddCallback (player_porthole, XtNreportCallback, PlayerPortholeCallback,
 		   (XtPointer) player_scrollbar);
 
-    XtAddCallback (player_scrollbar, XtNjumpProc, PlayerScrollbarCallback,
+    XtAddCallback (player_scrollbar, XtNcallback, PlayerScrollbarCallback,
 		   (XtPointer) player_w);
 
     XtAddCallback(player_w, XtNinputCallback, PlayerCallback, NULL);

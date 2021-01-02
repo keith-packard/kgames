@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
@@ -26,7 +26,7 @@
 #ifndef _XtDominosP_h
 #define _XtDominosP_h
 
-#include <X11/Xaw/SimpleP.h>
+#include <Xkw/KSimpleP.h>
 #include "Dominos.h"
 #include "dominos.h"
 
@@ -51,6 +51,7 @@ typedef struct _DominosClass {
 typedef struct _DominosClassRec {
     CoreClassPart	core_class;
     SimpleClassPart	simple_class;
+    KSimpleClassPart	ksimple_class;
     DominosClassPart	cards_class;
 } DominosClassRec;
 
@@ -61,7 +62,6 @@ typedef struct {
     XRenderColor    pips_color;
     XRenderColor    face_color;
     XRenderColor    background;
-    Boolean	    round_dominos;
     Dimension	    size;
     XtCallbackList  input_callback;	/* func called on button press */
     /* private state */
@@ -76,6 +76,7 @@ typedef struct {
 typedef struct _DominosRec {
     CorePart	core;
     SimplePart	simple;
+    KSimplePart	ksimple;
     DominosPart	dominos;
 } DominosRec;
 
