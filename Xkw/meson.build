@@ -59,6 +59,7 @@ srcs_xkw = [
   'KCommand.c',
   'KLabel.c',
   'KMenuButton.c',
+  'KPorthole.c',
   'KScrollbar.c',
   'KSimple.c',
   'KSimpleMenu.c',
