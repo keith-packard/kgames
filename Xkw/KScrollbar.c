@@ -166,11 +166,6 @@ CoordToPosition(KScrollbarWidget w, int coord)
     double	avail = Avail(w);
     double	c = coord - length / 2.0;
 
-    if (c < 0.0)
-	c = 0.0;
-    if (c > avail)
-	c = avail;
-
     return c/avail;
 }
 
@@ -235,8 +230,10 @@ Start(Widget gw, XEvent *event, String *params, Cardinal *num_params)
 	Notify(w, XkwScrollbarPageUp);
     else if (class > 0)
 	Notify(w, XkwScrollbarPageDown);
-    else
+    else {
 	w->kscrollbar.dragging = True;
+	w->kscrollbar.start_pos = CoordToPosition(w, coord) - w->kscrollbar.position;
+    }
 }
 
 static void
@@ -244,8 +241,14 @@ Drag(Widget gw, XEvent *event, String *params, Cardinal *num_params)
 {
     KScrollbarWidget w = (KScrollbarWidget) gw;
 
-    if (w->kscrollbar.dragging)
-	Notify(w, CoordToPosition(w, Coord(w, event)));
+    if (w->kscrollbar.dragging) {
+	double coord = CoordToPosition(w, Coord(w, event)) - w->kscrollbar.start_pos;
+	if (coord < 0)
+	    coord = 0;
+	if (coord > 1)
+	    coord = 1;
+	Notify(w, coord);
+    }
 }
 
 static void

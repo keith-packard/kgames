@@ -53,6 +53,7 @@ typedef struct {
 
     /* private */
     Boolean		dragging;
+    double		start_pos;
 } KScrollbarPart;
 
 /* Full widget declaration */
