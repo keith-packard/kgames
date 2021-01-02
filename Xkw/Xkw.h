@@ -38,6 +38,8 @@ extern const char _XtRXkwFont[];
 #define XtRXkwFont ((char *)_XtRXkwFont)
 extern const char _XtRDpi[];
 #define XtRDpi ((char *)_XtRDpi)
+extern const char _XtRDouble[];
+#define XtRDouble ((char *)_XtRDouble)
 
 extern const char _XtNdpi[];
 #define XtNdpi ((char *)_XtNdpi)
