@@ -51,6 +51,8 @@ typedef struct {
 
     /* private */
     cairo_surface_t	*surface;
+    Dimension		surface_width;
+    Dimension		surface_height;
 } KSimplePart;
 
 typedef struct _KSimpleRec {

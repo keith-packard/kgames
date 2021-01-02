@@ -75,6 +75,8 @@ typedef struct _KSimpleMenuPart {
 
     /* private */
     cairo_surface_t	*surface;
+    Dimension	surface_width;
+    Dimension	surface_height;
     Boolean	recursive_set_values; /* contain a possible infinite loop */
     Boolean	menu_width;	/* If true then force width to remain
 				   core.width */

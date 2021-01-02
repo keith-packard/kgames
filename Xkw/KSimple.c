@@ -31,26 +31,14 @@ KSimpleClassInitialize(void)
 }
 
 static void
-KSimpleRealize (Widget gw,
-		XtValueMask *value_mask,
-		XSetWindowAttributes *attributes)
+KSimpleInitialize(Widget request, Widget cnew,
+		  ArgList args, Cardinal *num_args)
 {
-    KSimpleWidget w = (KSimpleWidget) gw;
+    KSimpleWidget w = (KSimpleWidget) cnew;
 
-    (*superclass->core_class.realize)(gw, value_mask, attributes);
-    w->ksimple.surface = XkwGetSurface(gw);
-}
-
-static void
-KSimpleResize(Widget gw)
-{
-    KSimpleWidget w = (KSimpleWidget) gw;
-
-    if (!XtIsRealized(gw))
-	return;
-
-    cairo_surface_destroy(w->ksimple.surface);
-    w->ksimple.surface = XkwGetSurface(gw);
+    w->ksimple.surface = NULL;
+    w->ksimple.surface_width = 0;
+    w->ksimple.surface_height = 0;
 }
 
 static void
@@ -58,7 +46,10 @@ KSimpleDestroy(Widget gw)
 {
     KSimpleWidget w = (KSimpleWidget) gw;
 
-    cairo_surface_destroy(w->ksimple.surface);
+    if (w->ksimple.surface) {
+	cairo_surface_destroy(w->ksimple.surface);
+	w->ksimple.surface = NULL;
+    }
 }
 
 static Boolean
@@ -96,9 +87,9 @@ KSimpleClassRec ksimpleClassRec = {
     KSimpleClassInitialize,		/* class_initialize */
     NULL,				/* class_part_initialize */
     False,				/* class_inited */
-    NULL,				/* initialize */
+    KSimpleInitialize,			/* initialize */
     NULL,				/* initialize_hook */
-    KSimpleRealize,			/* realize */
+    XtInheritRealize,			/* realize */
     NULL,				/* actions */
     0,					/* num_actions */
     resources,				/* resources */
@@ -109,7 +100,7 @@ KSimpleClassRec ksimpleClassRec = {
     True,				/* compress_enterleave */
     False,				/* visible_interest */
     KSimpleDestroy,			/* destroy */
-    KSimpleResize,			/* resize */
+    NULL,				/* resize */
     NULL,				/* expose */
     KSimpleSetValues,			/* set_values */
     NULL,				/* set_values_hook */
