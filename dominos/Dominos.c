@@ -97,6 +97,14 @@ DominoHeight (DominosWidget w, DominoPtr d)
 	return DOMINO_MINOR_HEIGHT(w);
 }
 
+static DominoPtr
+Dominos(DominosWidget w)
+{
+    if (w->dominos.board)
+	return *w->dominos.board;
+    return NULL;
+}
+
 #define DominoX(w,d)	    (DominoWidth (w, d) / 2)
 #define DominoY(w,d)	    (DominoHeight (w, d) / 2)
 
@@ -209,6 +217,13 @@ BoardSize (DominosWidget w, DominoPtr b, RectPtr r, int x, int y)
     RectRec	sub;
     Direction	dir;
 
+    if (!b) {
+	r->x1 = x;
+	r->y1 = y;
+	r->x2 = x;
+	r->y2 = y;
+	return;
+    }
     r->x1 = x - DominoX(w, b);
     r->y1 = y - DominoY(w, b);
     r->x2 = r->x1 + DominoWidth(w, b);
@@ -237,7 +252,7 @@ PreferredSize (DominosWidget w, Dimension *width, Dimension *height, Position *x
     RectRec		size;
     Dimension		preferred_width, preferred_height;
 
-    BoardSize (w, *(w->dominos.board), &size, 0, 0);
+    BoardSize (w, Dominos(w), &size, 0, 0);
     preferred_width = size.x2 - size.x1;
     preferred_height = size.y2 - size.y1;
     if (preferred_width < DOMINO_MAJOR_WIDTH(w))
@@ -268,7 +283,7 @@ SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 	redisplay = True;
     if (XtWidth(gcur) != XtWidth(greq) || XtHeight(gcur) != XtHeight(greq))
 	redisplay = True;
-    if (cur->dominos.size != new->dominos.size && new->dominos.board && *new->dominos.board)
+    if (cur->dominos.size != new->dominos.size)
     {
 	Dimension		preferred_width, preferred_height, width, height;
 	XtGeometryResult	result;
@@ -317,6 +332,8 @@ XYInDomino (DominosWidget w,
     int		x_dist, y_dist;
     int		sub_dist;
 
+    if (!b)
+	return NULL;
     r.x1 = x - DominoX(w, b);
     r.y1 = y - DominoY(w, b);
     r.x2 = r.x1 + DominoWidth(w, b);
@@ -368,7 +385,7 @@ XYInDomino (DominosWidget w,
 		peer = XYInDomino (w, b->peer[dir],
 				   x + PeerX(w, b, dir), y + PeerY(w, b, dir),
 				   test_x, test_y, &sub_dist, &sub_dir);
-		if (sub_dist < to_dist)
+		if (peer && sub_dist < to_dist)
 		{
 		    to_dist = sub_dist;
 		    to_dir = sub_dir;
@@ -391,11 +408,9 @@ XYToDomino (DominosWidget w,
 	    int *distp,
 	    Direction *dirp)
 {
-    if (w->dominos.board && *w->dominos.board)
-	return XYInDomino (w, *w->dominos.board,
-			   w->dominos.x_off, w->dominos.y_off, x, y,
-			   distp, dirp);
-    return NULL;
+    return XYInDomino (w, Dominos(w),
+		       w->dominos.x_off, w->dominos.y_off, x, y,
+		       distp, dirp);
 }
 
 static void
@@ -408,14 +423,16 @@ ActionSelect (Widget gw, XEvent *event, String *params, Cardinal *num_params)
     int		    dist;
 
     d = XYToDomino (w, event->xbutton.x, event->xbutton.y, &dist, &dir);
-    input.w = gw;
-    input.domino = d;
-    input.direction = dir;
-    input.distance = dist;
-    input.params = params;
-    input.event = *event;
-    input.num_params = num_params;
-    XtCallCallbackList (gw, w->dominos.input_callback, (XtPointer) &input);
+    if (d) {
+	input.w = gw;
+	input.domino = d;
+	input.direction = dir;
+	input.distance = dist;
+	input.params = params;
+	input.event = *event;
+	input.num_params = num_params;
+	XtCallCallbackList (gw, w->dominos.input_callback, (XtPointer) &input);
+    }
 }
 
 static void
@@ -587,7 +604,7 @@ DrawDominos (DominosWidget w, cairo_t *cr, DominoPtr d, int x, int y)
 }
 
 static void
-DrawBoard (DominosWidget w, DominoPtr b, Boolean ok_resize, Region region)
+DrawBoard (DominosWidget w, Boolean ok_resize, Region region)
 {
     int		xoff, yoff;
     Position	x, y;
@@ -610,12 +627,14 @@ DrawBoard (DominosWidget w, DominoPtr b, Boolean ok_resize, Region region)
     }
     if (XtIsRealized ((Widget) w))
     {
+	DominoPtr b = Dominos(w);
 	cairo_t *cr = XkwDrawBegin((Widget) w, region);
 	xoff = (w->core.width - preferred_width) / 2 - x;
 	yoff = (w->core.height- preferred_height) / 2 - y;
 	w->dominos.x_off = xoff;
 	w->dominos.y_off = yoff;
-	DrawDominos (w, cr, b, xoff, yoff);
+	if (b)
+	    DrawDominos (w, cr, b, xoff, yoff);
 	XkwDrawEnd((Widget) w, region, cr);
     }
 }
@@ -626,10 +645,8 @@ DominosSetDominos (Widget gw, DominoPtr *boardp)
     DominosWidget   w = (DominosWidget) gw;
 
     w->dominos.board = boardp;
-    if (XtIsRealized ((Widget) w)) {
-	if (w->dominos.board && *w->dominos.board)
-	    DrawBoard (w, *(w->dominos.board), TRUE, NULL);
-    }
+    if (XtIsRealized ((Widget) w))
+	DrawBoard (w, TRUE, NULL);
 }
 
 static void
@@ -638,8 +655,7 @@ Redisplay (Widget gw, XEvent *event, Region region)
     DominosWidget   w = (DominosWidget) gw;
 
     (void) event;
-    if (w->dominos.board && *w->dominos.board)
-	DrawBoard (w, *(w->dominos.board), FALSE, region);
+    DrawBoard (w, FALSE, region);
 }
 
 static void
