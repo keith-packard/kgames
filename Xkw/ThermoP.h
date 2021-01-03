@@ -65,16 +65,16 @@ typedef struct {
     Dimension	    reqMinorTickLen;
     Boolean	    vertical;
     /* private state */
-    int		    thickness;
-    int		    minorStart;
-    int		    majorStart;
-    int		    minorStep;
-    int		    majorStep;
-    Dimension	    startPad;
-    Dimension	    endPad;
-    Dimension	    majorTickLen;
-    Dimension	    minorTickLen;
-    Dimension	    textWidth;
+    double	    thickness;
+    double	    minorStart;
+    double	    majorStart;
+    double	    minorStep;
+    double	    majorStep;
+    double	    startPad;
+    double	    endPad;
+    double	    majorTickLen;
+    double	    minorTickLen;
+    double	    textWidth;
 } ThermoPart;
 
 

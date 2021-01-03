@@ -117,15 +117,10 @@ horizontal { \
 
 *Thermo.borderWidth: 1
 *Thermo.mercuryColor: blue
-*Thermo.thickness: 15
 *Thermo.minimum: 0
 *Thermo.maximum: 1000
-*Thermo.minorStart: 0
-*Thermo.majorStart: 0
 *Thermo.minorStep: 25
 *Thermo.majorStep: 100
-*Thermo.minorTickLen: 4
-*Thermo.majorTickLen: 8
 *Thermo.vertical: false
 *Thermo.width: 500
 
