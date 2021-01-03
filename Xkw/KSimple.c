@@ -46,9 +46,7 @@ KSimpleRealize(Widget w, Mask *valueMask, XSetWindowAttributes *attributes)
 {
     *valueMask &= ~(CWBackPixel);
     *valueMask |= (CWBackPixmap);
-    *valueMask |= CWBitGravity;
     attributes->background_pixmap = None;
-    attributes->bit_gravity = NorthWestGravity;
     (*ksimpleWidgetClass->core_class.superclass->core_class.realize)
 	(w, valueMask, attributes);
 }

@@ -351,6 +351,9 @@ Realize (Widget widget, XtValueMask *value_mask, XSetWindowAttributes *attribute
     unsigned char   mapping[MAX_BUT];
     int	    i, max;
 
+    *value_mask |= CWBitGravity;
+    attributes->bit_gravity = NorthWestGravity;
+
     (*SuperClass->core_class.realize)(widget, value_mask, attributes);
     if (*value_mask & CWEventMask)
 	event_mask = attributes->event_mask;
@@ -538,12 +541,20 @@ static void
 Resize (Widget gw)
 {
     HandWidget	w = (HandWidget) gw;
+    Dimension col_offset, row_offset;
 
     if (*SuperClass->core_class.resize != NULL)
 	(*SuperClass->core_class.resize)(gw);
 
-    w->hand.real_col_offset = BestColOffset (w, w->hand.num_cols);
-    w->hand.real_row_offset = BestRowOffset (w, w->hand.num_rows);
+    col_offset = BestColOffset (w, w->hand.num_cols);
+    row_offset = BestRowOffset (w, w->hand.num_rows);
+    if (col_offset != w->hand.real_col_offset || row_offset != w->hand.real_row_offset)
+    {
+	w->hand.real_col_offset = col_offset;
+	w->hand.real_row_offset = row_offset;
+	if (XtIsRealized(gw))
+	    XClearArea(XtDisplay(gw), XtWindow(gw), 0, 0, 0, 0, True);
+    }
 }
 
 static void
