@@ -121,7 +121,7 @@
 	<Key>d:		dominosDraw()\n\
 	<Key>?:		dominosHint()\n\
 	<Key>+:         dominosZoomIn()\n\
-	<Key>-:         dominosZoomOut()\n\
+	<Key>-:         dominosZoomOut()
 
 *yesOrNoShell.allowShellResize: true
 *yesOrNoLabel.borderWidth: 0

@@ -266,6 +266,8 @@ SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 	redisplay = True;
     if (!XkwColorEqual(&cur->dominos.pips_color, &new->dominos.pips_color))
 	redisplay = True;
+    if (XtWidth(gcur) != XtWidth(greq) || XtHeight(gcur) != XtHeight(greq))
+	redisplay = True;
     if (cur->dominos.size != new->dominos.size && new->dominos.board && *new->dominos.board)
     {
 	Dimension		preferred_width, preferred_height, width, height;
@@ -640,6 +642,13 @@ Redisplay (Widget gw, XEvent *event, Region region)
 	DrawBoard (w, *(w->dominos.board), FALSE, region);
 }
 
+static void
+Resize (Widget gw)
+{
+    if (XtIsRealized(gw))
+	XClearArea(XtDisplay(gw), XtWindow(gw), 0, 0, 0, 0, True);
+}
+
 static XtGeometryResult
 QueryGeometry(Widget gw, XtWidgetGeometry *intended,
 	      XtWidgetGeometry *preferred)
@@ -685,7 +694,7 @@ DominosClassRec	dominosClassRec = {
     /* compress_enterleave	*/	TRUE,
     /* visible_interest		*/	FALSE,
     /* destroy			*/	Destroy,
-    /* resize			*/	XtInheritResize,
+    /* resize			*/	Resize,
     /* expose			*/	Redisplay,
     /* set_values		*/	SetValues,
     /* set_values_hook		*/	NULL,
