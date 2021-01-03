@@ -14,7 +14,7 @@ output="$2"
 
 (
     echo 'static const char *const defaultResources[] = {'
-    sed -e 's/"/\\"/g' -e 's/\([^\\]\)$/\1",/' -e 's/^$/"/' -e 's/\\$/"/' -e 's/^/    "/' "$input"
+    sed -e 's/^[ \t]*//' -e 's/\\n/\\\\n/g' -e 's/"/\\"/g' -e 's/\([^\\]\)$/\1",/' -e 's/^$/"/' -e 's/\\$/"/' -e 's/^/    "/' "$input"
     echo "    0,"
     echo '};'
 ) > "$output"
