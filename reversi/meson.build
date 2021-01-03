@@ -19,6 +19,7 @@
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 #
+res_files = res_gen.process('Kreversi.ad')
 
 srcs_reversi = [
   'corners.c',
@@ -59,13 +60,10 @@ edges_c = custom_target('edges.c',
 			command : [makeedge, '@INPUT@'])
 
 executable('kreversi',
-	   srcs_reversi, edges_c,
+	   srcs_reversi, edges_c, res_files,
 	   include_directories: inc,
 	   dependencies: [x_libs],
 	   link_with: [lib_xkw],
 	   install: true)
 
 install_man('kreversi.6')
-install_data('Kreversi.ad',
-	     rename: 'Kreversi',
-	     install_dir : app_defaults)

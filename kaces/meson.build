@@ -19,11 +19,13 @@
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 #
+
+res_files = res_gen.process('KAces.ad')
+
 executable('kaces',
-	   'aces.c',
+	   'aces.c', res_files,
 	   include_directories: inc,
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
 install_man('kaces.6')
-install_data('KAces.ad',             rename: 'KAces',              install_dir : app_defaults)

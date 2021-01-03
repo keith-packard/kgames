@@ -41,6 +41,7 @@
 # include	<X11/Xutil.h>
 # include	<Xkw/CardsUtil.h>
 # include	<Xkw/Message.h>
+# include	"KAces-res.h"
 
 Widget	    toplevel;
 Widget	    frame;
@@ -836,12 +837,9 @@ main (int argc, char **argv)
 {
     Atom wm_delete_window;
 
-#ifdef APPDEFAULTS
-    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
-#endif
-
-    toplevel = XtInitialize (argv[0], "KAces", options, XtNumber(options),
-			     &argc, argv);
+    toplevel = XkwInitialize ("KAces", options, XtNumber(options),
+			      &argc, argv, True,
+			      defaultResources);
 
     Arg	args[1];
     XtSetArg(args[0], XtNinput, True);

@@ -53,6 +53,7 @@ add_global_arguments('-D', 'APPDEFAULTS="' + prefix / app_defaults + '"', langua
 
 inc_dirs = ['.']
 
+
 inc = include_directories(inc_dirs)
 
 subdir('Xkw')

@@ -1,0 +1,20 @@
+#!/bin/bash
+
+case $# in
+    2)
+    ;;
+    *)
+	echo "usage: $0 cards.c cards.h"
+	exit 1
+	;;
+esac
+
+input="$1"
+output="$2"
+
+(
+    echo 'static const char *const defaultResources[] = {'
+    sed -e 's/"/\\"/g' -e 's/\([^\\]\)$/\1",/' -e 's/^$/"/' -e 's/\\$/"/' -e 's/^/    "/' "$input"
+    echo "    0,"
+    echo '};'
+) > "$output"

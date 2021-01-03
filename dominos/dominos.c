@@ -45,6 +45,7 @@
 # include	<Xkw/KPorthole.h>
 # include	<X11/Xutil.h>
 # include	"dominos.h"
+# include	"Dominos-res.h"
 # include	<stdio.h>
 
 Widget	    toplevel;
@@ -1083,16 +1084,8 @@ main (int argc, char **argv)
     Atom	wm_delete_window;
     int		i;
 
-#ifdef APPDEFAULTS
-    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
-#endif
-
-    toplevel = XtInitialize (argv[0], "Dominos", options, XtNumber(options),
-			     &argc, argv);
-
-    Arg	args[1];
-    XtSetArg(args[0], XtNinput, True);
-    XtSetValues(toplevel, args, ONE);
+    toplevel = XkwInitialize("Dominos", options, XtNumber(options),
+			     &argc, argv, True, defaultResources);
 
     XtGetApplicationResources (toplevel, (XtPointer)&dominosResources, resources,
 			       XtNumber (resources), NULL, 0);

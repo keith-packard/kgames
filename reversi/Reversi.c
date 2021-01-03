@@ -4,13 +4,13 @@ and the Massachusetts Institute of Technology, Cambridge, Massachusetts.
 
                         All Rights Reserved
 
-Permission to use, copy, modify, and distribute this software and its 
-documentation for any purpose and without fee is hereby granted, 
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
 provided that the above copyright notice appear in all copies and that
-both that copyright notice and this permission notice appear in 
+both that copyright notice and this permission notice appear in
 supporting documentation, and that the names of Digital or MIT not be
 used in advertising or publicity pertaining to distribution of the
-software without specific, written prior permission.  
+software without specific, written prior permission.
 
 DIGITAL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
 ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
@@ -91,7 +91,6 @@ static void Initialize(Widget request, Widget new, Arg *args, Cardinal *count)
     if (rw->core.height == 0)
         rw->core.height = 100;
 
-    (*XtClass(new)->core_class.resize) ((Widget)rw);
     for (y = 0; y < BOARD_HEIGHT; y++)
 	for (x = 0; x < BOARD_HEIGHT; x++) {
 	    rw->reversi.board[x][y] = StoneNone;
@@ -326,7 +325,7 @@ static char defaultTranslations[] =
 
 ReversiClassRec reversiClassRec = {
   {
-/* core_class fields */	
+/* core_class fields */
     /* superclass	  	*/	(WidgetClass) superclass,
     /* class_name	  	*/	"Reversi",
     /* widget_size	  	*/	sizeof(ReversiRec),

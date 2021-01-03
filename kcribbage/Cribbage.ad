@@ -38,6 +38,11 @@
 *table.borderWidth: 0
 *table.overlap: both
 
+*playname.label: Your score
+*playname.justify: left
+*compname.label: My score
+*compname.justify: left
+
 *playcrib.numRows: 1
 *playcrib.numCols: 1
 *playcrib.borderWidth: 0
@@ -68,10 +73,10 @@
 *layout.layout: vertical { \
 	-1 \
 	horizontal { \
-		menuBar < +inf -inf * > \
-	} \
-	horizontal { \
 		vertical { \
+			horizontal { \
+				menuBar < +inf -inf * > \
+			} \
 			horizontal { \
 				player < -50% * -50% > \
 				vertical { \
@@ -89,7 +94,9 @@
 			} \
 		} \
 		vertical { \
+			playname < +inf * -100% >\
 			playscore < +1 -1 * +1 -1 >\
+			compname < +inf * -100% >\
 			compscore < +1 -1 * +1 -1 >\
 			message < * +inf -inf > \
 		} \

@@ -25,6 +25,7 @@
 #include <X11/StringDefs.h>
 #include <X11/Xaw/Cardinals.h>
 #include <X11/Shell.h>
+#include <Xkw/Xkw.h>
 #include <Xkw/KCommand.h>
 #include <Xkw/KTextLine.h>
 #include <Xkw/KToggle.h>
@@ -33,6 +34,7 @@
 #include "Reversi.h"
 #include <stdio.h>
 #include "reversi.h"
+#include "Kreversi-res.h"
 
 static Widget	topLevel, layout, reversi, error;
 
@@ -281,16 +283,8 @@ XtActionsRec xreversi_actions[] = {
 void
 dispInit(int argc, char **argv)
 {
-#ifdef APPDEFAULTS
-    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
-#endif
-    topLevel = XtInitialize( NULL, "Kreversi",
-			     options, XtNumber(options),
-			     &argc, argv );
-
-    Arg	args[1];
-    XtSetArg(args[0], XtNinput, True);
-    XtSetValues(topLevel, args, ONE);
+    topLevel = XkwInitialize("Kreversi", options, XtNumber(options),
+			     &argc, argv, True, defaultResources);
 
     XtGetApplicationResources(topLevel, &app_resources, resources,
 			      XtNumber(resources), NULL, 0);

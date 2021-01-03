@@ -37,61 +37,61 @@
 
 *turn.borderWidth: 0
 
-*layout.layout: horizontal {\n \
-	reversi < +inff -100% * +inff -100% > \n \
-	vertical { \n \
-		10 < +10 -100% > \n \
+*layout.layout: horizontal { \
+	reversi < +inff -100% * +inff -100% >  \
+	vertical {  \
+		10 < +10 -100% >  \
 		horizontal { \
-			5 < +inf -100% > \n \
-			quit \n \
-			5 < +inf -100% > \n \
-			hint \n \
-			5 < +inf -100% > \n \
-			undo \n \
-			5 < +inf -100% > \n \
-			restart \n \
-			5 < +inf -100% > \n \
-		} \n \
-		10 < +10 -100% > \n \
-		horizontal { \n \
-			5 < -100% > \n \
-			vertical { \n \
-				horizontal { \n \
-					playerLabel \n \
-					0 < +inf > \n \
+			5 < +inf -100% >  \
+			quit  \
+			5 < +inf -100% >  \
+			hint  \
+			5 < +inf -100% >  \
+			undo  \
+			5 < +inf -100% >  \
+			restart  \
+			5 < +inf -100% >  \
+		}  \
+		10 < +10 -100% >  \
+		horizontal {  \
+			5 < -100% >  \
+			vertical {  \
+				horizontal {  \
+					playerLabel  \
+					0 < +inf >  \
 				} \
-				10 < +10 - 100% > \n \
-				horizontal { \n \
-					playWhite \n \
-					5 < +inf -100% > \n \
-					playBlack \n \
-					5 < +inf -100% > \n \
-					playBoth \n \
-					5 < +inf -100% > \n \
-					playNeither \n \
-				} \n \
-			} \n \
-			5 < +inf -100% > \n \
-		} \n \
-		10 < +10 -100% > \n \
-		horizontal { \n \
-			5 < -100% > \n \
+				10 < +10 - 100% >  \
+				horizontal {  \
+					playWhite  \
+					5 < +inf -100% >  \
+					playBlack  \
+					5 < +inf -100% >  \
+					playBoth  \
+					5 < +inf -100% >  \
+					playNeither  \
+				}  \
+			}  \
+			5 < +inf -100% >  \
+		}  \
+		10 < +10 -100% >  \
+		horizontal {  \
+			5 < -100% >  \
 			vertical { \
-				0 < +inf > \n \
-				levelLabel \n \
-				0 < +inf > \n \
-			} \n \
-			10 < -100% > \n \
-			levelValue \n \
-			5 < +inf -100% > \n \
-		} \n \
-		10 < +10 -100% > \n \
-		horizontal { \n \
-			5 < -100% > \n \
-			turn \n \
-			5 < +inf -100% > \n \
-		} \n \
+				0 < +inf >  \
+				levelLabel  \
+				0 < +inf >  \
+			}  \
+			10 < -100% >  \
+			levelValue  \
+			5 < +inf -100% >  \
+		}  \
+		10 < +10 -100% >  \
+		horizontal {  \
+			5 < -100% >  \
+			turn  \
+			5 < +inf -100% >  \
+		}  \
 		error < +inff -100% * +0 -0 > \
-		10 < +1000 -100% > \n \
-	} \n \
+		10 < +1000 -100% >  \
+	} \
 }

@@ -30,11 +30,12 @@ srcs_kcribbage = [
   'xt.c',
 ]
 
+res_files = res_gen.process('Cribbage.ad')
+
 executable('kcribbage',
-	   srcs_kcribbage,
+	   srcs_kcribbage, res_files,
 	   include_directories: inc,
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
 install_man('kcribbage.6')
-install_data('Cribbage.ad',             rename: 'Cribbage',              install_dir : app_defaults)

@@ -19,11 +19,12 @@
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 #
+res_files = res_gen.process('KThieves.ad')
+
 executable('kthieves',
-	   'thieves.c',
+	   'thieves.c', res_files,
 	   include_directories: inc,
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
 install_man('kthieves.6')
-install_data('KThieves.ad',             rename: 'KThieves',              install_dir : app_defaults)

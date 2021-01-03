@@ -19,6 +19,8 @@
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 #
+res_files = res_gen.process('Mille.ad')
+
 srcs_xmille = [
   'animate.c',
   'comp.c',
@@ -47,10 +49,9 @@ cards_files = custom_target('svg-cards',
 			    command : [make_cards_svg, '@OUTPUT0@', '@OUTPUT1@'])
 
 executable('xmille',
-	   srcs_xmille, cards_files,
+	   srcs_xmille, cards_files, res_files,
 	   include_directories: inc,
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
 install_man('xmille.6')
-install_data('Mille.ad',             rename: 'Mille',              install_dir : app_defaults)

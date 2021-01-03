@@ -96,6 +96,15 @@ XkwColorEqual(XRenderColor *a, XRenderColor *b)
     return memcmp(a, b, sizeof (XRenderColor)) == 0;
 }
 
+Widget
+XkwInitialize(const char *class,
+	      XrmOptionDescRec *options,
+	      Cardinal num_options,
+	      int *argc,
+	      _XtString *argv,
+	      Boolean input,
+	      char const * const *fallback_resources);
+
 void
 XkwInitializeWidgetSet(void);
 

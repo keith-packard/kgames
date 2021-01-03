@@ -47,6 +47,7 @@
 # include	<Xkw/Message.h>
 # include	"CribBoard.h"
 # include	<X11/Xutil.h>
+# include	"Cribbage-res.h"
 
 static Widget	    toplevel;
 static Widget	    menuBar;
@@ -58,7 +59,9 @@ static Widget	    message;
 static Widget	    player;
 static Widget	    table;
 static Widget	    playcrib;
+static Widget	    playName;
 static Widget	    playScore;
+static Widget	    compName;
 static Widget	    compScore;
 static Widget	    compcrib;
 static Widget	    tableScore;
@@ -191,15 +194,8 @@ XrmOptionDescRec options[] = {
 void
 UIInit (int argc, char **argv)
 {
-#ifdef APPDEFAULTS
-    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
-#endif
-
-    toplevel = XtInitialize (argv[0], "Cribbage", options, XtNumber(options), &argc, argv);
-
-    Arg	args[1];
-    XtSetArg(args[0], XtNinput, True);
-    XtSetValues(toplevel, args, 1);
+    toplevel = XkwInitialize ("Cribbage", options, XtNumber(options),
+			      &argc, argv, True, defaultResources);
 
     XtGetApplicationResources (toplevel, (XtPointer)&cribbageResources, resources,
 			       XtNumber (resources), NULL, 0);
@@ -221,7 +217,9 @@ UIInit (int argc, char **argv)
     computer = XtCreateManagedWidget ("computer", cardsWidgetClass, layout, NULL, 0);
     table = XtCreateManagedWidget ("table", cardsWidgetClass, layout, NULL, 0);
     tableScore = XtCreateManagedWidget ("tableScore", klabelWidgetClass, layout, NULL, 0);
+    playName = XtCreateManagedWidget ("playname", klabelWidgetClass, layout, NULL, 0);
     playScore = XtCreateManagedWidget ("playscore", cribBoardWidgetClass, layout, NULL, 0);
+    compName = XtCreateManagedWidget ("compname", klabelWidgetClass, layout, NULL, 0);
     compScore = XtCreateManagedWidget ("compscore", cribBoardWidgetClass, layout, NULL, 0);
     playcrib = XtCreateManagedWidget ("playcrib", cardsWidgetClass, layout, NULL, 0);
     compcrib = XtCreateManagedWidget ("compcrib", cardsWidgetClass, layout, NULL, 0);

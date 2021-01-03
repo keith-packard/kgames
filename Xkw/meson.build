@@ -23,6 +23,13 @@
 flex = find_program('flex')
 bison = find_program('bison')
 
+make_resource = find_program('make-resource')
+
+res_gen = generator(make_resource,
+		    output : ['@BASENAME@-res.h'],
+		    arguments : [ '@INPUT@', '@OUTPUT@' ]
+		   )
+
 flex_gen = generator(flex,
 		     output : ['@BASENAME@.c'],
 		     arguments : [ '-o', '@OUTPUT@', '-P', 'LayYY', '@INPUT@'])

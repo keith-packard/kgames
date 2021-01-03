@@ -227,7 +227,6 @@ Redisplay (Widget gw, XEvent *event, Region region)
     double width_ratio = (double) XtWidth(w) / (double) natural_width;
     double height_ratio = (double) XtHeight(w) / (double) natural_height;
 
-    printf("scale board %g %g\n", width_ratio, height_ratio);
     if (width_ratio > height_ratio)
 	width_ratio = height_ratio;
 

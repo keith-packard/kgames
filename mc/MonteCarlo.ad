@@ -108,4 +108,3 @@
 	<Key>n:		montecarloNewGame()\n\
 	<Key>s:		montecarloScore()\n\
 	<Key>?:		montecarloBestMove()
-

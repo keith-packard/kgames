@@ -19,12 +19,13 @@
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 #
+res_file = res_gen.process('KSlyFox.ad')
+res_file_hard = res_gen.process('KSlyFox-hard.ad')
+
 executable('kslyfox',
-	   'slyfox.c',
+	   'slyfox.c', res_file,
 	   include_directories: inc,
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
 install_man('kslyfox.6')
-install_data('KSlyFox.ad',             rename: 'KSlyFox',              install_dir : app_defaults)
-install_data('KSlyFox-hard.ad',        rename: 'KSlyFox-hard',         install_dir : app_defaults)

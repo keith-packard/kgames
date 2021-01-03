@@ -21,8 +21,10 @@
  */
 
 #include <Xkw/Xkw.h>
-#include <X11/IntrinsicP.h>
+#include <X11/IntrinsicI.h>
+#include <X11/StringDefs.h>
 #include <X11/CoreP.h>
+#include <X11/ShellP.h>
 #include <Xkw/KSimpleP.h>
 #include <Xkw/KSimpleMenuP.h>
 #include <cairo/cairo-ft.h>
@@ -424,4 +426,31 @@ XkwInitializeWidgetSet(void)
 	XtAddConverter(XtRString, XtROrientation, XmuCvtStringToOrientation,
 		       NULL, 0);
     }
+}
+
+Widget
+XkwInitialize(const char *class,
+	      XrmOptionDescRec *options,
+	      Cardinal num_options,
+	      int *argc,
+	      _XtString *argv,
+	      Boolean input,
+	      char const * const *fallback_resources)
+{
+    XtAppContext app_con;
+    Widget toplevel;
+
+    Arg args[1];
+    Cardinal num_args = 0;
+    if (input) {
+	XtSetArg(args[0], XtNinput, True);
+	num_args = 1;
+    }
+
+    toplevel = XtAppInitialize (&app_con, class, options, num_options,
+				argc, argv, (char **) fallback_resources,
+				args, num_args);
+
+    _XtGetProcessContext()->defaultAppContext = app_con;
+    return toplevel;
 }

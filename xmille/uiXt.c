@@ -31,6 +31,7 @@
 # include	<X11/Xutil.h>
 # include	"gray.bm"
 # include	"cards-svg.h"
+# include	"Mille-res.h"
 
 #ifdef CTRL
 # undef CTRL
@@ -672,11 +673,8 @@ init_ui (int *argc, char **argv)
     Arg			arg[2];
     Visual		*visual;
 
-#ifdef APPDEFAULTS
-    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
-#endif
-
-    toplevel = XtInitialize (argv[0], "Mille", 0, 0, argc, argv);
+    toplevel = XkwInitialize ("Mille", 0, 0,
+			      argc, argv, True, defaultResources);
 
     Arg	args[1];
     XtSetArg(args[0], XtNinput, True);

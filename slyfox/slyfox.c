@@ -43,6 +43,7 @@
 #include	<X11/Xutil.h>
 #include	<Xkw/CardsUtil.h>
 #include	<Xkw/Message.h>
+#include	"KSlyFox-res.h"
 
 Widget      toplevel;
 Widget      frame;
@@ -962,12 +963,8 @@ main (int argc, char **argv)
 	}
     }
 
-#ifdef APPDEFAULTS
-    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
-#endif
-
-    toplevel = XtInitialize(argv[0], adname, options, XtNumber(options),
-			    &argc, argv);
+    toplevel = XkwInitialize(adname, options, XtNumber(options),
+			     &argc, argv, True, defaultResources);
 
     Arg	args[1];
     XtSetArg(args[0], XtNinput, True);

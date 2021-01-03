@@ -30,16 +30,13 @@ srcs_dominos = [
   'util.c',
 ]
 
+res_files = res_gen.process('Dominos.ad')
 
 executable('kdominos',
-	   srcs_dominos,
+	   srcs_dominos, res_files,
 	   include_directories: inc,
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
 
 install_man('kdominos.6')
-
-install_data('Dominos.ad',
-	     rename: 'Dominos',
-	     install_dir : app_defaults)
