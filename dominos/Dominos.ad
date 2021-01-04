@@ -71,8 +71,8 @@
 *frame.layout: vertical {\
 	horizontal { -1 menuBar < +inff -100% * > -1 } \
 	horizontal { \
-		computerCount < -100% * > \
 		message < +inff -100% * > \
+		computerCount < -100% * > \
 	} \
 	player_porthole < +inf -inf * > \
 	player_scrollbar < +inf -inf * > \

@@ -1083,6 +1083,7 @@ main (int argc, char **argv)
 {
     Atom	wm_delete_window;
     int		i;
+    int		restored;
 
     toplevel = XkwInitialize("Dominos", options, XtNumber(options),
 			     &argc, argv, True, defaultResources);
@@ -1180,8 +1181,15 @@ main (int argc, char **argv)
 
     srandom (getpid () ^ time ((long *) 0));
 
-    Message (message, "Keith's Dominos, Version 1.0");
-    if (!Restore ())
+    restored = Restore();
+
+    MessageStart();
+    MessageAppend("Keith's Dominos, Version 1.0.");
+    if (restored)
+	MessageAppend(" (Resuming existing game)");
+    MessageEnd(message);
+
+    if (!restored)
     {
 	game_over = True;
 	NewGame ();
