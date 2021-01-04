@@ -48,8 +48,6 @@ InitDominos (Pips max)
     DominoPtr	dominos, d, *prev;
 
     prev = &dominos;
-    *prev = d = MakeDomino(0, 0);
-    prev = &d->peer[LinkPeer];
     for (r = 0; r <= max; r++)
 	for (c = r; c <= max; c++)
 	{
