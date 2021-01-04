@@ -39,5 +39,5 @@ cards_xmille = files([
     'Roue de secours.svg',
     'Roulez.svg',
     'Stop!.svg',
-    'Véhicle prioritaire.svg',
+    'Véhicule prioritaire.svg',
 ])
