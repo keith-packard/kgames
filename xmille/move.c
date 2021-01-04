@@ -41,9 +41,6 @@
  * @(#)move.c	1.2 (Berkeley) 3/28/83
  */
 
-#undef	CTRL
-#define	CTRL(c)		(c - 'A' + 1)
-
 void
 domove(void)
 {
