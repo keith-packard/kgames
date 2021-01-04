@@ -1183,6 +1183,7 @@ main (int argc, char **argv)
     Message (message, "Keith's Dominos, Version 1.0");
     if (!Restore ())
     {
+	game_over = True;
 	NewGame ();
 	DisplayScores ();
     }
