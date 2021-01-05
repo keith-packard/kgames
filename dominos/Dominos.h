@@ -33,6 +33,13 @@
 void
 DominosSetDominos(Widget, DominoPtr *);
 
+DominoPtr
+DominosXYToDomino (Widget gw,
+		   int x,
+		   int y,
+		   int *distp,
+		   Direction *dirp);
+
 typedef struct _DominosRec *DominosWidget;
 typedef struct _DominosClassRec *DominosWidgetClass;
 
@@ -47,8 +54,15 @@ extern WidgetClass  dominosWidgetClass;
 #define XtNinputCallback  "inputCallback"
 #define XtCInputCallback  "InputCallback"
 
+typedef enum {
+    DominosActionStart,
+    DominosActionDrag,
+    DominosActionStop,
+} DominosAction;
+
 typedef struct _DominosInput {
     Widget	    w;
+    DominosAction   action;
     DominoPtr	    domino;
     Direction	    direction;
     int		    distance;

@@ -69,6 +69,9 @@ LayoutLayout (LayoutWidget l, Bool attemptResize);
 static void
 LayoutGetNaturalSize (LayoutWidget l, Dimension *widthp, Dimension *heightp);
 
+static Boolean
+ChildInLayout (LayoutWidget l, Widget child);
+
 /************************************************************
  *
  * Semi-public routines.
@@ -135,6 +138,21 @@ GeometryManager(Widget child,
     Bool	    changed, bwChanged;
 
     (void) reply;
+    if (!ChildInLayout(w, child)) {
+	/* copy values from request to child */
+	if (request->request_mode & CWX)
+	    child->core.x = request->x;
+	if (request->request_mode & CWY)
+	    child->core.y = request->y;
+	if (request->request_mode & CWWidth)
+	    child->core.width = request->width;
+	if (request->request_mode & CWHeight)
+	    child->core.height = request->height;
+	if (request->request_mode & CWBorderWidth)
+	    child->core.border_width = request->border_width;
+	return XtGeometryYes;
+    }
+
     bw = p->naturalBw;
     changed = FALSE;
     bwChanged = FALSE;
@@ -158,6 +176,10 @@ GeometryManager(Widget child,
 	p->naturalSize[LayoutVertical] = request->height + bw * 2;
 	changed = TRUE;
     }
+    /*
+     * Allow arbitrary restacking by just doing it here; the layout
+     * process doesn't need to know about it
+     */
     if (request->request_mode & CWStackMode)
     {
 	XWindowChanges	ch;
@@ -172,12 +194,7 @@ GeometryManager(Widget child,
 			  &ch);
     }
     if (changed)
-    {
-	p->inLayout = False;
 	LayoutLayout (w, TRUE);
-	if (!p->inLayout)
-	    return XtGeometryYes;
-    }
     return XtGeometryDone;
 }
 
@@ -198,7 +215,6 @@ GetDesiredSize (Widget child)
 
     XtQueryGeometry (child, (XtWidgetGeometry *) NULL, &desired);
     p = SubInfo (child);
-    p->inLayout = False;
     p->naturalBw = desired.border_width;
     p->naturalSize[LayoutHorizontal] = desired.width + desired.border_width * 2;
     p->naturalSize[LayoutVertical] = desired.height + desired.border_width * 2;
@@ -504,6 +520,35 @@ DisposeExpr (ExprPtr expr)
 	glue.order = 0; \
 }
 
+static Boolean
+ChildInBox(LayoutWidget l, BoxPtr box, Widget child)
+{
+    while (box) {
+	switch (box->type) {
+	case WidgetBox:
+	    if (child == QuarkToWidget(l, box->u.widget.quark))
+		return True;
+	    break;
+	case GlueBox:
+	    break;
+	case BoxBox:
+	    if (ChildInBox(l, box->u.box.firstChild, child))
+		return True;
+	    break;
+	case VariableBox:
+	    break;
+	}
+	box = box->nextSibling;
+    }
+    return False;
+}
+
+static Boolean
+ChildInLayout(LayoutWidget l, Widget child)
+{
+    return ChildInBox(l, l->layout.layout, child);
+}
+
 #define DoStretch(l, box, dir) \
     CheckGlue (l, box, box->params.stretch[dir], (double) box->natural[dir]);
 
@@ -531,7 +576,6 @@ ComputeNaturalSizes (LayoutWidget l, BoxPtr box, LayoutDirection dir)
 	else
 	{
 	    info = SubInfo (w);
-	    info->inLayout = True;
 	    box->natural[LayoutHorizontal] = info->naturalSize[LayoutHorizontal];
 	    box->natural[LayoutVertical] = info->naturalSize[LayoutVertical];
 	}
@@ -1063,4 +1107,3 @@ LayoutClassRec layoutClassRec = {
 };
 
 WidgetClass layoutWidgetClass = (WidgetClass) &layoutClassRec;
-

@@ -48,26 +48,6 @@
 *scroll_h.orientation: horizontal
 *scroll_v.orientation: vertical
 
-*player.translations: #override \
-	<Btn1Down>:	select(source)\n\
-	<Btn1Up>:	select(dest)
-	<Btn2Down>:	select(source)\n\
-	<Btn2Up>:	select(dest)
-	<Btn3Down>:	select(source)\n\
-	<Btn3Up>:	select(dest)\n\
-	<Btn4Down>:	zoomin()\n\
-	<Btn5Down>:	zoomout()
-
-*board.translations: #override \
-	<Btn1Down>:	select(source)\n\
-	<Btn1Up>:	select(dest)
-	<Btn2Down>:	select(source)\n\
-	<Btn2Up>:	select(dest)
-	<Btn3Down>:	select(source)\n\
-	<Btn3Up>:	select(dest)\n\
-	<Btn4Down>:	zoomin()\n\
-	<Btn5Down>:	zoomout()
-
 *frame.layout: vertical {\
 	horizontal { -1 menuBar < +inff -100% * > -1 } \
 	horizontal { \

@@ -53,11 +53,13 @@ static XtResource resources[] = {
 #include	<X11/Xmu/Drawing.h>
 
 static char defaultTranslations[] =
-"<Btn1Down>: select()\n"
-"<Btn2Down>: select()\n"
-"<Btn3Down>: select()\n"
-"<Btn4Down>: zoomout()\n"
-"<Btn5Down>: zoomin()";
+    "<Btn4Down>: zoomout()\n"
+    "<Btn5Down>: zoomin()\n"
+    "<Btn4Up>:\n"
+    "<Btn5Up>:\n"
+    "<BtnDown>: start()\n"
+    "<BtnMotion>: drag(drag)\n"
+    "<BtnUp>: stop(dest)";
 
 #define SuperClass  ((KSimpleWidgetClass)&ksimpleClassRec)
 
@@ -132,7 +134,7 @@ Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
     (void) args;
     (void) count;
     if (!new->core.width)
-	new->core.width = DOMINO_MAJOR_WIDTH(new);
+	new->core.width = DOMINO_MINOR_WIDTH(new);
     if (!new->core.height)
 	new->core.height = DOMINO_MAJOR_HEIGHT(new);
 }
@@ -146,30 +148,6 @@ Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 	EnterWindowMask | LeaveWindowMask | \
 	PointerMotionHintMask | KeymapStateMask | \
 	MotionMask )
-
-static void
-Realize (Widget widget, XtValueMask *value_mask, XSetWindowAttributes *attributes)
-{
-    unsigned int    event_mask = 0;
-#define MAX_BUT	256
-    unsigned char   mapping[MAX_BUT];
-    int	    i, max;
-
-    (*SuperClass->core_class.realize)(widget, value_mask, attributes);
-    if (*value_mask & CWEventMask)
-	event_mask = attributes->event_mask;
-    event_mask &= PointerGrabMask;
-    if (event_mask & ButtonPressMask)
-    {
-	max = XGetPointerMapping (XtDisplay (widget), mapping, MAX_BUT);
-	for (i = 0; i < max; i++)
-	{
-	    if (mapping[i] != 0)
-		XtGrabButton (widget, i, AnyModifier, True, event_mask,
-			      GrabModeAsync, GrabModeAsync, None, None);
-	}
-    }
-}
 
 static void
 Destroy (Widget gw)
@@ -255,8 +233,8 @@ PreferredSize (DominosWidget w, Dimension *width, Dimension *height, Position *x
     BoardSize (w, Dominos(w), &size, 0, 0);
     preferred_width = size.x2 - size.x1;
     preferred_height = size.y2 - size.y1;
-    if (preferred_width < DOMINO_MAJOR_WIDTH(w))
-	preferred_width = DOMINO_MAJOR_WIDTH(w);
+    if (preferred_width < DOMINO_MINOR_WIDTH(w))
+	preferred_width = DOMINO_MINOR_WIDTH(w);
     if (preferred_height < DOMINO_MAJOR_HEIGHT(w))
 	preferred_height = DOMINO_MAJOR_HEIGHT(w);
     *width = preferred_width;
@@ -413,8 +391,23 @@ XYToDomino (DominosWidget w,
 		       distp, dirp);
 }
 
+DominoPtr
+DominosXYToDomino (Widget gw,
+		   int x,
+		   int y,
+		   int *distp,
+		   Direction *dirp)
+{
+    DominosWidget w = (DominosWidget) gw;
+    DominoPtr domino = XYToDomino(w, x, y, distp, dirp);
+    if (domino && *distp > DOMINO_MAJOR_SIZE(w))
+	domino = NULL;
+    return domino;
+}
+
 static void
-ActionSelect (Widget gw, XEvent *event, String *params, Cardinal *num_params)
+DoInputCallback(Widget gw, DominosAction action,
+		XEvent *event, String *params, Cardinal *num_params)
 {
     DominosWidget   w = (DominosWidget) gw;
     DominoPtr	    d;
@@ -423,16 +416,35 @@ ActionSelect (Widget gw, XEvent *event, String *params, Cardinal *num_params)
     int		    dist;
 
     d = XYToDomino (w, event->xbutton.x, event->xbutton.y, &dist, &dir);
-    if (d) {
-	input.w = gw;
-	input.domino = d;
-	input.direction = dir;
-	input.distance = dist;
-	input.params = params;
-	input.event = *event;
-	input.num_params = num_params;
-	XtCallCallbackList (gw, w->dominos.input_callback, (XtPointer) &input);
-    }
+    input.w = gw;
+    input.action = action;
+    input.domino = d;
+    input.direction = dir;
+    input.distance = dist;
+    input.params = params;
+    input.event = *event;
+    input.num_params = num_params;
+    XtCallCallbackList (gw, w->dominos.input_callback, (XtPointer) &input);
+}
+
+static void
+ActionStart (Widget gw, XEvent *event, String *params, Cardinal *num_params)
+{
+    DoInputCallback(gw, DominosActionStart, event, params, num_params);
+}
+
+static void
+ActionDrag (Widget gw, XEvent *event, String *params, Cardinal *num_params)
+{
+    DoInputCallback(gw, DominosActionDrag, event, params, num_params);
+}
+
+static void
+ActionStop (Widget gw, XEvent *event, String *params, Cardinal *num_params)
+{
+    if (XkwForwardEvent(NULL, gw, event))
+	return;
+    DoInputCallback(gw, DominosActionStop, event, params, num_params);
 }
 
 static void
@@ -554,6 +566,9 @@ DrawDomino(DominosWidget w, cairo_t *cr, DominoPtr d)
     int	off_x, off_y;
     Pips    p;
     int	    flip;
+
+    if (d->hide)
+	return;
 
     FillDomino (w, cr, d);
     flip = !DominoUpright(d);
@@ -684,7 +699,9 @@ QueryGeometry(Widget gw, XtWidgetGeometry *intended,
 }
 
 static XtActionsRec actions[] = {
-    { "select", ActionSelect },		    /* select card */
+    { "start", ActionStart },		    /* select card */
+    { "drag", ActionDrag },
+    { "stop", ActionStop },
     { "zoomin", ZoomInAction },
     { "zoomout", ZoomOutAction },
 };
@@ -699,7 +716,7 @@ DominosClassRec	dominosClassRec = {
     /* class_inited		*/	FALSE,
     /* initialize		*/	Initialize,
     /* initialize_hook		*/	NULL,
-    /* realize			*/	Realize,
+    /* realize			*/	XtInheritRealize,
     /* actions			*/	actions,
     /* num_actions		*/	XtNumber(actions),
     /* resources		*/	resources,
