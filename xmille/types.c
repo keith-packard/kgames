@@ -5,7 +5,7 @@
  */
 
 bool
-isrepair(CARD card)
+is_repair(CARD card)
 {
 	return card == C_GAS || card == C_SPARE || card == C_REPAIRS || card == C_INIT;
 }

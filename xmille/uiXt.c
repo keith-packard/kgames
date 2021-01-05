@@ -33,11 +33,6 @@
 # include	"cards-svg.h"
 # include	"Mille-res.h"
 
-#ifdef CTRL
-# undef CTRL
-#endif
-#define CTRL(x)	(x - 'A' + 1)
-
 # include	"card.h"
 
 struct color colorMap[NUM_COLOR] = {
@@ -166,17 +161,13 @@ debug (int pos, char *string, int a0, int a1, int a2)
 
 static int  yn_done, yn_answer;
 
-static void YesFunc (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+static void YesFunc (Widget w, XtPointer closure, XtPointer data)
 {
     yn_answer = 1;
     yn_done = 1;
 }
 
-static void NoFunc (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+static void NoFunc (Widget w, XtPointer closure, XtPointer data)
 {
     yn_answer = 0;
     yn_done = 1;
@@ -938,12 +929,11 @@ void
 prboard(void)
 {
 
-	register PLAY	*pp;
-	register int	i, k;
+	PLAY	*pp;
 
-	for (k = 0; k < 2; k++) {
+	for (int k = 0; k < 2; k++) {
 		pp = &Player[k];
-		for (i = 0; i < NUM_SAFE; i++)
+		for (int i = 0; i < NUM_SAFE; i++)
 			if (pp->safety[i] == S_PLAYED) {
 				if (k == 0) {
 					HumanSafety (i + S_CONV, i);
@@ -958,8 +948,8 @@ prboard(void)
 			ComputerBattle (pp->battle);
 			ComputerSpeed (pp->speed);
 		}
-		for (i = C_25; i <= C_200; i++) {
-			register int		end;
+		for (int i = C_25; i <= C_200; i++) {
+			int		end;
 
 			end = pp->nummiles[i];
 			if (k == 0)
@@ -970,7 +960,7 @@ prboard(void)
 	}
 	prscore(TRUE);
 	pp = &Player[PLAYER];
-	for (i = 0; i < HAND_SZ; i++) {
+	for (int i = 0; i < HAND_SZ; i++) {
 		HumanHand (pp->hand[i], i);
 	}
 	DisplayDeck (Topcard - Deck);
@@ -1002,9 +992,8 @@ InScore (int line, int player, char *text)
 void
 prscore(bool for_real)
 {
-
-	register PLAY	*pp;
-	register char	*Score_fmt = "%4d  ";
+	PLAY		*pp;
+	const char Score_fmt[] = "%4d  ";
 	char		buffer[512];
 
 	ComputerDistance (Player[1].mileage);

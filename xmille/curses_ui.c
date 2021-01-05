@@ -13,6 +13,8 @@
 #endif
 #define CTRL(x)	(x - 'A' + 1)
 
+#define reg register
+
 WINDOW	*Board, *Miles, *Score;
 
 char	*C_fmt = "%-18.18s";	/* format for printing cards		*/
@@ -59,9 +61,7 @@ ComputerStatus (string)
 	mvaddstr (MOVE_Y + 1, MOVE_X, string);
 }
 
-ComputerCard (type)
-int	type;
-{
+void ComputerCard (int type) {
 	mvprintw (MOVE_Y + 2, MOVE_X, "%16s", C_name[type]);
 }
 
@@ -357,6 +357,13 @@ readch()
 	return c;
 }
 
+// Ancestral code had special debugging for the only for the author based on
+// his UID.  This code was out of date (we have no reason to assume his UID is
+// correct), but we might want to keep the debugging idea protected by that
+// block For now, we'll just leave it memorialized like this.
+static int KenArnoldIsPlayer() {
+	return FALSE;
+}
 
 getmove()
 {
@@ -440,7 +447,7 @@ getmove()
 		  case '\0':		/* and nulls		*/
 			break;
 		  case 'Z':		/* Debug code */
-			if (geteuid() == ARNOLD) {
+			if (KenArnoldIsPlayer()) {
 				if (!Debug && outf == NULL) {
 					char	buf[40];
 over:
