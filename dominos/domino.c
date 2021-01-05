@@ -70,6 +70,7 @@ Widget	    draw;
 Widget	    zoom_in;
 Widget	    zoom_out;
 Widget	    score_w[MAX_PLAYERS];
+Widget	    drag;
 
 int	    total_score[MAX_PLAYERS];
 int	    last_score[MAX_PLAYERS];
@@ -179,7 +180,7 @@ PlayEdgeFunc (DominoPtr source,
     return TRUE;
 }
 
-static void
+static Bool
 Play (DominoPtr *player,
       DominoPtr domino,
       DominoPtr target,
@@ -194,6 +195,7 @@ Play (DominoPtr *player,
 	DisplayDominos (DISPLAY_PLAYER|DISPLAY_BOARD);
 	if (!game_over)
 	    ComputerMove ();
+	return TRUE;
     }
     else
     {
@@ -208,8 +210,10 @@ Play (DominoPtr *player,
 	    DisplayDominos (DISPLAY_PLAYER|DISPLAY_BOARD);
 	    if (!game_over)
 		ComputerMove ();
+	    return TRUE;
 	}
     }
+    return FALSE;
 }
 
 static void
@@ -860,24 +864,61 @@ SaveCallback (Widget w, XtPointer closure, XtPointer data)
 static int	    selected_player;
 static DominoPtr    selected_domino;
 
-/*ARGSUSED*/
-static void
-BoardCallback (Widget w, XtPointer closure, XtPointer data)
-{
-    DominosInputPtr input = (DominosInputPtr) data;
+static DominoPtr    drag_domino_ptr;
+static DominoRec    drag_domino;
 
-    (void) w;
-    (void) closure;
-    if (*input->num_params > 0 && strcmp (*input->params, "dest") != 0)
-    {
-	selected_domino = 0;
-	selected_player = 0;
-	return;
-    }
-    if (!selected_domino)
-	return;
-    Play (&player[selected_player], selected_domino,
-	  input->domino, input->direction, input->distance);
+static void
+TranslateCoords(Widget from, Widget to, Position *x, Position *y)
+{
+    Position	to_x, to_y;
+    Position	from_x, from_y;
+
+    XtTranslateCoords(to, 0, 0, &to_x, &to_y);
+    XtTranslateCoords(from, 0, 0, &from_x, &from_y);
+
+    *x += from_x - to_x;
+    *y += from_y - to_y;
+}
+
+static void
+Drag (Widget child, XEvent *event)
+{
+    Dimension	width, height;
+    Arg		arg[2];
+
+    XtSetArg(arg[0], XtNwidth, &width);
+    XtSetArg(arg[1], XtNheight, &height);
+    XtGetValues(drag, arg, 2);
+
+    Position	x = event->xmotion.x - width / 2;
+    Position	y = event->xmotion.y - height / 2;
+    TranslateCoords(child, frame, &x, &y);
+
+    XtWidgetGeometry request = {
+	.x = x,
+	.y = y,
+	.stack_mode = Above,
+	.request_mode = CWX | CWY | CWStackMode
+    };
+
+    XtMakeGeometryRequest(drag, &request, NULL);
+}
+
+static void
+StartDrag (Widget child, XEvent *event)
+{
+    drag_domino.pips[0] = selected_domino->pips[0];
+    drag_domino.pips[1] = selected_domino->pips[1];
+    drag_domino_ptr = &drag_domino;
+    DominosSetDominos(drag, &drag_domino_ptr);
+    Drag(child, event);
+    XtMapWidget(drag);
+}
+
+static void
+StopDrag (void)
+{
+    XtUnmapWidget(drag);
 }
 
 static void
@@ -887,14 +928,57 @@ PlayerCallback (Widget w, XtPointer closure, XtPointer data)
 
     (void) w;
     (void) closure;
-    selected_domino = 0;
-    selected_player = 0;
-    if (strcmp (*input->params, "source") != 0)
-	return;
-    if (input->domino && input->distance == 0)
-    {
-	selected_player = (intptr_t) closure;
-	selected_domino = input->domino;
+    switch (input->action) {
+    case DominosActionStart:
+	if (input->domino && input->distance == 0)
+	{
+	    selected_player = (intptr_t) closure;
+	    selected_domino = input->domino;
+	    selected_domino->hide = True;
+	    DisplayDominos(DISPLAY_PLAYER);
+	    StartDrag(w, &input->event);
+	}
+	break;
+    case DominosActionDrag:
+	Drag(w, &input->event);
+	break;
+    default:
+	StopDrag();
+	if (selected_domino) {
+	    selected_domino->hide = False;
+	    DisplayDominos(DISPLAY_PLAYER);
+	    selected_domino = NULL;
+	}
+	break;
+    }
+}
+
+static void
+BoardCallback (Widget w, XtPointer closure, XtPointer data)
+{
+    DominosInputPtr input = (DominosInputPtr) data;
+
+    (void) w;
+    (void) closure;
+    switch (input->action) {
+    case DominosActionStop:
+	StopDrag();
+	if (selected_domino) {
+	    selected_domino->hide = False;
+	    if (!Play (&player[selected_player], selected_domino,
+		       input->domino, input->direction, input->distance))
+		DisplayDominos(DISPLAY_PLAYER);
+	    selected_domino = NULL;
+	}
+	break;
+    default:
+	StopDrag();
+	if (selected_domino) {
+	    selected_domino->hide = False;
+	    DisplayDominos(DISPLAY_PLAYER);
+	    selected_domino = NULL;
+	}
+	break;
     }
 }
 
@@ -1151,7 +1235,7 @@ main (int argc, char **argv)
 
     board_w = XtCreateManagedWidget ("board", dominosWidgetClass, porthole, NULL, 0);
 
-    XtAddCallback (board_w, XtNinputCallback, BoardCallback, NULL);
+    XtAddCallback(board_w, XtNinputCallback, BoardCallback, NULL);
 
     XtAddCallback (porthole, XtNcallback, PortholeCallback, NULL);
 
@@ -1174,6 +1258,10 @@ main (int argc, char **argv)
 		   (XtPointer) player_w);
 
     XtAddCallback(player_w, XtNinputCallback, PlayerCallback, NULL);
+
+    drag = XtCreateManagedWidget("drag", dominosWidgetClass, frame, NULL, 0);
+
+    XtSetMappedWhenManaged(drag, False);
 
     message = XtCreateManagedWidget ("message", klabelWidgetClass, frame, NULL, 0);
 
