@@ -6,7 +6,6 @@
 # include	<stdbool.h>
 # include	<stdlib.h>
 
-# define reg register
 # define TRUE	1
 # define FALSE	0
 
@@ -14,21 +13,12 @@
  * @(#)mille.h	1.1 (Berkeley) 4/1/82
  */
 
+typedef short CARD;
+
 /*
  * Miscellaneous constants
  */
 
-# define	unsgn		unsigned
-# define	CARD		short
-
-# ifdef  vax
-#	define	ARNOLD		78	/* my uid			*/
-# else
-#	define	ARNOLD		24601	/* my uid			*/
-# endif
-
-# define	GURP		28672	/* bad uid			*/
-# define	MAXUSERS	35	/* max # of users for startup	*/
 # define	HAND_SZ		7	/* number of cards in a hand	*/
 # define	DECK_SZ		101	/* number of cards in decks	*/
 # define	NUM_SAFE	4	/* number of saftey cards	*/
@@ -143,10 +133,8 @@ typedef struct {
 # define	nextplay()	(Play = other(Play))
 # define	nextwin(x)	(1 - x)
 # define	opposite(x)	(Opposite[x])
-# define	issafety(x)	(x >= C_GAS_SAFE)
 # define	is_safety(x)	(x >= C_GAS_SAFE)
 
-# define	is_repair(x)	isrepair(x)
 
 /*
  * externals
@@ -154,7 +142,8 @@ typedef struct {
 
 extern bool	Debug, Finished, Next, On_exit, Order, Saved;
 
-extern const char	*C_fmt, *Fromfile;
+extern const char *const C_fmt;
+extern const char	*Fromfile;
 extern const char *const *C_name;
 extern char	Initstr[];
 
@@ -296,7 +285,7 @@ rest(void);
 
 /* types.c */
 bool
-isrepair(CARD card);
+is_repair(CARD card);
 
 int
 safety(CARD card);

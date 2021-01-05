@@ -84,7 +84,7 @@ void
 extrapolate(PLAY *pp)
 {
 
-	reg int		x, num, tot, count;
+	int		x, num, tot, count;
 
 #ifdef NOTYET
 	num = pp - Player;
@@ -131,8 +131,8 @@ void
 undoex(void)
 {
 
-	reg PLAY	*pp;
-	reg int		i;
+	PLAY	*pp;
+	int	i;
 
 	i = 0;
 	for (pp = Player; pp < &Player[2]; pp++) {

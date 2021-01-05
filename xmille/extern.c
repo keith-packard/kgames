@@ -45,7 +45,7 @@ bool	Debug,			/* set if debugging code on		*/
 	Saved;			/* set if game just saved		*/
 
 char	Initstr[100];		/* initial string for error field	*/
-const char	*C_fmt = "%-18.18s",	/* format for printing cards	*/
+const char *const C_fmt = "%-18.18s",	/* format for printing cards	*/
 	*Fromfile = NULL,	/* startup file for game		*/
 	*const _cn[NUM_CARDS] = {	/* Card name buffer		*/
 		"",

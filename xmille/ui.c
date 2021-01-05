@@ -9,11 +9,6 @@
 # include	<X11/Xutil.h>
 # include	"gray.bm"
 
-#ifdef CTRL
-# undef CTRL
-#endif
-#define CTRL(x)	(x - 'A' + 1)
-
 # include	"card.h"
 
 struct color colorMap[NUM_COLOR] = {
@@ -25,7 +20,7 @@ struct color colorMap[NUM_COLOR] = {
 	"blue",		0,	0,
 };
 
-char	*C_fmt = "%-18.18s";	/* format for printing cards		*/
+const char *const C_fmt = "%-18.18s";	/* format for printing cards	*/
 char	Initstr[100];		/* initial string for error field	*/
 char	*_cn[NUM_CARDS] = {	/* Card name buffer			*/
 	"",
