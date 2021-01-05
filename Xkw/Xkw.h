@@ -56,6 +56,14 @@ typedef struct {
 	double			size;
 } XkwFont;
 
+typedef struct {
+    int	*x;
+    int *y;
+    int *x_root;
+    int *y_root;
+    Window *window;
+} XkwEventCoordPointers;
+
 #ifndef XtX
 #define XtX(w)            (((RectObj)w)->rectangle.x)
 #endif
@@ -144,6 +152,24 @@ XkwDrawRoundedRect(cairo_t *cr, double width, double height, double radius);
 
 void
 XkwDrawOval(cairo_t *cr, double width, double height);
+
+void
+XkwTranslateCoordsPosition(Widget to, Widget from, Position *x, Position *y);
+
+void
+XkwTranslateCoordsInt(Widget to, Widget from, int *x, int *y);
+
+void
+XkwGetEventCoordPointers(XEvent *e, XkwEventCoordPointers *cp);
+
+void
+XkwTranslateEvent(Widget to, Widget from, XEvent *e);
+
+Bool
+XkwGetEventCoords(XEvent *e, Position *x, Position *y);
+
+Bool
+XkwForwardEvent(Widget to, Widget from, XEvent *e);
 
 _XFUNCPROTOEND
 
