@@ -47,7 +47,7 @@ calcmove(void)
 	PLAY		*pp, *op;
 	bool		foundend, canstop, foundlow;
 	int		cango;
-	unsgn int	i, count200, badcount, nummin, nummax, diff;
+	unsigned int	count200, badcount, nummin, nummax, diff;
 	int		curmin, curmax;
 	CARD		safe, oppos;
 	int		valbuf[HAND_SZ], count[NUM_CARDS];
@@ -62,9 +62,9 @@ calcmove(void)
 	foundend = FALSE;
 
 	/* Try for a Coup Forre, and see what we have. */
-	for (i = 0; i < NUM_CARDS; i++)
+	for (int i = 0; i < NUM_CARDS; i++)
 		count[i] = 0;
-	for (i = 0; i < HAND_SZ; i++) {
+	for (int i = 0; i < HAND_SZ; i++) {
 		card = pp->hand[i];
 		switch (card) {
 		  case C_STOP:	case C_CRASH:
@@ -119,7 +119,7 @@ norm:
 #endif
 	if (foundend)
 		foundend = !check_ext(TRUE);
-	for (i = 0; safe && i < HAND_SZ; i++) {
+	for (int i = 0; safe && i < HAND_SZ; i++) {
 		if (is_safety(pp->hand[i])) {
 			if (onecard(op) || (foundend && cango && !canstop)) {
 #ifdef DEBUG
@@ -170,7 +170,7 @@ redoit:
 	nummin = -1;
 	nummax = -1;
 	value = valbuf;
-	for (i = 0; i < HAND_SZ; i++) {
+	for (int i = 0; i < HAND_SZ; i++) {
 		card = pp->hand[i];
 		if (is_safety(card) || playit[i] == (cango != 0)) {
 #ifdef DEBUG
