@@ -43,7 +43,7 @@ subdir('cards')
 
 make_cards_svg = find_program('make-cards-svg')
 
-cards_files = custom_target('svg-cards',
+cards_files = custom_target('xmille-svg-cards',
 			    depend_files : cards_xmille + ['card-names'],
 			    output : ['cards-svg.c', 'cards-svg.h'],
 			    command : [make_cards_svg, '@OUTPUT0@', '@OUTPUT1@'])
