@@ -33,7 +33,7 @@
 #include <Xkw/Layout.h>
 #include "Reversi.h"
 #include <stdio.h>
-#include "reversi.h"
+#include "revers.h"
 #include "Kreversi-res.h"
 
 static Widget	topLevel, layout, reversi, error;

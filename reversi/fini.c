@@ -4,7 +4,7 @@
  *	count up score and display winner
  */
 
-# include	"reversi.h"
+# include	"revers.h"
 # include	<stdio.h>
 
 void

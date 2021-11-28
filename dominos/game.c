@@ -23,7 +23,7 @@
  * Author:  Keith Packard, Network Computing Devices
  */
 
-#include "dominos.h"
+#include "domino.h"
 
 int	    NumPlayers = 2;
 DominoPtr   pile;

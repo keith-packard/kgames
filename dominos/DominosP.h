@@ -28,7 +28,7 @@
 
 #include <Xkw/KSimpleP.h>
 #include "Dominos.h"
-#include "dominos.h"
+#include "domino.h"
 
 /************************************
  *

@@ -24,7 +24,7 @@
  */
 
 # include <stdio.h>
-# include "dominos.h"
+# include "domino.h"
 
 
 static void

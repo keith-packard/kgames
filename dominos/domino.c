@@ -44,7 +44,7 @@
 # include	<Xkw/KScrollbar.h>
 # include	<Xkw/KPorthole.h>
 # include	<X11/Xutil.h>
-# include	"dominos.h"
+# include	"domino.h"
 # include	"Dominos-res.h"
 # include	<stdio.h>
 

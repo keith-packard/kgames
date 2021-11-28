@@ -22,7 +22,7 @@
 srcs_dominos = [
   'computer.c',
   'connect.c',
-  'dominos.c',
+  'domino.c',
   'Dominos.c',
   'file.c',
   'find.c',

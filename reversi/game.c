@@ -24,7 +24,7 @@
 #include <sys/signal.h>
 #include <stdlib.h>
 #include <time.h>
-#include "reversi.h"
+#include "revers.h"
 
 boardT	board, saveBoard;
 int	saved;

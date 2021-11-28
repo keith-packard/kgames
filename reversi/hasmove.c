@@ -4,7 +4,7 @@
  *	figure out if player has move in board
  */
 
-# include	"reversi.h"
+# include	"revers.h"
 
 int
 hasmove (int player, boardT board)

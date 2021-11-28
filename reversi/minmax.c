@@ -2,7 +2,7 @@
  *	minmax.c
  */
 
-# include	"reversi.h"
+# include	"revers.h"
 # include	<setjmp.h>
 # include	<stdio.h>
 # include	<string.h>

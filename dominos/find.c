@@ -23,7 +23,7 @@
  * Author:  Keith Packard, Network Computing Devices
  */
 
-#include "dominos.h"
+#include "domino.h"
 
 typedef struct _findRec {
     DominoPtr	domino;

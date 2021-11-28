@@ -85,8 +85,8 @@ lib_xkw = library('Xkw',
 		  version: '2.0.0',
 		  include_directories: inc)
 
-executable('layout',
-	   'layout.c',
+executable('lodemo',
+	   'lodemo.c',
 	   dependencies: x_libs,
 	   include_directories: inc,
 	   link_with: [lib_xkw],
