@@ -1,5 +1,5 @@
 [*.{c,h}]
-indent_sytle = space
+indent_style = space
 indent_size = 4
 tab_width = 8
 charset = utf-8
