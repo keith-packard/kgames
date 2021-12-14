@@ -102,6 +102,7 @@ typedef struct {
     Region	    damage;		/* Damage caused by card changes */
     Dimension	    real_col_offset;	/* when widget gets reshaped, */
     Dimension	    real_row_offset;	/*  the offset values are adjusted */
+
 } HandPart;
 
 /*

@@ -49,11 +49,27 @@ typedef struct _HandDisplay {
     XtPointer	    private;
 } HandDisplayRec, *HandDisplayPtr;
 
+typedef enum {
+    HandActionStart,
+    HandActionDrag,
+    HandActionStop,
+    HandActionExpand,
+} HandAction;
+
+typedef struct _HandLocation {
+    Widget	w;
+    Position	row, col;
+    Position    x, y;
+    XtPointer	private;
+} HandLocation;
+
 typedef struct _HandInput {
     Widget	    w;
     Position	    row, col;
+    XtPointer       private;
     XEvent	    event;
-    XtPointer	    private;
+    HandAction	    action;
+    HandLocation    start;
     String	    *params;
     Cardinal	    *num_params;
 } HandInputRec, *HandInputPtr;
@@ -118,6 +134,8 @@ HandUpdateDisplay (Widget gw);
 #define XtCDisplayCallback  "DisplayCallback"
 #define XtNinputCallback  "inputCallback"
 #define XtCInputCallback  "InputCallback"
+#define XtNexpandCallback  "expandCallback"
+#define XtCExpandCallback  "ExpandCallback"
 #define XtNrowInsert	"rowInsert"
 #define XtNcolInsert	"colInsert"
 #define XtCInsert	"Insert"
