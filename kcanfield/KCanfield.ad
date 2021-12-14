@@ -26,21 +26,10 @@
 *tableau.rowsHint: True
 *tableau.overlap: vertical
 
-*tableau.translations: #override \
-	Shift<BtnDown>:	select(noop)\n\
-	Shift<BtnUp>:	select(expand)\n\
-	:<Btn1Down>:	select(tableau_source)\n\
-	:<BtnDown>:	select(card_source)\n\
-	:<BtnUp>:	select(dest)
-
-*Cards.translations: #override \
-	<BtnDown>:	select(talon_source)\n\
-	<BtnUp>:	select(dest)
-	
 *message.justify: left
 *message.label: Keith's Canfield, Version 1.0
-*logo.font: -*-helvetica-bold-r-normal--*-180-*-*-*-*-*-*
 *logo.label: Canfield
+*logo.font: sans-36
 *menuBar.layout: vertical { \
 	5 < -5 >\
 	horizontal { \
