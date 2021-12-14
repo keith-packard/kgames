@@ -574,7 +574,6 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
 
     (void) closure;
     Message (message, "");
-    CardDrag(input);
     stack = WidgetToStack(w, input->col);
     startStack = WidgetToStack(input->start.w, input->start.col);
 
@@ -866,7 +865,6 @@ main (int argc, char **argv)
     stacks = XtCreateManagedWidget ("stacks", cardsWidgetClass, frame, NULL, 0);
     XtAddCallback (stacks, XtNinputCallback, InputCallback, &stackStacks[0]);
     message = XtCreateManagedWidget ("message", klabelWidgetClass, frame, NULL, 0);
-    CardDragInit(frame);
     srandom (getpid () ^ time ((long *) 0));
     NewGame ();
     XtRealizeWidget (toplevel);
