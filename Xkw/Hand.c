@@ -470,7 +470,6 @@ DoInputCallback(Widget gw, HandAction action,
     input.w = gw;
     if (action == HandActionStart || action == HandActionExpand) {
         start_location.w = gw;
-	start_location.w = gw;
         start_location.x = event->xbutton.x;
         start_location.y = event->xbutton.y;
 	start_location.row = row;

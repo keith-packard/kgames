@@ -587,6 +587,15 @@ static Widget	dragParent;
 static XtPointer    dragData;
 static Position start_x, start_y;
 
+static void
+InputCallback (Widget w, XtPointer closure, XtPointer data)
+{
+    HandInputPtr    input = (HandInputPtr) data;
+    (void) w;
+    (void) closure;
+    CardDrag(input);
+}
+
 void
 CardDragInit(Widget parent)
 {
@@ -595,6 +604,7 @@ CardDragInit(Widget parent)
 	drag = XtCreateManagedWidget("dragcard", cardsWidgetClass, parent, NULL, 0);
 	XtSetArg(arg[0], XtNinternalBorderWidth, 0);
 	XtSetValues(drag, arg, 1);
+        XtAddCallback (drag, XtNinputCallback, InputCallback, &drag);
 	dragParent = parent;
 	XtSetMappedWhenManaged(drag, FALSE);
     }
@@ -635,11 +645,14 @@ CardDrag(HandInputPtr input)
 	break;
     case HandActionDrag:
 	if (!dragging) {
+            /* Filter out drags that don't move far */
+
             Position x = input->event.xmotion.x;
             Position y = input->event.xmotion.y;
             XkwTranslateCoordsPosition(dragParent, input->w, &x, &y);
             if ((x - start_x) * (x - start_x) + (y - start_y) * (y - start_y) < 100)
                 break;
+
             CardsCardRec *dragCard = input->start.private;
             if (dragCard && dragCard->suit != CardsEmpty && dragCard->suit != CardsNone) {
                 dragData = CardsAddCard(drag, dragCard, 0, 0);
@@ -652,9 +665,11 @@ CardDrag(HandInputPtr input)
 	}
 	break;
     case HandActionStop:
-	dragging = FALSE;
-	XtUnmapWidget(drag);
-	CardsRemoveCard(drag, dragData);
+        if (dragging) {
+            dragging = FALSE;
+            XtUnmapWidget(drag);
+            CardsRemoveCard(drag, dragData);
+        }
         break;
     case HandActionExpand:
         break;
