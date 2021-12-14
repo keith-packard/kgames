@@ -73,6 +73,8 @@ static XtResource resources[] = {
      offset(col_insert), XtRImmediate, (XtPointer) False},
     {XtNimmediateUpdate, XtCImmediateUpdate, XtRBoolean, sizeof (Boolean),
      offset(immediate_update), XtRImmediate, (XtPointer) True},
+    {XtNwantForward, XtCWantForward, XtRBoolean, sizeof(Boolean),
+     offset(want_forward), XtRImmediate, (XtPointer) True},
 };
 
 #undef offset

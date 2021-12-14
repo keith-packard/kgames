@@ -141,5 +141,7 @@ HandUpdateDisplay (Widget gw);
 #define XtCInsert	"Insert"
 #define XtNimmediateUpdate  "immediateUpdate"
 #define XtCImmediateUpdate  "ImmediateUpdate"
+#define XtNwantForward "wantForward"
+#define XtCWantForward "WantForward"
 #endif /* _XtHand_h */
 /* DON'T ADD STUFF AFTER THIS #endif */

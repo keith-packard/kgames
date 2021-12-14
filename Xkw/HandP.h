@@ -96,6 +96,7 @@ typedef struct {
     Boolean	    force_erase;	/* erase stack even if card replaces */
     XtCallbackList  display_callback;	/* func to display cards */
     XtCallbackList  input_callback;	/* func called on button press */
+    Boolean         want_forward;       /* does this widget want event forwarding */
 
     /* List of cards could be changed by resource, but easier by func */
     CardPtr	    topCard, bottomCard;/* list of cards */

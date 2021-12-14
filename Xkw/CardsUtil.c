@@ -581,6 +581,7 @@ CardNextHistory ()
     return historySerial++;
 }
 
+static Boolean  initialized;
 static Boolean	dragging;
 static Widget	drag;
 static Widget	dragParent;
@@ -599,11 +600,13 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
 void
 CardDragInit(Widget parent)
 {
-    if (!drag) {
-	Arg	arg[1];
+    if (!initialized) {
+	Arg	arg[2];
+        initialized = TRUE;
 	drag = XtCreateManagedWidget("dragcard", cardsWidgetClass, parent, NULL, 0);
 	XtSetArg(arg[0], XtNinternalBorderWidth, 0);
-	XtSetValues(drag, arg, 1);
+        XtSetArg(arg[1], XtNwantForward, False);
+	XtSetValues(drag, arg, 2);
         XtAddCallback (drag, XtNinputCallback, InputCallback, &drag);
 	dragParent = parent;
 	XtSetMappedWhenManaged(drag, FALSE);

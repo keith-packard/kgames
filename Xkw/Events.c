@@ -158,8 +158,14 @@ XkwXYToWidget(Widget w, Position x, Position y)
 	ForAllChildren(cw, children) {
 	    child = *children;
 	    w = XkwXYToWidget(child, x - XtX(child), y - XtY(child));
-	    if (w)
-		break;
+	    if (w) {
+                Arg arg[1];
+                Boolean want_forward = True;
+                XtSetArg(arg[0], "wantForward", &want_forward);
+                XtGetValues(w, arg, 1);
+                if (want_forward)
+                    break;
+            }
 	}
     }
     return w;
@@ -183,6 +189,7 @@ XkwForwardEvent(Widget to, Widget from, XEvent *e)
     }
     if (to == from || !to)
 	return FALSE;
+
     if (XtClass(to) != XtClass(from))
 	return FALSE;
 
