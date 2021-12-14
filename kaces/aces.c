@@ -69,8 +69,6 @@ CardStackRec	pileStacks[NUM_PILES];
 
 CardRec		rawcards[NUM_CARDS];
 
-CardStackPtr	fromStack;
-CardPtr		fromCard;
 int		dealNumber;
 
 typedef struct _acesResources {
@@ -196,8 +194,6 @@ NewGame (void)
     CardsRemoveAllCards (deck);
     CardsRemoveAllCards (piles);
     CardsRemoveAllCards (stacks);
-    fromStack = 0;
-    fromCard = 0;
     InitStacks ();
     GenerateCards ();
     CardShuffle (&deckStack, False);
@@ -556,80 +552,66 @@ Expand (CardStackPtr stack)
 
 /* Callbacks to user interface functions */
 
-static void
-StackCallback (Widget w, XtPointer closure, XtPointer data)
+static CardStackPtr
+WidgetToStack(Widget w, int col)
 {
-    CardsInputPtr    input = (CardsInputPtr) data;
-    CardStackPtr    stack;
-    CardPtr	    card;
-    String	    type;
+    if (w == stacks)
+	return &stackStacks[col];
+    if (w == piles)
+	return &pileStacks[col];
+    if (w == deck)
+	return &deckStack;
+    return NULL;
+}
+
+static void
+InputCallback (Widget w, XtPointer closure, XtPointer data)
+{
+    HandInputPtr    input = (HandInputPtr) data;
+    CardStackPtr    stack = NULL;
+    CardStackPtr    startStack = NULL;
+    CardPtr	    card = NULL;
 
     (void) closure;
     Message (message, "");
-    if (w == stacks)
-	stack = &stackStacks[input->col];
-    else if (w == piles)
-	stack = &pileStacks[input->col];
-    else
+    CardDrag(input);
+    stack = WidgetToStack(w, input->col);
+    startStack = WidgetToStack(input->start.w, input->start.col);
+
+    if (!startStack || !stack)
 	return;
-    for (card = stack->last; card; card = card->prev)
-	if (card->isUp && card->row == input->row)
-	    break;
-    if (*input->num_params) {
-	type = *input->params;
-	if (!strcmp (type, "deck_source"))
-	{
-	    fromStack = stack;
-	    fromCard = stack->last;
-	}
-	else if (!strcmp (type, "stack_source"))
-	{
-	    fromStack = stack;
-	    fromCard = 0;
-	    if (!fromStack->last)
-		Message (message, "Selected stack is empty.");
-	}
-	else if (!strcmp (type, "card_source"))
-	{
-	    if (!card)
-		Message (message, "No card selected.");
-	    else
-	    {
-		fromStack = stack;
-		fromCard = card;
-	    }
-	}
-	else if (!strcmp (type, "dest"))
-	{
-	    if (fromStack)
-	    {
-		Play (fromStack, fromCard, stack);
-		CheckStackTop (fromStack);
-		fromStack = NULL;
+
+    switch (input->action) {
+    case HandActionStart:
+	break;
+    case HandActionDrag:
+	break;
+    case HandActionStop:
+	if (startStack == &deckStack) {
+	    if (stack == &deckStack) {
+		Deal ();
 		CardNextHistory ();
 		DisplayStacks ();
 	    }
 	}
-	else if (!strcmp (type, "expand"))
-	{
-	    Expand (stack);
+	else if (stack == &deckStack) {
 	}
-    }
-}
+	else if (startStack && stack && startStack->last)
+	{
+	    if (startStack != stack)
+		for (card = startStack->last; card; card = card->prev)
+		    if (card->isUp && card->row == input->start.row)
+			break;
 
-static void
-DeckCallback (Widget w, XtPointer closure, XtPointer data)
-{
-    CardsInputPtr    input = (CardsInputPtr) data;
-
-    (void) w;
-    (void) closure;
-    Message (message, "");
-    if (*input->num_params && !strcmp (*input->params, "deck_source"))
-    {
-	Deal ();
-	CardNextHistory ();
-	DisplayStacks ();
+	    Play (startStack, card, stack);
+	    CheckStackTop (startStack);
+	    CardNextHistory ();
+	    DisplayStacks ();
+	}
+	break;
+    case HandActionExpand:
+        Expand(stack);
+        break;
     }
 }
 
@@ -878,12 +860,13 @@ main (int argc, char **argv)
 				   menuBar, NULL, ZERO);
     XtAddCallback(pileAll, XtNcallback, PileAllCallback, NULL);
     deck = XtCreateManagedWidget ("deck", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (deck, XtNinputCallback, DeckCallback, NULL);
+    XtAddCallback (deck, XtNinputCallback, InputCallback, &deckStack);
     piles = XtCreateManagedWidget ("piles", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (piles, XtNinputCallback, StackCallback, NULL);
+    XtAddCallback (piles, XtNinputCallback, InputCallback, &pileStacks[0]);
     stacks = XtCreateManagedWidget ("stacks", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (stacks, XtNinputCallback, StackCallback, NULL);
+    XtAddCallback (stacks, XtNinputCallback, InputCallback, &stackStacks[0]);
     message = XtCreateManagedWidget ("message", klabelWidgetClass, frame, NULL, 0);
+    CardDragInit(frame);
     srandom (getpid () ^ time ((long *) 0));
     NewGame ();
     XtRealizeWidget (toplevel);
