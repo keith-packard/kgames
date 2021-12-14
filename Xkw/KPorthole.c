@@ -172,13 +172,14 @@ KPortholeQueryGeometry(Widget gw, XtWidgetGeometry *intended,
 
     if (child) {
 #define SIZEONLY (CWWidth | CWHeight)
-	preferred->request_mode = SIZEONLY;
+	preferred->request_mode = intended->request_mode & SIZEONLY;
 	preferred->width = XtWidth(child);
 	preferred->height = XtHeight(child);
 
-	if ((intended->request_mode & SIZEONLY) == SIZEONLY &&
-	    intended->width == preferred->width &&
-	    intended->height == preferred->height)
+	if (((intended->request_mode & CWWidth) == 0 ||
+	     intended->width == preferred->width) &&
+	    ((intended->request_mode & CWHeight) == 0 ||
+	     intended->height == preferred->height))
 	    return (XtGeometryYes);
 	else if (preferred->width == XtWidth(pw) &&
 		 preferred->height == XtHeight(pw))
