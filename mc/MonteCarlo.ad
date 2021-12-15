@@ -31,14 +31,11 @@
 *cards.immediateUpdate: False
 *cards.rowMajor: True
 
-*deck.translations: #override \
-	<BtnDown>:	select()
-
 *cards.translations: #override \
-	<Btn1Down>:	select(source)\n\
-	<Btn2Down>:	select(clear)\n\
-	<Btn3Down>:	select(hint)\n\
-	<Btn3Up>:	select(unhint)
+	<Btn1Down>:	start(source)\n\
+	<Btn2Down>:	start(clear)\n\
+	<Btn3Down>:	expand(hint)\n\
+	<BtnUp>:	stop()
 	
 *message.justify: left
 *message.label: Monte Carlo, Version 0.9
