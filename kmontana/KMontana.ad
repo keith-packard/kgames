@@ -13,12 +13,19 @@
 *cards.rowMajor: True
 
 *cards.translations: #override \
-	Shift<BtnDown>:	select(hint-previous)\n\
-	<Btn1Down>:	select(hint-or-select)\n\
-	<BtnDown>:	select(hint)\n\
-	<BtnUp>:	select(unhint-or-move)
-	
+	Shift<BtnDown>: expand(hint-previous)\n\
+	Shift<BtnUp>:\n\
+	<Btn4Down>: zoomout()\n\
+	<Btn4Up>:\n\
+	<Btn5Down>: zoomin()\n\
+	<Btn5Up>:\n\
+	<Btn1Down>: start()\n\
+	<BtnDown>: expand(hint)\n\
+	<BtnMotion>: drag()\n\
+	<BtnUp>: stop()
+
 *message.justify: left
+
 *message.label: Keith's Montana, Version 1.0
 *menuBar.layout: vertical { \
 	5 < -5 >\

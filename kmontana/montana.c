@@ -685,50 +685,55 @@ Save (void)
 /* Callbacks to user interface functions */
 
 static void
-CardsCallback (Widget w, XtPointer closure, XtPointer data)
+InputCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    CardsInputPtr    input = (CardsInputPtr) data;
-    CardStackPtr    stack;
-    String	    type;
-    int		    i;
-    Boolean	    hintForward;
+    HandInputPtr    input = (HandInputPtr) data;
+    CardStackPtr    stack = NULL;
+    CardStackPtr    startStack = NULL;
+    int             i;
+    Boolean         hintForward;
+    String          type = "";
+
+    (void) closure;
+    (void) w;
+    Message (message, "");
+
+    if (*input->num_params > 0)
+        type = input->params[0];
+
+    stack = &cardStacks[input->row * NUM_COLS + input->col];
+    startStack = &cardStacks[input->start.row * NUM_COLS + input->start.col];
+
 #define MOVE	0
 #define HINT	1
 #define UNHINT	2
 #define	SELECT	3
 
-    (void) w;
-    (void) closure;
-    Message (message, "");
-    stack = &cardStacks[input->row * NUM_COLS + input->col];
-    if (!*input->num_params)
-	return;
-    type = *input->params;
-    if (!strcmp (type, "hint-or-select"))
-    {
-	if (!stack->last)
+    switch (input->action) {
+    case HandActionStart:
+	if (!stack->last) {
 	    i = HINT;
-	else
+            hintForward = True;
+	} else
 	    i = SELECT;
-    } else if (!strcmp (type, "unhint-or-move")) {
+        break;
+    case HandActionDrag:
+        return;
+    case HandActionStop:
 	if (hintStack)
 	    i = UNHINT;
 	else
 	    i = MOVE;
-    } else if (!strcmp (type, "hint-previous")) {
-	i = HINT;
-	hintForward = False;
-    } else if (!strcmp (type, "hint-next")) {
-	i = HINT;
-	hintForward = True;
-    } else if (!strcmp (type, "unhint")) {
-	i = UNHINT;
-    } else if (!strcmp (type, "hint")) {
-	i = HINT;
-	hintForward = True;
-    } else {
-	return;
+        break;
+    case HandActionExpand:
+        i = HINT;
+        if (!strcmp(type, "hint-previous"))
+            hintForward = False;
+        else
+            hintForward = True;
+        break;
     }
+
     switch (i) {
     case HINT:
 	if (!stack->last)
@@ -744,13 +749,10 @@ CardsCallback (Widget w, XtPointer closure, XtPointer data)
 	UnHint ();
 	break;
     case SELECT:
-	fromStack = stack;
 	break;
     case MOVE:
-	if (fromStack) {
-	    Play (fromStack, stack);
-	    fromStack = NULL;
-	}
+	if (startStack)
+	    Play (startStack, stack);
 	break;
     }
     DisplayStacks ();
@@ -988,7 +990,7 @@ main (int argc, char **argv)
 				   menuBar, NULL, ZERO);
     XtAddCallback(score, XtNcallback, ScoreCallback, NULL);
     cards = XtCreateManagedWidget ("cards", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (cards, XtNinputCallback, CardsCallback, NULL);
+    XtAddCallback (cards, XtNinputCallback, InputCallback, NULL);
     message = XtCreateManagedWidget ("message", klabelWidgetClass, frame, NULL, 0);
     srandom (getpid () ^ time ((long *) 0));
     NewGame ();
