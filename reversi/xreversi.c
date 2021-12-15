@@ -34,7 +34,7 @@
 #include "Reversi.h"
 #include <stdio.h>
 #include "revers.h"
-#include "Kreversi-res.h"
+#include "Reversi-res.h"
 
 static Widget	topLevel, layout, reversi, error;
 
@@ -283,7 +283,7 @@ XtActionsRec xreversi_actions[] = {
 void
 dispInit(int argc, char **argv)
 {
-    topLevel = XkwInitialize("Kreversi", options, XtNumber(options),
+    topLevel = XkwInitialize("Reversi", options, XtNumber(options),
 			     &argc, argv, True, defaultResources);
 
     XtGetApplicationResources(topLevel, &app_resources, resources,
