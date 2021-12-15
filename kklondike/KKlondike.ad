@@ -19,21 +19,6 @@
 *stacks.overlap: vertical
 *stacks.immediate_update: false
 
-*deck.translations: #override \
-	<BtnDown>:	select(deck_source)\n\
-	<BtnUp>:	select(dest)
-
-*stacks.translations: #override \
-	Shift<BtnDown>:	select(noop)\n\
-	Shift<BtnUp>:	select(expand)\n\
-	:<Btn1Down>:	select(stack_source)\n\
-	:<BtnDown>:	select(card_source)\n\
-	:<BtnUp>:	select(dest)
-
-*piles.translations: #override \
-	<BtnDown>:	select(stack_source)\n\
-	<BtnUp>:	select(dest)
-	
 *message.justify: left
 *message.label: Keith's Klondike, Version 1.0
 *menuBar.layout: vertical { \

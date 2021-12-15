@@ -251,6 +251,12 @@ CardsReplaceCard (gw, data, card)
     }
 
 static void
+InputCallback (Widget w, XtPointer closure, XtPointer data)
+{
+    CardDrag((HandInputPtr) data);
+}
+
+static void
 Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     CardsWidget	req = (CardsWidget) greq,
@@ -259,11 +265,14 @@ Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
     (void) args;
     (void) count;
 
+    CardDragInit(XtParent(gnew));
+
     new->hand.force_erase = True;
 
     setSizeVars (req, new);
 
     XtAddCallback (gnew, XtNdisplayCallback, DisplayCallback, (XtPointer) gnew);
+    XtAddCallback (gnew, XtNinputCallback, InputCallback, (XtPointer) gnew);
 
     /* back surface */
     Pixmap back = new->cards.back;
@@ -459,7 +468,7 @@ CardsClassRec	cardsClassRec = {
     /* accept_focus		*/	NULL,
     /* version			*/	XtVersion,
     /* callback_private		*/	NULL,
-    /* tm_table			*/	NULL,
+    /* tm_table			*/	XtInheritTranslations,
     /* query_geometry		*/	XtInheritQueryGeometry,
     /* display_accelerator	*/	XtInheritDisplayAccelerator,
     /* extension		*/	NULL

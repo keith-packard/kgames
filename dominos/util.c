@@ -31,6 +31,7 @@ MakeDomino(Pips a, Pips b)
     DominoPtr	domino;
 
     domino = New(DominoRec);
+    domino->hide = FALSE;
     domino->pips[0] = a;
     domino->pips[1] = b;
     domino->peer[North] = 0;

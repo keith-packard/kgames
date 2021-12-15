@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
@@ -32,8 +32,8 @@ typedef struct _Card *CardPtr;
 
 typedef enum _CardFace { CardFaceUp, CardFaceDown } CardFace;
 
-typedef enum _CardDisplay { 
-    CardDisplayTop, CardDisplayBottom, CardDisplayAll, 
+typedef enum _CardDisplay {
+    CardDisplayTop, CardDisplayBottom, CardDisplayAll,
     CardDisplaySome, CardDisplayNone
 } CardDisplay;
 
@@ -73,19 +73,37 @@ Boolean
 CardIsInOrder (CardPtr, CardPtr);
 
 Boolean
+CardIsInRingOrder (CardPtr, CardPtr);
+
+Boolean
 CardIsInSuitOrder (CardPtr, CardPtr);
 
 Boolean
+CardIsInSuitRingOrder (CardPtr, CardPtr);
+
+Boolean
 CardIsInAlternatingSuitOrder (CardPtr, CardPtr);
+
+Boolean
+CardIsInAlternatingSuitRingOrder (CardPtr, CardPtr);
 
 CardPtr
 CardInOrder (CardPtr);
 
 CardPtr
+CardInRingOrder (CardPtr);
+
+CardPtr
 CardInSuitOrder (CardPtr);
 
 CardPtr
+CardInSuitRingOrder (CardPtr);
+
+CardPtr
 CardInAlternatingSuitOrder (CardPtr);
+
+CardPtr
+CardInAlternatingSuitRingOrder (CardPtr);
 
 void
 CardSetAnimate (Boolean animate);
@@ -94,10 +112,19 @@ CardPtr
 CardInReverseOrder (CardPtr);
 
 CardPtr
+CardInReverseRingOrder (CardPtr);
+
+CardPtr
 CardInReverseSuitOrder (CardPtr);
 
 CardPtr
+CardInReverseSuitRingOrder (CardPtr);
+
+CardPtr
 CardInReverseAlternatingSuitOrder (CardPtr);
+
+CardPtr
+CardInReverseAlternatingSuitRingOrder (CardPtr);
 
 void
 CardDisplayStack (CardStackPtr);

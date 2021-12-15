@@ -92,11 +92,29 @@ CardRec     rawcards[NUM_CARDS];
 int         game_state;
 int         reserveCountNumber;
 
+#define STACK_TYPE_UNKNOWN      0
 #define	STACK_TYPE_ACE		1
 #define	STACK_TYPE_KING		2
 #define	STACK_TYPE_RESERVE	3
 #define	STACK_TYPE_DEAL		4
 #define	STACK_TYPE_DRAW		5
+
+static int
+StackType(CardStackPtr stack)
+{
+    if (stack->widget == row1 ||
+        stack->widget == row2 ||
+        stack->widget == row3 ||
+        stack->widget == row4)
+        return STACK_TYPE_RESERVE;
+    if (stack->widget == draw)
+        return STACK_TYPE_DEAL;
+    if (stack->widget == aces)
+        return STACK_TYPE_ACE;
+    if (stack->widget == kings)
+        return STACK_TYPE_KING;
+    return STACK_TYPE_UNKNOWN;
+}
 
 CardStackPtr fromStack;
 CardPtr     fromCard;
@@ -489,12 +507,10 @@ FindFinishPlay(from_card)
 }
 
 void
-Play(from_stack, from_card, to_stack, to_type)
-    CardStackPtr from_stack;
-    CardPtr     from_card;
-    CardStackPtr to_stack;
-    int         to_type;
+Play(CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 {
+    int         to_type = StackType(to_stack);
+
     switch (game_state) {
     case GAME_DEAL:
 	if (to_stack == from_stack) {	/* single click */
@@ -670,82 +686,82 @@ Expand(CardStackPtr stack)
 static void
 DeckCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    HandInputPtr    input = (HandInputPtr) data;
+
     (void) w;
     (void) closure;
     (void) data;
-#ifdef old
-    Message(message, "");
-    if (game_state != GAME_RESERVE) {
-	Message(message, "Hit Deal to change game state to Reserve.");
-	return;
+    if (input->action == HandActionStart)
+        StartDeal();
+}
+
+static CardStackPtr
+WidgetToStack(Widget w, int row, int col)
+{
+    CardStackPtr stack = NULL;
+    if (w == row1) {
+	stack = &stackStacks[col];
+    } else if (w == row2) {
+	stack = &stackStacks[NUM_COLS + col];
+    } else if (w == row3) {
+	stack = &stackStacks[2 * NUM_COLS + col];
+    } else if (w == row4) {
+	stack = &stackStacks[3 * NUM_COLS + col];
+    } else if (w == draw) {
+	stack = &drawStack;
+    } else if (w == aces) {
+	stack = &aceStacks[row];
+    } else if (w == kings) {
+	stack = &kingStacks[row];
     }
-    Deal(False);
-    CardNextHistory();
-    DisplayStacks();
-#else
-    StartDeal();
-#endif
+    return stack;
 }
 
 static void
 StackCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    CardsInputPtr input = (CardsInputPtr) data;
+    HandInputPtr    input = (HandInputPtr) data;
     CardStackPtr stack;
+    CardStackPtr startStack;
     CardPtr     card;
-    String      type;
     int         to_type;
 
-    Message(message, "");
-    if (w == row1) {
-	stack = &stackStacks[input->col];
-	to_type = STACK_TYPE_RESERVE;
-    } else if (w == row2) {
-	stack = &stackStacks[NUM_COLS + input->col];
-	to_type = STACK_TYPE_RESERVE;
-    } else if (w == row3) {
-	stack = &stackStacks[2 * NUM_COLS + input->col];
-	to_type = STACK_TYPE_RESERVE;
-    } else if (w == row4) {
-	stack = &stackStacks[3 * NUM_COLS + input->col];
-	to_type = STACK_TYPE_RESERVE;
-    } else if (w == draw) {
-	stack = &drawStack;
-	to_type = STACK_TYPE_DEAL;
-    } else if (w == aces) {
-	stack = &aceStacks[input->row];
-	to_type = STACK_TYPE_ACE;
-    } else if (w == kings) {
-	stack = &kingStacks[input->row];
-	to_type = STACK_TYPE_KING;
-    }
-    card = stack->last;
-    if (*input->num_params) {
-	type = *input->params;
-	if (!strcmp(type, "source")) {
-	    if (game_state == GAME_DEAL) {
-		if (to_type == STACK_TYPE_ACE || to_type == STACK_TYPE_KING) {
-		    Message(message, "Can't move %P.",
-			    &card->card);
-		    return;
-		}
-	    }
-	    fromStack = stack;
-	    if (fromStack->last)
-		fromCard = fromStack->last;
-	    else if (game_state == GAME_DEAL) {
-		Message(message, "Selected stack is empty.");
-	    }
-	} else if (!strcmp(type, "dest")) {
-	    if (fromCard || game_state == GAME_RESERVE) {
-		Play(fromStack, fromCard, stack, to_type);
-		fromCard = NULL;
-		CardNextHistory();
-		DisplayStacks();
-	    }
-	} else if (!strcmp(type, "expand")) {
-	    Expand(stack);
-	}
+    stack = WidgetToStack(w, input->row, input->col);
+    startStack = WidgetToStack(input->start.w, input->start.row, input->start.col);
+
+    if (!startStack || !stack)
+	return;
+
+    to_type = StackType(stack);
+
+    switch (input->action) {
+    case HandActionStart:
+        Message(message, "");
+        break;
+    case HandActionDrag:
+        break;
+    case HandActionStop:
+        if (startStack->last)
+            card = startStack->last;
+        else if (game_state == GAME_DEAL) {
+            Message(message, "Selected stack is empty.");
+            break;
+        }
+        if (game_state == GAME_DEAL) {
+            if (to_type == STACK_TYPE_ACE || to_type == STACK_TYPE_KING) {
+                Message(message, "Can't move %P.", &card->card);
+                break;
+            }
+        }
+        if (card || game_state == GAME_RESERVE) {
+            Play(startStack, card, stack);
+            CardNextHistory();
+            DisplayStacks();
+        }
+        break;
+    case HandActionExpand:
+        Expand(stack);
+        break;
     }
 }
 

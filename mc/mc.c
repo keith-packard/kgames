@@ -465,9 +465,9 @@ Save(void)
 static void
 CardsCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    CardsInputPtr input = (CardsInputPtr) data;
-    CardStackPtr stack;
-    String      type;
+    HandInputPtr    input = (HandInputPtr) data;
+    CardStackPtr    stack = NULL;
+    String      type = "";
     int         i;
 
 #define MOVE	0
@@ -476,54 +476,61 @@ CardsCallback (Widget w, XtPointer closure, XtPointer data)
 #define	SELECT	3
 
     (void) closure;
-    Message(message, "");
     stack = &cardStacks[input->row * NUM_COLS + input->col];
-    if (!*input->num_params)
-	return;
-    type = *input->params;
-    if (!strcmp(type, "source")) {
-	if (!fromStack)
-	    i = SELECT;
-	else
-	    i = MOVE;
-    } else if (!strcmp(type, "hint")) {
-	i = HINT;
-    } else if (!strcmp(type, "unhint")) {
-	i = UNHINT;
-    } else if (!strcmp(type, "clear")) {
-	fromStack = NULL;
-    } else {
-	return;
+
+    if (*input->num_params)
+        type = *input->params;
+
+    switch (input->action) {
+    case HandActionStart:
+        Message (message, "");
+        if (!strcmp(type, "source")) {
+            if (!fromStack)
+                i = SELECT;
+            else
+                i = MOVE;
+        } else if (!strcmp(type, "clear")) {
+            fromStack = NULL;
+        } else {
+            return;
+        }
+        switch (i) {
+        case SELECT:
+            fromStack = stack;
+            if (!fromStack->last)
+                Message(message, "Selected space is empty.");
+            break;
+        case MOVE:
+            if (fromStack) {
+                Play(fromStack, stack);
+                fromStack = NULL;
+            }
+            break;
+        }
+        DisplayStacks();
+	break;
+    case HandActionDrag:
+        break;
+    case HandActionExpand:
+        FindAMove(stack);
+        DisplayStacks();
+        break;
+    case HandActionStop:
+        UnHint();
+        DisplayStacks();
+        break;
     }
-    switch (i) {
-    case HINT:
-	FindAMove(stack);
-	break;
-    case UNHINT:
-	UnHint();
-	break;
-    case SELECT:
-	fromStack = stack;
-	if (!fromStack->last)
-	    Message(message, "Selected space is empty.");
-	break;
-    case MOVE:
-	if (fromStack) {
-	    Play(fromStack, stack);
-	    fromStack = NULL;
-	}
-	break;
-    }
-    DisplayStacks();
 }
 
 static void
 DealCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    HandInputPtr    input = (HandInputPtr) data;
+
     (void) w;
     (void) closure;
-    (void) data;
-    Deal();
+    if (!input || input->action == HandActionStart)
+        Deal();
 }
 
 static void

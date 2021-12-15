@@ -129,14 +129,26 @@ static int	selectedCard;
 static Boolean	cardSelected;
 
 static void
-PlayerCallback (Widget w, XtPointer closure, XtPointer data)
+InputCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    HandInputPtr    input = (HandInputPtr) data;
+
     (void) w;
     (void) closure;
-    CardsInputPtr   input = (CardsInputPtr) data;
 
-    selectedCard = input->row;
-    cardSelected = True;
+    switch (input->action) {
+    case HandActionStop:
+        if (input->w == input->start.w &&
+            input->col == input->start.col &&
+            input->row == input->start.row)
+        {
+            selectedCard = input->row;
+            cardSelected = True;
+        }
+        break;
+    default:
+        break;
+    }
 }
 
 struct menuEntry {
@@ -213,16 +225,20 @@ UIInit (int argc, char **argv)
     fileMenu = CreateMenu (fileMenuButton, "fileMenu",
 			   fileMenuEntries, XtNumber (fileMenuEntries));
     player = XtCreateManagedWidget ("player", cardsWidgetClass, layout, NULL, 0);
-    XtAddCallback (player, XtNinputCallback, PlayerCallback, NULL);
+    XtAddCallback (player, XtNinputCallback, InputCallback, NULL);
     computer = XtCreateManagedWidget ("computer", cardsWidgetClass, layout, NULL, 0);
+    XtAddCallback (computer, XtNinputCallback, InputCallback, NULL);
     table = XtCreateManagedWidget ("table", cardsWidgetClass, layout, NULL, 0);
+    XtAddCallback (table, XtNinputCallback, InputCallback, NULL);
     tableScore = XtCreateManagedWidget ("tableScore", klabelWidgetClass, layout, NULL, 0);
     playName = XtCreateManagedWidget ("playname", klabelWidgetClass, layout, NULL, 0);
     playScore = XtCreateManagedWidget ("playscore", cribBoardWidgetClass, layout, NULL, 0);
     compName = XtCreateManagedWidget ("compname", klabelWidgetClass, layout, NULL, 0);
     compScore = XtCreateManagedWidget ("compscore", cribBoardWidgetClass, layout, NULL, 0);
     playcrib = XtCreateManagedWidget ("playcrib", cardsWidgetClass, layout, NULL, 0);
+    XtAddCallback (playcrib, XtNinputCallback, InputCallback, NULL);
     compcrib = XtCreateManagedWidget ("compcrib", cardsWidgetClass, layout, NULL, 0);
+    XtAddCallback (compcrib, XtNinputCallback, InputCallback, NULL);
     message = XtCreateManagedWidget ("message", padWidgetClass, layout, NULL, 0);
     XtRealizeWidget (toplevel);
 }

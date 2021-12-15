@@ -81,6 +81,12 @@ CardsRankName (CardsRank r);
 char *
 CardsSuitName (CardsSuit s);
 
+void
+CardDragInit(Widget parent);
+
+void
+CardDrag(HandInputPtr input);
+
 /* Add aliases to stuff which is simply inherited from the Hand widget */
 
 #define CardsRemoveCard	HandRemoveCard

@@ -54,6 +54,7 @@ srcs_xkw = [
   'CardsUtil.c',
   'Dialog.c',
   'Draw.c',
+  'Events.c',
   'Hand.c',
   'Layout.c',
   'medium.c',
