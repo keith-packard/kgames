@@ -54,8 +54,6 @@
 		message < +inff -100% * > \
 		computerCount < -100% * > \
 	} \
-	player_porthole < +inf -inf * > \
-	player_scrollbar < +inf -inf * > \
 	horizontal { \
 		porthole < +inf -inf * +inf -inf > \
 		scroll_v < * +inff > \
@@ -67,9 +65,10 @@
 			corner < +inff -inff * +inff -inff > \
 		}\
 	} \
+	player_porthole < +inf -inf * > \
+	player_scrollbar < +inf -inf * > \
 }
 
-*panner.resize: False
 *fileMenuButton.leftBitmap: menu12
 *fileMenuButton.menuName: fileMenu
 *fileMenuButton.label: File

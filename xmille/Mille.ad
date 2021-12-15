@@ -110,10 +110,10 @@ horizontal { \
 *Hand.Background: light gray
 *Hand.internalBorderWidth: 3
 *Hand.translations: #override \
-	<Btn1Down>:	select(reasonable)\n\
-	<Btn2Down>:	select(play)\n\
-	<Btn3Down>:	select(discard)\n
-	Shift<BtnDown>:	select(discard)
+	<Btn1Down>:	start(reasonable)\n\
+	<Btn2Down>:	start(play)\n\
+	<Btn3Down>:	start(discard)\n
+	Shift<BtnDown>:	start(discard)
 
 *Thermo.borderWidth: 1
 *Thermo.mercuryColor: blue
@@ -181,17 +181,6 @@ horizontal { \
 
 *promptedShell.allowShellResize: true
 *promptedValue*editType: edit
-*promptedValue.translations: #override\
-     Ctrl<Key>J:    milleYes()\n\
-     Ctrl<Key>M:    milleYes()\n\
-     <Key>Linefeed: milleYes()\n\
-     <Key>Return:   milleYes()\n\
-     Ctrl<Key>O:    Noop()\n\
-     Meta<Key>I:    Noop()\n\
-     Ctrl<Key>N:    Noop()\n\
-     Ctrl<Key>P:    Noop()\n\
-     Ctrl<Key>Z:    Noop()\n\
-     Meta<Key>Z:    Noop()
 		  
 *promptedDialog.layout: vertical {\
 	Spacing = (20 % of height promptedLabel) \
@@ -200,8 +189,8 @@ horizontal { \
 	$Spacing < +inf -inf > \
 	horizontal { \
 		$Spacing < -inf > \
-		promptedValue \
-		$Spacing < +inf -inf > \
+		promptedValue < +inf * +inf > \
+		$Spacing < -inf > \
 	} \
 	horizontal { \
 		$Spacing < -inf > \

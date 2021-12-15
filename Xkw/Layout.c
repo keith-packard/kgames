@@ -49,7 +49,7 @@ static XtResource resources[] = {
     {XtNdebug, XtCBoolean, XtRBoolean, sizeof(Boolean),
 	offset(debug), XtRImmediate, (XtPointer) FALSE},
     {XtNresize, XtCResize, XtRBoolean, sizeof(Boolean),
-	offset(resize), XtRImmediate, (XtPointer) TRUE},
+	offset(resize), XtRImmediate, (XtPointer) FALSE},
 };
 
 #undef offset
@@ -259,53 +259,50 @@ SetValues(Widget gold, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 } /* SetValues */
 
 static XtGeometryResult
-QueryGeometry (Widget gw, XtWidgetGeometry *request, XtWidgetGeometry *prefered_return)
+QueryGeometry (Widget gw, XtWidgetGeometry *intended, XtWidgetGeometry *preferred)
 {
     LayoutWidget	w = (LayoutWidget) gw;
     XtGeometryResult	result;
-    XtWidgetGeometry	prefered_size;
 
-    if (request && !(request->request_mode & (CWWidth|CWHeight)))
+    if (intended && !(intended->request_mode & (CWWidth|CWHeight)))
 	return XtGeometryYes;
-    LayoutGetNaturalSize (w, &prefered_size.width, &prefered_size.height);
-    prefered_return->request_mode = 0;
+    LayoutGetNaturalSize (w, &preferred->width, &preferred->height);
+    preferred->request_mode = 0;
+
+    printf("Layout %s query geometry mode %x intended %d x %d preferred %d x %d\n",
+	   w->core.name,
+	   intended->request_mode & (CWWidth|CWHeight),
+	   intended->width, intended->height,
+	   preferred->width, preferred->height);
+
+    /* Check to see if the intended change matches our preferred
+     * geometry
+     */
     result = XtGeometryYes;
-    if (!request) {
-	prefered_return->width = prefered_size.width;
-	prefered_return->height= prefered_size.height;
-	if (prefered_size.width != w->core.width) {
-	    prefered_return->request_mode |= CWWidth;
-	    result = XtGeometryAlmost;
+    if ((intended->request_mode & CWWidth) &&
+	intended->width != preferred->width)
+    {
+	preferred->request_mode |= CWWidth;
+	result = XtGeometryAlmost;
+    }
+    if ((intended->request_mode & CWHeight) &&
+	intended->height != preferred->height)
+    {
+	preferred->request_mode |= CWHeight;
+	result = XtGeometryAlmost;
+    }
+
+    /* Check to see if the intended geometry matches the current
+     * geometry
+     */
+    if (result == XtGeometryAlmost) {
+	if (((intended->request_mode & CWWidth) == 0 ||
+	     intended->width == w->core.width) &&
+	    ((intended->request_mode & CWHeight) == 0 ||
+	     intended->height == w->core.height))
+	{
+	    result = XtGeometryNo;
 	}
-	if (prefered_size.height != w->core.height) {
-	    prefered_return->request_mode |= CWHeight;
-	    result = XtGeometryAlmost;
-	}
-    } else {
-    	if (request->request_mode & CWWidth) {
-	    if (prefered_size.width > request->width)
-	    {
-	    	if (prefered_size.width == w->core.width)
-		    result = XtGeometryNo;
-	    	else if (result != XtGeometryNo) {
-		    result = XtGeometryAlmost;
-		    prefered_return->request_mode |= CWWidth;
-		    prefered_return->width = prefered_size.width;
-	    	}
-	    }
-    	}
-    	if (request->request_mode & CWHeight) {
-	    if (prefered_size.height > request->height)
-	    {
-	    	if (prefered_size.height == w->core.height)
-		    result = XtGeometryNo;
-	    	else if (result != XtGeometryNo) {
-		    result = XtGeometryAlmost;
-		    prefered_return->request_mode |= CWHeight;
-		    prefered_return->height = prefered_size.height;
-	    	}
-	    }
-    	}
     }
     return result;
 }
@@ -1013,14 +1010,20 @@ LayoutLayout (LayoutWidget l, Bool attemptResize)
 	prefered_width = l->layout.prefered_width;
     if (prefered_height == 0)
 	prefered_height = l->layout.prefered_height;
-    if (attemptResize && l->layout.resize &&
+    if (attemptResize && (!XtIsRealized((Widget) l) || l->layout.resize) &&
 	(l->layout.prefered_width != prefered_width ||
 	 l->layout.prefered_height != prefered_height))
     {
+	printf("Layout %s request resize to %d x %d\n",
+	       l->core.name,
+	       l->layout.prefered_width,
+	       l->layout.prefered_height);
 	(void) XtMakeResizeRequest ((Widget) l,
 				    l->layout.prefered_width,
 				    l->layout.prefered_height,
 				    NULL, NULL);
+	printf("\tresult %d x %d\n",
+	       l->core.width, l->core.height);
     }
     box->size[LayoutHorizontal] = l->core.width;
     box->size[LayoutVertical] = l->core.height;

@@ -23,8 +23,6 @@
 *player.numCols: 6
 *player.overlap: both
 *player.borderWidth: 0
-*player.translations: #override \
-	<BtnDown>:	select()
 *computer.numRows: 6
 *computer.numCols: 6
 *computer.overlap: both

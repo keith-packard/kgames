@@ -20,20 +20,6 @@
 *stacks.rowsHint: True
 *stacks.overlap: vertical
 
-*suits.translations: #override \
-	<BtnDown>:	select(noop)\n\
-	<BtnUp>:	select(dest)
-
-*stacks.translations: #override \
-	Shift<BtnDown>:	select(noop)\n\
-	Shift<BtnUp>:	select(expand)\n\
-	:<BtnDown>:	select(source)\n\
-	:<BtnUp>:	select(dest)
-
-*piles.translations: #override \
-	<BtnDown>:	select(source)\n\
-	<BtnUp>:	select(dest)
-	
 *message.justify: left
 *message.label: Keith's Towers, Version 1.0
 *menuBar.layout: vertical { \

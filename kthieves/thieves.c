@@ -485,56 +485,64 @@ Expand (CardStackPtr stack)
 
 /* Callbacks to user interface functions */
 
-static void
-DeckCallback (Widget w, XtPointer closure, XtPointer data)
+static CardStackPtr
+WidgetToStack(Widget w, int col)
 {
-    (void) w;
-    (void) closure;
-    Message (message, "");
-    Deal ();
-    CardNextHistory ();
-    DisplayStacks ();
+    if (w == stacks)
+	return &stackStacks[col];
+    if (w == piles)
+        return &pileStacks[col];
+    if (w == draw)
+	return &drawStack;
+    if (w == deck)
+        return &deckStack;
+    return NULL;
 }
 
 static void
-StackCallback (Widget w, XtPointer closure, XtPointer data)
+InputCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    CardsInputPtr    input = (CardsInputPtr) data;
-    CardStackPtr    stack;
-    String	    type;
+    HandInputPtr    input = (HandInputPtr) data;
+    CardStackPtr    stack = NULL;
+    CardStackPtr    startStack = NULL;
+    CardPtr	    card = NULL;
 
     (void) closure;
     Message (message, "");
-    if (w == stacks)
-	stack = &stackStacks[input->col];
-    else if (w == draw)
-	stack = &drawStack;
-    if (*input->num_params) {
-	type = *input->params;
-	if (!strcmp (type, "source"))
-	{
-	    if (!stack->last)
-		Message (message, "Selected stack is empty.");
-	    else
-	    {
-		fromStack = stack;
-		fromCard = fromStack->last;
-	    }
-	}
-	else if (!strcmp (type, "dest"))
-	{
-	    if (fromCard)
-	    {
-		Play (fromStack, fromCard, stack);
-		fromCard = NULL;
+    stack = WidgetToStack(w, input->col);
+    startStack = WidgetToStack(input->start.w, input->start.col);
+
+    if (!startStack || !stack)
+	return;
+
+    switch (input->action) {
+    case HandActionStart:
+	break;
+    case HandActionDrag:
+	break;
+    case HandActionStop:
+	if (startStack == &deckStack) {
+	    if (stack == &deckStack) {
+		Deal ();
 		CardNextHistory ();
 		DisplayStacks ();
 	    }
 	}
-	else if (!strcmp (type, "expand"))
-	{
-	    Expand (stack);
+	else if (stack == &deckStack) {
 	}
+        else {
+            card = startStack->last;
+            if (card)
+            {
+                Play (startStack, card, stack);
+                CardNextHistory ();
+                DisplayStacks ();
+            }
+        }
+        break;
+    case HandActionExpand:
+        Expand (stack);
+        break;
     }
 }
 
@@ -768,14 +776,14 @@ main (int argc, char **argv)
     XtAddCallback(score, XtNcallback, ScoreCallback, NULL);
     deck = XtCreateManagedWidget ("deck", cardsWidgetClass, frame, NULL, 0);
     deckCount = XtCreateManagedWidget ("deckCount", klabelWidgetClass, frame, NULL, 0);
-    XtAddCallback (deck, XtNinputCallback, DeckCallback, NULL);
+    XtAddCallback (deck, XtNinputCallback, InputCallback, NULL);
     draw = XtCreateManagedWidget ("draw", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (draw, XtNinputCallback, StackCallback, NULL);
+    XtAddCallback (draw, XtNinputCallback, InputCallback, NULL);
     piles = XtCreateManagedWidget ("piles", cardsWidgetClass, frame, NULL, 0);
     nargs = 0;
     XtSetArg (args[nargs], XtNnumCols, numStacks); nargs++;
     stacks = XtCreateManagedWidget ("stacks", cardsWidgetClass, frame, args, nargs);
-    XtAddCallback (stacks, XtNinputCallback, StackCallback, NULL);
+    XtAddCallback (stacks, XtNinputCallback, InputCallback, NULL);
     message = XtCreateManagedWidget ("message", klabelWidgetClass, frame, NULL, 0);
     srandom (getpid () ^ time ((long *) 0));
     NewGame ();

@@ -171,6 +171,13 @@ CardIsInOrder (CardPtr a, CardPtr b)
 }
 
 Boolean
+CardIsInRingOrder (CardPtr a, CardPtr b)
+{
+    return a->face == b->face &&
+        (a->card.rank + 1 == b->card.rank || (a->card.rank == CardsKing && b->card.rank == CardsAce));
+}
+
+Boolean
 CardIsInSuitOrder (CardPtr a, CardPtr b)
 {
     return a->face == b->face &&
@@ -178,10 +185,26 @@ CardIsInSuitOrder (CardPtr a, CardPtr b)
 	   CardIsInOrder (a, b);
 }
 
+Boolean
+CardIsInSuitRingOrder (CardPtr a, CardPtr b)
+{
+    return a->face == b->face &&
+	   a->card.suit == b->card.suit &&
+	   CardIsInRingOrder (a, b);
+}
+
 CardPtr
 CardInSuitOrder (CardPtr card)
 {
     while (card->next && CardIsInSuitOrder (card->next, card))
+	card = card->next;
+    return card;
+}
+
+CardPtr
+CardInSuitRingOrder (CardPtr card)
+{
+    while (card->next && CardIsInSuitRingOrder (card->next, card))
 	card = card->next;
     return card;
 }
@@ -195,6 +218,14 @@ CardInOrder (CardPtr card)
 }
 
 CardPtr
+CardInRingOrder (CardPtr card)
+{
+    while (card->next && CardIsInRingOrder (card->next, card))
+	card = card->next;
+    return card;
+}
+
+CardPtr
 CardInReverseSuitOrder (CardPtr card)
 {
     while (card->prev && CardIsInSuitOrder (card, card->prev))
@@ -203,9 +234,25 @@ CardInReverseSuitOrder (CardPtr card)
 }
 
 CardPtr
+CardInReverseSuitRingOrder (CardPtr card)
+{
+    while (card->prev && CardIsInSuitRingOrder (card, card->prev))
+	card = card->prev;
+    return card;
+}
+
+CardPtr
 CardInReverseOrder (CardPtr card)
 {
     while (card->prev && CardIsInOrder (card, card->prev))
+	card = card->prev;
+    return card;
+}
+
+CardPtr
+CardInReverseRingOrder (CardPtr card)
+{
+    while (card->prev && CardIsInRingOrder (card, card->prev))
 	card = card->prev;
     return card;
 }
@@ -224,6 +271,13 @@ CardIsInAlternatingSuitOrder (CardPtr a, CardPtr b)
 	   IsAlternateSuit (a->card.suit, b->card.suit);
 }
 
+Boolean
+CardIsInAlternatingSuitRingOrder (CardPtr a, CardPtr b)
+{
+    return CardIsInRingOrder (a,b) &&
+	   IsAlternateSuit (a->card.suit, b->card.suit);
+}
+
 CardPtr
 CardInAlternatingSuitOrder (CardPtr card)
 {
@@ -233,9 +287,25 @@ CardInAlternatingSuitOrder (CardPtr card)
 }
 
 CardPtr
+CardInAlternatingSuitRingOrder (CardPtr card)
+{
+    while (card->next && CardIsInAlternatingSuitRingOrder (card->next, card))
+	card = card->next;
+    return card;
+}
+
+CardPtr
 CardInReverseAlternatingSuitOrder (CardPtr card)
 {
     while (card->prev && CardIsInAlternatingSuitOrder (card, card->prev))
+	card = card->prev;
+    return card;
+}
+
+CardPtr
+CardInReverseAlternatingSuitRingOrder (CardPtr card)
+{
+    while (card->prev && CardIsInAlternatingSuitRingOrder (card, card->prev))
 	card = card->prev;
     return card;
 }
@@ -579,4 +649,102 @@ int
 CardNextHistory ()
 {
     return historySerial++;
+}
+
+static Boolean  initialized;
+static Boolean	dragging;
+static Widget	drag;
+static Widget	dragParent;
+static XtPointer    dragData;
+static Position start_x, start_y;
+
+static void
+InputCallback (Widget w, XtPointer closure, XtPointer data)
+{
+    HandInputPtr    input = (HandInputPtr) data;
+    (void) w;
+    (void) closure;
+    CardDrag(input);
+}
+
+void
+CardDragInit(Widget parent)
+{
+    if (!initialized) {
+	Arg	arg[2];
+        initialized = TRUE;
+	drag = XtCreateManagedWidget("dragcard", cardsWidgetClass, parent, NULL, 0);
+	XtSetArg(arg[0], XtNinternalBorderWidth, 0);
+        XtSetArg(arg[1], XtNwantForward, False);
+	XtSetValues(drag, arg, 2);
+        XtAddCallback (drag, XtNinputCallback, InputCallback, &drag);
+	dragParent = parent;
+	XtSetMappedWhenManaged(drag, FALSE);
+    }
+}
+
+static void
+Drag (Widget child, XEvent *event)
+{
+    Dimension	width, height;
+    Arg		arg[2];
+
+    XtSetArg(arg[0], XtNwidth, &width);
+    XtSetArg(arg[1], XtNheight, &height);
+    XtGetValues(drag, arg, 2);
+
+    Position	x = event->xmotion.x - width / 2;
+    Position	y = event->xmotion.y - height / 2;
+    XkwTranslateCoordsPosition(dragParent, child, &x, &y);
+
+    XtWidgetGeometry request = {
+	.x = x,
+	.y = y,
+	.stack_mode = Above,
+	.request_mode = CWX | CWY | CWStackMode
+    };
+
+    XtMakeGeometryRequest(drag, &request, NULL);
+}
+
+void
+CardDrag(HandInputPtr input)
+{
+    switch (input->action) {
+    case HandActionStart:
+        start_x = input->event.xbutton.x;
+        start_y = input->event.xbutton.y;
+        XkwTranslateCoordsPosition(dragParent, input->w, &start_x, &start_y);
+	break;
+    case HandActionDrag:
+	if (!dragging) {
+            /* Filter out drags that don't move far */
+
+            Position x = input->event.xmotion.x;
+            Position y = input->event.xmotion.y;
+            XkwTranslateCoordsPosition(dragParent, input->w, &x, &y);
+            if ((x - start_x) * (x - start_x) + (y - start_y) * (y - start_y) < 100)
+                break;
+
+            CardsCardRec *dragCard = input->start.private;
+            if (dragCard && dragCard->suit != CardsEmpty && dragCard->suit != CardsNone) {
+                dragData = CardsAddCard(drag, dragCard, 0, 0);
+                dragging = TRUE;
+                Drag(input->w, &input->event);
+                XtMapWidget(drag);
+            }
+	} else {
+	    Drag(input->w, &input->event);
+	}
+	break;
+    case HandActionStop:
+        if (dragging) {
+            dragging = FALSE;
+            XtUnmapWidget(drag);
+            CardsRemoveCard(drag, dragData);
+        }
+        break;
+    case HandActionExpand:
+        break;
+    }
 }

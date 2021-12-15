@@ -73,11 +73,22 @@ static XtResource resources[] = {
      offset(col_insert), XtRImmediate, (XtPointer) False},
     {XtNimmediateUpdate, XtCImmediateUpdate, XtRBoolean, sizeof (Boolean),
      offset(immediate_update), XtRImmediate, (XtPointer) True},
+    {XtNwantForward, XtCWantForward, XtRBoolean, sizeof(Boolean),
+     offset(want_forward), XtRImmediate, (XtPointer) True},
 };
 
 #undef offset
 
-static char defaultTranslations[] =  "<BtnDown>: select()";
+static char defaultTranslations[] =
+    "Shift<BtnDown>: expand()\n"
+    "Shift<BtnUp>:\n"
+    "<Btn4Down>: zoomout()\n"
+    "<Btn4Up>:\n"
+    "<Btn5Down>: zoomin()\n"
+    "<Btn5Up>:\n"
+    "<BtnDown>: start()\n"
+    "<BtnMotion>: drag()\n"
+    "<BtnUp>: stop()";
 
 #define SuperClass  ((KSimpleWidgetClass)&ksimpleClassRec)
 
@@ -346,28 +357,10 @@ Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 static void
 Realize (Widget widget, XtValueMask *value_mask, XSetWindowAttributes *attributes)
 {
-    unsigned int    event_mask = 0;
-#define MAX_BUT	256
-    unsigned char   mapping[MAX_BUT];
-    int	    i, max;
-
     *value_mask |= CWBitGravity;
     attributes->bit_gravity = NorthWestGravity;
 
     (*SuperClass->core_class.realize)(widget, value_mask, attributes);
-    if (*value_mask & CWEventMask)
-	event_mask = attributes->event_mask;
-    event_mask &= PointerGrabMask;
-    if (event_mask & ButtonPressMask)
-    {
-	max = XGetPointerMapping (XtDisplay (widget), mapping, MAX_BUT);
-	for (i = 0; i < max; i++)
-	{
-	    if (mapping[i] != 0)
-		XtGrabButton (widget, i, AnyModifier, True, event_mask,
-			      GrabModeAsync, GrabModeAsync, None, None);
-	}
-    }
 }
 
 static void
@@ -434,7 +427,12 @@ static CardPtr XYToCard (HandWidget w, int x, int y)
     return NULL;
 }
 
-static void ActionSelect (Widget gw, XEvent *event, String *params, Cardinal *num_params)
+/* Start location information */
+static HandLocation    start_location;     /* where the drag started */
+
+static void
+DoInputCallback(Widget gw, HandAction action,
+		XEvent *event, String *params, Cardinal *num_params)
 {
     HandWidget	    w = (HandWidget) gw;
     CardPtr	    c;
@@ -442,60 +440,82 @@ static void ActionSelect (Widget gw, XEvent *event, String *params, Cardinal *nu
     int		    row, col;
     XtPointer	    private;
 
-    if (event->type == KeyPress && *num_params > 1)
+    c = XYToCard (w, event->xbutton.x, event->xbutton.y);
+    if (c)
     {
-	if (w->hand.row_major)
-	{
-	    row = atoi (params[1]);
-	    col = w->hand.num_cols - 1;
-	}
-	else
-	{
-	    col = atoi (params[1]);
-	    row = w->hand.num_rows - 1;
-	}
-	private = 0;
+	row = c->row;
+	col = c->col;
+	private = c->private;
     }
     else
     {
-	c = XYToCard (w, event->xbutton.x, event->xbutton.y);
-	if (c)
+	if (w->hand.row_major)
 	{
-	    row = c->row;
-	    col = c->col;
-	    private = c->private;
+	    row = RowFromY (w, event->xbutton.y, -1);
+	    col = ColFromX (w, event->xbutton.x, row);
 	}
 	else
 	{
-	    if (w->hand.row_major)
-	    {
-		row = RowFromY (w, event->xbutton.y, -1);
-		col = ColFromX (w, event->xbutton.x, row);
-	    }
-	    else
-	    {
-		col = ColFromX (w, event->xbutton.x, -1);
-		row = RowFromY (w, event->xbutton.y, col);
-	    }
-	    if (row < 0)
-		row = 0;
-	    else if (w->hand.row_major && w->hand.num_rows <= row)
-		row = w->hand.num_rows - 1;
-	    if (col < 0)
-		col = 0;
-	    else if (!w->hand.row_major && w->hand.num_cols <= col)
-		col = w->hand.num_cols - 1;
-	    private = 0;
+	    col = ColFromX (w, event->xbutton.x, -1);
+	    row = RowFromY (w, event->xbutton.y, col);
 	}
+	if (row < 0)
+	    row = 0;
+	else if (w->hand.row_major && w->hand.num_rows <= row)
+	    row = w->hand.num_rows - 1;
+	if (col < 0)
+	    col = 0;
+	else if (!w->hand.row_major && w->hand.num_cols <= col)
+	    col = w->hand.num_cols - 1;
+	private = 0;
     }
     input.w = gw;
+    if (action == HandActionStart || action == HandActionExpand) {
+        start_location.w = gw;
+        start_location.x = event->xbutton.x;
+        start_location.y = event->xbutton.y;
+	start_location.row = row;
+	start_location.col = col;
+        start_location.private = private;
+    }
+    input.start = start_location;
     input.row = row;
     input.col = col;
     input.private = private;
+    input.action = action;
     input.params = params;
     input.event = *event;
     input.num_params = num_params;
     XtCallCallbackList ((Widget) w, w->hand.input_callback, (XtPointer) &input);
+}
+
+static void StartAction (Widget gw, XEvent *event, String *params, Cardinal *num_params)
+{
+    DoInputCallback(gw, HandActionStart, event, params, num_params);
+}
+
+static void DragAction (Widget gw, XEvent *event, String *params, Cardinal *num_params)
+{
+    DoInputCallback(gw, HandActionDrag, event, params, num_params);
+}
+
+static void StopAction (Widget gw, XEvent *event, String *params, Cardinal *num_params)
+{
+    if (!XkwForwardEvent(NULL, gw, event))
+	DoInputCallback(gw, HandActionStop, event, params, num_params);
+}
+
+static void ZoomInAction (Widget gw, XEvent *event, String *params, Cardinal *num_params)
+{
+}
+
+static void ZoomOutAction (Widget gw, XEvent *event, String *params, Cardinal *num_params)
+{
+}
+
+static void ExpandAction (Widget gw, XEvent *event, String *params, Cardinal *num_params)
+{
+    DoInputCallback(gw, HandActionExpand, event, params, num_params);
 }
 
 static void
@@ -898,7 +918,12 @@ HandRemoveAllCards (Widget gw)
 }
 
 static XtActionsRec actions[] = {
-    { "select", ActionSelect },		    /* select card */
+    { "start", StartAction },		    /* select card */
+    { "drag", DragAction },
+    { "stop", StopAction },
+    { "zoomin", ZoomInAction },
+    { "zoomout", ZoomOutAction },
+    { "expand", ExpandAction },
 };
 
 HandClassRec handClassRec = {

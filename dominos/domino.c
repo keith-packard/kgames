@@ -276,7 +276,7 @@ Score (void)
 	scores[i] = 0;
 	for (domino = player[i]; domino; domino = domino->peer[LinkPeer])
 	    scores[i] += domino->pips[0] + domino->pips[1];
-	if (scores[i] < best)
+	if (scores[i] < best || (scores[i] == 0 && player[i] == NULL))
 	{
 	    best = scores[i];
 	    best_i = i;
