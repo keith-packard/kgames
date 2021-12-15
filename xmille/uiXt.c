@@ -553,6 +553,9 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     HandInputPtr    input = (HandInputPtr) data;
     String	    type;
 
+    if (input->action != HandActionStart)
+        return;
+
     if (w == human_hand) {
 	Movetype = M_REASONABLE;
 	if (*input->num_params) {
@@ -789,6 +792,7 @@ init_ui (int *argc, char **argv)
 				prompted_dialog, NULL, ZERO);
     prompted_value = XtCreateManagedWidget ("promptedValue", ktextLineWidgetClass,
 				prompted_dialog, NULL, ZERO);
+    XtAddCallback(prompted_value, XtNcallback, YesFunc, NULL);
     XkwDialogAddButton (prompted_dialog, "promptedOk", YesFunc, NULL);
     XkwDialogAddButton (prompted_dialog, "promptedCancel", NoFunc, NULL);
     XtRealizeWidget (prompted_shell);

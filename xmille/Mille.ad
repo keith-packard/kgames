@@ -110,10 +110,10 @@ horizontal { \
 *Hand.Background: light gray
 *Hand.internalBorderWidth: 3
 *Hand.translations: #override \
-	<Btn1Down>:	select(reasonable)\n\
-	<Btn2Down>:	select(play)\n\
-	<Btn3Down>:	select(discard)\n
-	Shift<BtnDown>:	select(discard)
+	<Btn1Down>:	start(reasonable)\n\
+	<Btn2Down>:	start(play)\n\
+	<Btn3Down>:	start(discard)\n
+	Shift<BtnDown>:	start(discard)
 
 *Thermo.borderWidth: 1
 *Thermo.mercuryColor: blue
