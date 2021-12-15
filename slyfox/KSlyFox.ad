@@ -36,44 +36,6 @@
 *row4.numRows: 2
 *row4.overlap: vertical
 
-*deck.translations: #override \
-	<BtnDown>:	select()
-
-*draw.translations: #override \
-	<BtnDown>:	select(source)
-
-*row1.translations: #override \
-	Shift<BtnDown>:	select(noop)\n\
-	Shift<BtnUp>:	select(expand)\n\
-	:<Btn1Down>:	select(source)\n\
-	:<BtnUp>:	select(dest)
-
-*row2.translations: #override \
-	Shift<BtnDown>:	select(noop)\n\
-	Shift<BtnUp>:	select(expand)\n\
-	:<Btn1Down>:	select(source)\n\
-	:<BtnUp>:	select(dest)
-
-*row3.translations: #override \
-	Shift<BtnDown>:	select(noop)\n\
-	Shift<BtnUp>:	select(expand)\n\
-	:<Btn1Down>:	select(source)\n\
-	:<BtnUp>:	select(dest)
-
-*row4.translations: #override \
-	Shift<BtnDown>:	select(noop)\n\
-	Shift<BtnUp>:	select(expand)\n\
-	:<Btn1Down>:	select(source)\n\
-	:<BtnUp>:	select(dest)
-
-*aces.translations: #override \
-	<BtnDown>:	select(source)\n\
-	<BtnUp>:	select(dest)
-
-*kings.translations: #override \
-	<BtnDown>:	select(source)\n\
-	<BtnUp>:	select(dest)
-
 *message.justify: left
 *message.label: Sly Fox, Version 0.9
 
