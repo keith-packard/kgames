@@ -19,19 +19,6 @@
 *stacks.rowsHint: True
 *stacks.overlap: vertical
 
-*deck.translations: #override \
-	<BtnDown>:	select()
-
-*draw.translations: #override \
-	<BtnDown>:	select(source)\n\
-	<BtnUp>:	select(dest)
-
-*stacks.translations: #override \
-	Shift<BtnDown>:	select(noop)\n\
-	Shift<BtnUp>:	select(expand)\n\
-	:<Btn1Down>:	select(source)\n\
-	:<BtnUp>:	select(dest)
-
 *message.justify: left
 *message.label: Keith's Forty Thieves, Version 1.0
 *menuBar.layout: vertical { \
