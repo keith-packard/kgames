@@ -62,6 +62,7 @@ Widget	    pileAll;
 #define NUM_STACKS  7
 #define NUM_PILES   4
 #define NUM_CARDS   52
+#define MAX_SCORE   340
 
 CardStackRec	deckStack;
 CardStackRec	stackStacks[NUM_STACKS];
@@ -213,8 +214,8 @@ Undo (void)
 static void
 Score (void)
 {
-    Message (message, "Current position scores %d out of 340.",
-	     ComputeScore ());
+    Message (message, "Current position scores %d out of %d.",
+	     ComputeScore (), MAX_SCORE);
 }
 
 static void
@@ -412,6 +413,8 @@ Play (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 	}
     }
     CardMove (from_stack, from_card, to_stack, True);
+    if (ComputeScore() == MAX_SCORE)
+        Message(message, "We have a winner!");
 }
 
 static Boolean
@@ -573,7 +576,6 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     CardPtr	    card = NULL;
 
     (void) closure;
-    Message (message, "");
     stack = WidgetToStack(w, input->col);
     startStack = WidgetToStack(input->start.w, input->start.col);
 
@@ -582,6 +584,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
 
     switch (input->action) {
     case HandActionStart:
+        Message (message, "");
 	break;
     case HandActionDrag:
 	break;
