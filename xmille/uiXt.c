@@ -615,6 +615,7 @@ DoRestore (Widget w, XtPointer closure, XtPointer data)
     (void) closure;
     (void) data;
     rest();
+    prboard();
 }
 
 static void
