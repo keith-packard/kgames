@@ -278,6 +278,8 @@ UIInitBoard (void)
 {
     resetPegs (compScore, compPegs);
     resetPegs (playScore, playPegs);
+    Message(compName, "My score");
+    Message(playName, "Your score");
 }
 
 void
@@ -475,18 +477,24 @@ void
 UIPrintPeg (int score, BOOLEAN on, int who)
 {
     Widget	w;
+    Widget      l;
     int		*pegs;
     int		i;
+    const char  *label;
 
     if (who == COMPUTER)
     {
 	w = compScore;
+        l = compName;
 	pegs = compPegs;
+        label = "My";
     }
     else
     {
 	w = playScore;
+        l = playName;
 	pegs = playPegs;
+        label = "Your";
     }
 
     if (score <= 0)
@@ -509,6 +517,7 @@ UIPrintPeg (int score, BOOLEAN on, int who)
     }
     pegs[i] = score;
     XkwCribBoardSetPeg (w, i, score - 1);
+    Message(l, "%s score: %d", label, score);
 }
 
 static int  msgLine, msgCol;

@@ -51,6 +51,7 @@ typedef struct {
     /* resources */
     XRenderColor    pegColor;
     XRenderColor    holeColor;
+    XRenderColor    trackColor;
     int		    numPegs;
     int		    numCols;
     int		    numRows;
