@@ -693,3 +693,21 @@ UIGetPlayerCard (CARD *hand, int n, char *prompt)
 	msg ("Sorry, I missed that");
     }
 }
+
+static BOOLEAN timer_done;
+
+static void
+timer_proc(XtPointer client_data, XtIntervalId *id)
+{
+    timer_done = TRUE;
+}
+
+void
+UIPause(void)
+{
+    timer_done = FALSE;
+    XtAddTimeOut(1000, timer_proc, NULL);
+    while (!timer_done) {
+        XtProcessEvent(XtIMAll);
+    }
+}
