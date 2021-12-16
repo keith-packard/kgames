@@ -47,6 +47,8 @@ static XtResource resources[] = {
 #define HOLE_SIZE	3.0
 #define GROUP_SPACE	4.0
 #define PEG_SPACE	10.0
+#define TRACK_WIDTH     1.0
+#define BORDER_WIDTH    12.0
 
 static inline double
 scaleSize(CribBoardWidget w, double size)
@@ -70,6 +72,12 @@ static inline double
 holeSize(CribBoardWidget w)
 {
     return scaleSize(w, HOLE_SIZE);
+}
+
+static inline double
+trackWidth(CribBoardWidget w)
+{
+    return scaleSize(w, TRACK_WIDTH);
 }
 
 static inline double
@@ -101,7 +109,7 @@ ColPos(CribBoardWidget w, int col)
 static inline double
 borderWidth(CribBoardWidget w)
 {
-    return pegSize(w) * 2;
+    return scaleSize(w, BORDER_WIDTH);
 }
 
 static void
@@ -175,6 +183,9 @@ drawPeg (CribBoardWidget w, cairo_t *cr, int value)
 
     if (value == CribBoardUnset)
 	return;
+    if (value > w->cribBoard.numCols * w->cribBoard.numRows)
+        value = w->cribBoard.numCols * w->cribBoard.numRows;
+
     row = value / w->cribBoard.numCols;
     col = value % w->cribBoard.numCols;
     if (row & 1)
@@ -198,8 +209,8 @@ static void
 drawHole (CribBoardWidget w, cairo_t *cr, int value)
 {
     int	    row, col;
-    int	    x;
-    int	    y;
+    double  x;
+    double  y;
 
     row = value / w->cribBoard.numCols;
     col = value % w->cribBoard.numCols;
@@ -210,6 +221,38 @@ drawHole (CribBoardWidget w, cairo_t *cr, int value)
     cairo_translate(cr, x, y);
     cairo_arc(cr, 0, 0, holeSize(w), 0, 2 * M_PI);
     cairo_fill(cr);
+    cairo_restore(cr);
+}
+
+static void
+drawTrack (CribBoardWidget w, cairo_t *cr, XRenderColor *color)
+{
+    int row;
+
+    cairo_save(cr);
+    XkwSetSource(cr, color);
+    cairo_set_line_width(cr, trackWidth(w));
+
+    for (row = 0; row < w->cribBoard.numRows; row += 2) {
+        double left_x = ColPos (w, 0);
+        double right_x = ColPos (w, w->cribBoard.numCols - 1);
+        double top_y = RowPos (w, row);
+        double bottom_y = RowPos (w, row + 1);
+
+        if (row == 0)
+            cairo_move_to(cr, left_x, top_y);
+
+        cairo_line_to(cr, right_x + pegSize(w), top_y);
+        cairo_arc(cr, right_x + pegSize(w), (top_y + bottom_y) / 2, (bottom_y - top_y) / 2, -M_PI/2.0, M_PI/2.0);
+
+        if (row < w->cribBoard.numRows - 2) {
+            cairo_line_to(cr, left_x - pegSize(w), bottom_y);
+
+            cairo_arc_negative(cr, left_x - pegSize(w), (bottom_y + RowPos(w, row+2)) / 2, (bottom_y - top_y) / 2, -M_PI/2.0, M_PI/2.0);
+        } else
+            cairo_line_to(cr, left_x, bottom_y);
+    }
+    cairo_stroke(cr);
     cairo_restore(cr);
 }
 
@@ -234,17 +277,10 @@ Redisplay (Widget gw, XEvent *event, Region region)
 
     cairo_save(cr);
     cairo_scale(cr, width_ratio, width_ratio);
-
-    cairo_set_line_width(cr, holeSize(w)/4);
-    cairo_rectangle(cr, bw / 2, bw / 2,
-		    natural_width - bw,
-		    natural_height - bw);
-    XkwSetSource(cr, &w->cribBoard.pegColor);
-    cairo_stroke(cr);
-
     cairo_translate(cr, bw, bw);
 
     (void) event;
+    drawTrack (w, cr, &w->cribBoard.pegColor);
     for (v = 0; v < w->cribBoard.numRows * w->cribBoard.numCols; v++)
 	drawHole (w, cr, v);
     for (v = 0; v < w->cribBoard.numPegs; v++)
