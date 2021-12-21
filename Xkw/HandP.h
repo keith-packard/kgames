@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include "Hand.h"
 #include <Xkw/KSimpleP.h>
+#include <Xkw/list.h>
 
 /***********************************************************************
  *
@@ -64,7 +65,7 @@ extern HandClassRec handClassRec;
 typedef enum { ClipUnclipped, ClipPartclipped, ClipAllclipped } HandClip;
 
 typedef struct _Card {
-    struct _Card    *next, *prev;
+    struct xkw_list list;
     XtPointer	    private;
     int		    x, y;
     int		    row, col;
@@ -99,7 +100,7 @@ typedef struct {
     Boolean         want_forward;       /* does this widget want event forwarding */
 
     /* List of cards could be changed by resource, but easier by func */
-    CardPtr	    topCard, bottomCard;/* list of cards */
+    struct xkw_list cards;
     Region	    damage;		/* Damage caused by card changes */
     Dimension	    real_col_offset;	/* when widget gets reshaped, */
     Dimension	    real_row_offset;	/*  the offset values are adjusted */

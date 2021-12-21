@@ -161,7 +161,7 @@ ColsInRow (HandWidget w, int row)
 {
     int	    maxCol = -1;
     CardPtr c;
-    for (c = w->hand.bottomCard; c; c = c->prev)
+    xkw_foreach_rev(c, &w->hand.cards, list)
 	if (c->row == row && c->col > maxCol)
 	    maxCol = c->col;
     return maxCol;
@@ -172,7 +172,7 @@ RowsInCol (HandWidget w, int col)
 {
     int	maxRow = -1;
     CardPtr c;
-    for (c = w->hand.bottomCard; c; c = c->prev)
+    xkw_foreach_rev(c, &w->hand.cards, list)
 	if (c->col == col && c->row > maxRow)
 	    maxRow = c->row;
     return maxRow;
@@ -198,7 +198,7 @@ XPos (HandWidget w, int row, int col)
 	lastCol = 0;
 	offset = 0;
 	numDefault = 0;
-	for (c = w->hand.bottomCard; c; c = c->prev)
+        xkw_foreach_rev(c, &w->hand.cards, list)
 	{
 	    if (c->row == row && c->col >= lastCol && c->col < col)
 	    {
@@ -273,7 +273,7 @@ YPos (HandWidget w, int row, int col)
 	lastRow = 0;
 	offset = 0;
 	numDefault = 0;
-	for (c = w->hand.bottomCard; c; c = c->prev)
+        xkw_foreach_rev(c, &w->hand.cards, list)
 	{
 	    if (c->col == col && c->row >= lastRow && c->row < row)
 	    {
@@ -339,9 +339,8 @@ Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
     getHandSize (req, &new->core.width, &new->core.height);
     new->hand.real_row_offset = new->hand.row_offset;
     new->hand.real_col_offset = new->hand.col_offset;
-    new->hand.topCard = NULL;
-    new->hand.bottomCard = NULL;
     new->hand.damage = NULL;
+    xkw_list_init(&new->hand.cards);
 }
 
 #define MotionMask ( \
@@ -367,12 +366,10 @@ static void
 Destroy (Widget gw)
 {
     HandWidget	w = (HandWidget) gw;
-    CardPtr	c, n;
+    CardPtr	c;
 
-    for (c = w->hand.topCard; c; c = n) {
-	n = c->next;
+    xkw_foreach(c, &w->hand.cards, list)
 	Dispose (c);
-    }
 }
 
 static XtGeometryResult
@@ -420,7 +417,7 @@ static CardPtr XYToCard (HandWidget w, int x, int y)
 {
     CardPtr c;
 
-    for (c = w->hand.topCard; c; c = c->next) {
+    xkw_foreach(c, &w->hand.cards, list) {
 	if (XYInCard (w, c, x, y))
 	    return c;
     }
@@ -581,7 +578,7 @@ static void
 UpdateCards (HandWidget w)
 {
     CardPtr c;
-    for (c = w->hand.bottomCard; c; c = c->prev) {
+    xkw_foreach_rev(c, &w->hand.cards, list) {
 	int x = XPos(w, c->row, c->col);
 	int y = YPos(w, c->row, c->col);
 
@@ -607,7 +604,7 @@ Paint (HandWidget w, Region region)
 	display.w = (Widget) w;
 	display.cr = cr;
 	/* redisplay cards */
-	for (c = w->hand.bottomCard; c; c = c->prev) {
+        xkw_foreach_rev(c, &w->hand.cards, list) {
 	    if (CardInRegion(w, c, region)) {
 		cairo_save(cr);
 		cairo_translate(cr, c->x, c->y);
@@ -698,8 +695,8 @@ HandAddCard (Widget	gw,
     if (row == InsertRow)
     {
 	maxPos = -1;
-	for (c = w->hand.topCard; c; c = c->next)
-	{
+        xkw_foreach(c, &w->hand.cards, list)
+        {
 	    if (w->hand.row_major)
 	    {
 		if (c->row > maxPos)
@@ -716,7 +713,7 @@ HandAddCard (Widget	gw,
     if (col == InsertCol)
     {
 	maxPos = -1;
-	for (c = w->hand.topCard; c; c = c->next)
+        xkw_foreach(c, &w->hand.cards, list)
 	{
 	    if (!w->hand.row_major)
 	    {
@@ -732,8 +729,8 @@ HandAddCard (Widget	gw,
 	col = maxPos + 1;
     }
     /* find the card below this one */
-    sib = NULL;
-    for (c = w->hand.bottomCard; c; c = c->prev)
+    sib = (CardPtr) &w->hand.cards;
+    xkw_foreach_rev(c, &w->hand.cards, list)
     {
 	if (w->hand.row_major)
 	{
@@ -757,34 +754,19 @@ HandAddCard (Widget	gw,
     c->offset = offset;
     c->shown = False;
     /* insert the new card on the list */
-    c->next = sib;	/* c is above sib */
-
-    if (sib)
-	c->prev = sib->prev;
-    else
-	c->prev = w->hand.bottomCard;
-
-    if (c->next)
-	c->next->prev = c;
-    else
-	w->hand.bottomCard = c;
-
-    if (c->prev)
-	c->prev->next = c;
-    else
-	w->hand.topCard = c;
+    xkw_list_append(&c->list, &sib->list);
 
     /* adjust higher cards rows */
     if (w->hand.row_insert)
     {
-	for (sib = c->prev; sib; sib = sib->prev)
+        xkw_foreach_rev(sib, &w->hand.cards, list)
 	    if (sib->col == c->col && sib->row == row)
 		sib->row = ++row;
     }
     /* adjust higher cards columns */
     if (w->hand.col_insert)
     {
-	for (sib = c->prev; sib; sib = sib->prev)
+        xkw_foreach_rev(sib, &w->hand.cards, list)
 	    if (sib->row == c->row && sib->col == col)
 		sib->col = ++col;
     }
@@ -801,7 +783,7 @@ HandRemoveCard (Widget gw, XtPointer card)
     CardPtr	    c, sib;
     int		    row, col;
 
-    for (c = w->hand.topCard; c; c = c->next)
+    xkw_foreach(c, &w->hand.cards, list)
 	if (c == (CardPtr) card)
 	    break;
     if (!c)
@@ -809,25 +791,18 @@ HandRemoveCard (Widget gw, XtPointer card)
     if (w->hand.row_insert)
     {
 	row = c->row;
-	for (sib = c->prev; sib; sib = sib->prev)
+        xkw_foreach_rev(sib, &w->hand.cards, list)
 	    if (sib->col == c->col && sib->row == row + 1)
 		sib->row = row++;
     }
     if (w->hand.col_insert)
     {
 	col = c->col;
-	for (sib = c->prev; sib; sib = sib->prev)
+        xkw_foreach_rev(sib, &w->hand.cards, list)
 	    if (sib->row == c->row && sib->col == col + 1)
 		sib->col = col++;
     }
-    if (c->prev)
-	c->prev->next = c->next;
-    else
-	w->hand.topCard = c->next;
-    if (c->next)
-	c->next->prev = c->prev;
-    else
-	w->hand.bottomCard = c->prev;
+    xkw_list_del(&c->list);
     DamageCard(w, c);
     Dispose (c);
     if (XtIsRealized (gw) && w->hand.immediate_update)
@@ -840,7 +815,8 @@ HandReplaceCard (Widget gw, XtPointer card, XtPointer private, int offset)
 {
     HandWidget	    w = (HandWidget) gw;
     CardPtr c;
-    for (c = w->hand.topCard; c; c = c->next)
+
+    xkw_foreach(c, &w->hand.cards, list)
 	if (c == (CardPtr) card)
 	    break;
     if (!c)
@@ -870,7 +846,7 @@ HandRectangleForCard (Widget gw, XtPointer card, XRectangle *r)
     HandWidget	    w = (HandWidget) gw;
     CardPtr	c;
 
-    for (c = w->hand.topCard; c; c = c->next)
+    xkw_foreach(c, &w->hand.cards, list)
 	if (c == (CardPtr) card)
 	    break;
     if (!c)
@@ -905,14 +881,11 @@ void
 HandRemoveAllCards (Widget gw)
 {
     HandWidget	    w = (HandWidget) gw;
-    CardPtr	    c, n;
+    CardPtr	    c;
 
-    for (c = w->hand.topCard; c; c = n) {
-	n = c->next;
+    xkw_foreach(c, &w->hand.cards, list)
 	free ((char *) c);
-    }
-    w->hand.topCard = 0;
-    w->hand.bottomCard = 0;
+    xkw_list_init(&w->hand.cards);
     if (XtIsRealized (gw))
 	Redisplay(gw, NULL, NULL);
 }

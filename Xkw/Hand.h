@@ -77,6 +77,20 @@ typedef struct _HandInput {
 void
 HandRectangleForPos (Widget gw, int row, int col, XRectangle *r);
 
+typedef struct _HandBasePos {
+    Widget      widget;
+    int         x, y;
+} HandBasePosRec, *HandBasePosPtr;
+
+typedef struct _HandCard {
+    struct _HandCard    *next, *prev;
+    HandBasePosRec      pos, prevPos;
+    Boolean             dirty;
+    int                 row, col;
+    int                 offset;
+    Boolean             shown;
+} HandCardRec, *HandCardPtr;
+
 XtPointer
 HandAddCard (Widget	gw,
 	     XtPointer	private,
