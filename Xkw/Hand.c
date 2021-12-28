@@ -759,14 +759,14 @@ HandAddCard (Widget	gw,
     /* adjust higher cards rows */
     if (w->hand.row_insert)
     {
-        xkw_foreach_rev(sib, &w->hand.cards, list)
+        xkw_foreach_startat_rev(sib, xkw_prev(c, list), &w->hand.cards, list)
 	    if (sib->col == c->col && sib->row == row)
 		sib->row = ++row;
     }
     /* adjust higher cards columns */
     if (w->hand.col_insert)
     {
-        xkw_foreach_rev(sib, &w->hand.cards, list)
+        xkw_foreach_startat_rev(sib, xkw_prev(c, list), &w->hand.cards, list)
 	    if (sib->row == c->row && sib->col == col)
 		sib->col = ++col;
     }
@@ -791,14 +791,14 @@ HandRemoveCard (Widget gw, XtPointer card)
     if (w->hand.row_insert)
     {
 	row = c->row;
-        xkw_foreach_rev(sib, &w->hand.cards, list)
+        xkw_foreach_startat_rev(sib, xkw_prev(c, list), &w->hand.cards, list)
 	    if (sib->col == c->col && sib->row == row + 1)
 		sib->row = row++;
     }
     if (w->hand.col_insert)
     {
 	col = c->col;
-        xkw_foreach_rev(sib, &w->hand.cards, list)
+        xkw_foreach_startat_rev(sib, xkw_prev(c, list), &w->hand.cards, list)
 	    if (sib->row == c->row && sib->col == col + 1)
 		sib->col = col++;
     }
