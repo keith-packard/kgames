@@ -726,9 +726,8 @@ CardDrag(HandInputPtr input)
             if ((x - start_x) * (x - start_x) + (y - start_y) * (y - start_y) < 100)
                 break;
 
-            CardsCardRec *dragCard = input->start.private;
-            if (dragCard && dragCard->suit != CardsEmpty && dragCard->suit != CardsNone) {
-                dragData = CardsAddCard(drag, dragCard, 0, 0);
+            if (!HandCardIsEmpty(input->start.w, input->start.private)) {
+                dragData = CardsAddCard(drag, input->start.private, 0, 0);
                 dragging = TRUE;
                 Drag(input->w, &input->event);
                 XtMapWidget(drag);

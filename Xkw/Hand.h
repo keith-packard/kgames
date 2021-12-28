@@ -110,6 +110,9 @@ HandRemoveAllCards (Widget gw);
 void
 HandUpdateDisplay (Widget gw);
 
+Boolean
+HandCardIsEmpty (Widget gw, XtPointer private);
+
 #define InsertRow -1
 #define InsertCol -1
 #define XkwHandDefaultOffset	-32767

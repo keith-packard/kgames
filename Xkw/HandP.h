@@ -30,8 +30,10 @@
  * New fields for the Hand widget class record
  */
 
+
+
 typedef struct _HandClass {
-	int		makes_compiler_happy;  /* not used */
+    Boolean     (*card_is_empty)(Widget gw, XtPointer private);
 } HandClassPart;
 
 /*

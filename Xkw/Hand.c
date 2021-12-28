@@ -890,6 +890,20 @@ HandRemoveAllCards (Widget gw)
 	Redisplay(gw, NULL, NULL);
 }
 
+static Boolean
+HandDefaultCardIsEmpty (Widget gw, XtPointer private)
+{
+    return FALSE;
+}
+
+Boolean
+HandCardIsEmpty (Widget gw, XtPointer private)
+{
+    HandClassRec *class = (HandClassRec *) (gw->core.widget_class);
+
+    return (*class->hand_class.card_is_empty)(gw, private);
+}
+
 static XtActionsRec actions[] = {
     { "start", StartAction },		    /* select card */
     { "drag", DragAction },
@@ -943,7 +957,7 @@ HandClassRec handClassRec = {
     /* empty			*/	0
   },
   { /* hand fields */
-    /* ignore                   */	0
+      .card_is_empty = HandDefaultCardIsEmpty,
   }
 };
 
