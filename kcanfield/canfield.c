@@ -79,8 +79,6 @@ CardRec		rawcards[NUM_CARDS];
 
 #define INIT_STOCK  13
 
-int		dealNumber;
-
 typedef struct _canfieldResources {
     int		animationSpeed;
 } CanfieldResources, *CanfieldResourcesPtr;
@@ -134,7 +132,6 @@ FirstDeal (void)
 	CardMove (&deck, deck.last, &tableau[col], False);
 	CardTurn (tableau[col].last, CardFaceUp, False);
     }
-    dealNumber = 0;
 }
 
 static void
@@ -234,11 +231,13 @@ Undo (void)
     DisplayStacks ();
 }
 
+#define MAX_SCORE       260
+
 static void
 Score (void)
 {
-    Message (message, "Current position scores %d out of 260.",
-	     ComputeScore ());
+    Message (message, "Current position scores %d out of %d.",
+	     ComputeScore (), MAX_SCORE);
 }
 
 static void
@@ -495,6 +494,8 @@ Play (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
         if (stock.last)
             CardMove(&stock, stock.last, from_stack, True);
     }
+    if (ComputeScore() == MAX_SCORE)
+        Message(message, "We have a winner!");
 }
 
 static Boolean
@@ -694,6 +695,18 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
                     Deal ();
 		CardNextHistory ();
 		DisplayStacks ();
+            } else if (stack == &talon) {
+                Deal ();
+		CardNextHistory ();
+		DisplayStacks ();
+            }
+        } else if (stack == &deck) {
+            if (startStack == &talon) {
+                if (!stack->last) {
+                    ResetTalon();
+                    CardNextHistory ();
+                    DisplayStacks ();
+                }
             }
         } else {
 	    if (startStack != stack)

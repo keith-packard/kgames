@@ -285,11 +285,13 @@ Undo (void)
     DisplayStacks ();
 }
 
+#define MAX_SCORE 728
+
 static void
 Score (void)
 {
-    Message (message, "Current position scores %d out of 728.",
-	     ComputeScore ());
+    Message (message, "Current position scores %d out of %d.",
+	     ComputeScore (), MAX_SCORE);
 }
 
 static void
@@ -370,6 +372,8 @@ Play (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 	}
     }
     CardMove (from_stack, from_card, to_stack, True);
+    if (ComputeScore() == MAX_SCORE)
+        Message(message, "We have a winner!");
 }
 
 static Boolean
