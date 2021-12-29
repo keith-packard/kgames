@@ -107,13 +107,8 @@ horizontal { \
 *message.Background: light gray
 *message.borderWidth: 0
 
-*Hand.Background: light gray
-*Hand.internalBorderWidth: 3
-*Hand.translations: #override \
-	<Btn1Down>:	start(reasonable)\n\
-	<Btn2Down>:	start(play)\n\
-	<Btn3Down>:	start(discard)\n
-	Shift<BtnDown>:	start(discard)
+*MilleCards.Background: light gray
+*MilleCards.internalBorderWidth: 3
 
 *Thermo.borderWidth: 1
 *Thermo.mercuryColor: blue
