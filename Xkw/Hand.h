@@ -61,11 +61,13 @@ typedef struct _HandLocation {
     Position	row, col;
     Position    x, y;
     XtPointer	private;
+    struct _HandCard *card;
 } HandLocation;
 
 typedef struct _HandInput {
     Widget	    w;
     Position	    row, col;
+    struct _HandCard *card;
     XtPointer       private;
     XEvent	    event;
     HandAction	    action;
@@ -81,15 +83,6 @@ typedef struct _HandBasePos {
     Widget      widget;
     int         x, y;
 } HandBasePosRec, *HandBasePosPtr;
-
-typedef struct _HandCard {
-    struct _HandCard    *next, *prev;
-    HandBasePosRec      pos, prevPos;
-    Boolean             dirty;
-    int                 row, col;
-    int                 offset;
-    Boolean             shown;
-} HandCardRec, *HandCardPtr;
 
 XtPointer
 HandAddCard (Widget	gw,
@@ -110,8 +103,17 @@ HandRemoveAllCards (Widget gw);
 void
 HandUpdateDisplay (Widget gw);
 
+void
+HandSetPreferredSize (Widget gw);
+
 Boolean
 HandCardIsEmpty (Widget gw, XtPointer private);
+
+void
+HandDragInit(Widget parent, WidgetClass class);
+
+void
+HandDrag(HandInputPtr input);
 
 #define InsertRow -1
 #define InsertCol -1

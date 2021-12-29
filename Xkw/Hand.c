@@ -329,6 +329,21 @@ RowFromY (HandWidget w, int y, int col)
 }
 
 static void
+preferredSize(HandWidget w, Dimension *width, Dimension *height)
+{
+    CardPtr c;
+    int max_x = 0, max_y = 0;
+    xkw_foreach_rev(c, &w->hand.cards, list) {
+        int x = XPos(w, c->row, c->col);
+        int y = YPos(w, c->row, c->col);
+        if (x > max_x) max_x = x;
+        if (y > max_y) max_y = y;
+    }
+    *width = max_x + w->hand.card_width;
+    *height = max_y + w->hand.card_height;
+}
+
+static void
 Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     HandWidget	req = (HandWidget) greq,
@@ -473,17 +488,21 @@ DoInputCallback(Widget gw, HandAction action,
         start_location.y = event->xbutton.y;
 	start_location.row = row;
 	start_location.col = col;
+        start_location.card = c;
         start_location.private = private;
     }
     input.start = start_location;
     input.row = row;
     input.col = col;
+    input.card = c;
     input.private = private;
     input.action = action;
     input.params = params;
     input.event = *event;
     input.num_params = num_params;
-    XtCallCallbackList ((Widget) w, w->hand.input_callback, (XtPointer) &input);
+    HandDrag(&input);
+    if (action == HandActionStop || action == HandActionExpand)
+        XtCallCallbackList ((Widget) w, w->hand.input_callback, (XtPointer) &input);
 }
 
 static void StartAction (Widget gw, XEvent *event, String *params, Cardinal *num_params)
@@ -605,7 +624,7 @@ Paint (HandWidget w, Region region)
 	display.cr = cr;
 	/* redisplay cards */
         xkw_foreach_rev(c, &w->hand.cards, list) {
-	    if (CardInRegion(w, c, region)) {
+	    if (!c->hidden && CardInRegion(w, c, region)) {
 		cairo_save(cr);
 		cairo_translate(cr, c->x, c->y);
 		display.private = c->private;
@@ -677,6 +696,22 @@ HandUpdateDisplay (Widget gw)
     UpdateCards (w);
     if (w->hand.damage)
 	Paint(w, w->hand.damage);
+}
+
+void
+HandSetPreferredSize (Widget gw)
+{
+    HandWidget w = (HandWidget) gw;
+    Dimension width, height;
+    Dimension curwidth = XtWidth(gw);
+    Dimension curheight = XtHeight(gw);
+
+    preferredSize(w, &width, &height);
+    if (width != curwidth || height != curheight) {
+	XtMakeResizeRequest (gw, width, height, &width, &height);
+	if (width != curwidth || height != curheight)
+	    Resize (gw);
+    }
 }
 
 /* Insert a card */
@@ -753,6 +788,7 @@ HandAddCard (Widget	gw,
     c->col = col;
     c->offset = offset;
     c->shown = False;
+    c->hidden = False;
     /* insert the new card on the list */
     xkw_list_append(&c->list, &sib->list);
 
@@ -888,6 +924,33 @@ HandRemoveAllCards (Widget gw)
     xkw_list_init(&w->hand.cards);
     if (XtIsRealized (gw))
 	Redisplay(gw, NULL, NULL);
+}
+
+void
+HandShowAllCards (Widget gw)
+{
+    HandWidget	    w = (HandWidget) gw;
+    CardPtr	    c;
+    Boolean         changed = FALSE;
+
+    xkw_foreach(c, &w->hand.cards, list)
+        if (c->hidden) {
+            c->hidden = FALSE;
+            changed = TRUE;
+            DamageCard(w, c);
+        }
+    if (changed && XtIsRealized (gw))
+    	HandUpdateDisplay (gw);
+}
+
+void
+HandHideCard (Widget gw, CardPtr c)
+{
+    HandWidget	    w = (HandWidget) gw;
+    c->hidden = TRUE;
+    DamageCard(w, c);
+    if (XtIsRealized (gw) && w->hand.immediate_update)
+    	HandUpdateDisplay (gw);
 }
 
 static Boolean

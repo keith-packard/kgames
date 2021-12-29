@@ -251,12 +251,6 @@ CardsReplaceCard (gw, data, card)
     }
 
 static void
-InputCallback (Widget w, XtPointer closure, XtPointer data)
-{
-    CardDrag((HandInputPtr) data);
-}
-
-static void
 Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     CardsWidget	req = (CardsWidget) greq,
@@ -272,7 +266,6 @@ Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
     setSizeVars (req, new);
 
     XtAddCallback (gnew, XtNdisplayCallback, DisplayCallback, (XtPointer) gnew);
-    XtAddCallback (gnew, XtNinputCallback, InputCallback, (XtPointer) gnew);
 
     /* back surface */
     Pixmap back = new->cards.back;

@@ -66,14 +66,21 @@ extern HandClassRec handClassRec;
 
 typedef enum { ClipUnclipped, ClipPartclipped, ClipAllclipped } HandClip;
 
-typedef struct _Card {
+typedef struct _HandCard {
     struct xkw_list list;
     XtPointer	    private;
     int		    x, y;
     int		    row, col;
     int		    offset;
     Boolean	    shown;
+    Boolean         hidden;
 } CardRec, *CardPtr;
+
+void
+HandShowAllCards (Widget gw);
+
+void
+HandHideCard (Widget gw, CardPtr c);
 
 typedef struct {
     /*
