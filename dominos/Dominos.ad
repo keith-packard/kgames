@@ -1,12 +1,15 @@
 *Background: #fffff0
 *menuBar.Background: #337744
-*score0.Foreground: white
-*score1.Foreground: white
+*score0.Foreground: #fffff0
+*score1.Foreground: #fffff0
 *score0.Background: #337744
 *score1.Background: #337744
 *Dominos.Background: #337744
 *frame.Background: #337744
 *panner.Foreground: #fffff0
+*yesOrNoDialog.Background: #337744
+*yesOrNoLabel.Background: #337744
+*yesOrNoLabel.Foreground: #fffff0
 
 *allowShellResize: True
 *message.justify: left
@@ -112,7 +115,11 @@
 *yesOrNoDialog.layout: vertical {\
 	Spacing = (50 % of height yesOrNoLabel) \
 	$Spacing < +inf -inf > \
-	yesOrNoLabel \
+	horizontal { \
+		$Spacing < -inf > \
+		yesOrNoLabel \
+		$Spacing < -inf > \
+	} \
 	$Spacing < +inf -inf > \
 	horizontal { \
 		$Spacing < -inf > \
