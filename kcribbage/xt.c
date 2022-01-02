@@ -137,14 +137,9 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     (void) closure;
 
     switch (input->action) {
-    case HandActionStop:
-        if (input->w == input->start.w &&
-            input->col == input->start.col &&
-            input->row == input->start.row)
-        {
-            selectedCard = input->row;
-            cardSelected = True;
-        }
+    case HandActionClick:
+        selectedCard = input->current.row;
+        cardSelected = True;
         break;
     default:
         break;

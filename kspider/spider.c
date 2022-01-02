@@ -566,7 +566,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
 
     (void) closure;
     Message (message, "");
-    stack = WidgetToStack(w, input->col);
+    stack = WidgetToStack(w, input->current.col);
     startStack = WidgetToStack(input->start.w, input->start.col);
 
     if (!startStack || !stack)
@@ -574,34 +574,45 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
 
     switch (input->action) {
     case HandActionStart:
-	break;
-    case HandActionDrag:
-	break;
-    case HandActionStop:
-	if (startStack == &deckStack) {
-	    if (stack == &deckStack) {
-		Deal ();
-		CardNextHistory ();
-		DisplayStacks ();
-	    }
+        break;
+    case HandActionClick:
+	if (stack == &deckStack) {
+            Deal ();
+            CardNextHistory ();
+            DisplayStacks ();
 	}
 	else if (stack == &deckStack) {
 	}
 	else if (startStack && stack && startStack->last)
         {
-	    if (startStack != stack) {
-		for (card = startStack->last; card; card = card->prev)
-		    if (card->isUp && card->row == input->start.row)
-			break;
-            } else {
-                card = stack->last;
-                if (w == stacks)
-                    card = CardInReverseSuitOrder(stack->last);
-            }
+            card = stack->last;
+            if (w == stacks)
+                card = CardInReverseSuitOrder(card);
 
             if (!card)
                 Message(message, "No card selected.");
             else {
+                Play (stack, card, stack);
+                CheckStackTop (stack);
+                CardNextHistory ();
+                DisplayStacks ();
+            }
+	}
+        break;
+    case HandActionDrag:
+	if (startStack == &deckStack || stack == &deckStack)
+            break;
+	if (startStack->last)
+        {
+            CardPtr     card = CardFromHandCard(input->start.private);
+
+            if (!card)
+                Message(message, "No card selected.");
+            else if (input->start.w == piles) {
+                Message(message, "Can't move cards back from pile.");
+            }
+            else
+            {
                 Play (startStack, card, stack);
                 CheckStackTop (startStack);
                 CardNextHistory ();
@@ -611,6 +622,8 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
         break;
     case HandActionExpand:
         Expand (stack);
+        break;
+    case HandActionUnexpand:
         break;
     }
 }

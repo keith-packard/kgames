@@ -1168,6 +1168,7 @@ main (int argc, char **argv)
     Atom	wm_delete_window;
     int		i;
     int		restored;
+    Arg         arg[1];
 
     toplevel = XkwInitialize("Dominos", options, XtNumber(options),
 			     &argc, argv, True, defaultResources);
@@ -1259,7 +1260,8 @@ main (int argc, char **argv)
 
     XtAddCallback(player_w, XtNinputCallback, PlayerCallback, NULL);
 
-    drag = XtCreateManagedWidget("drag", dominosWidgetClass, frame, NULL, 0);
+    XtSetArg(arg[0], XtNwantForward, FALSE);
+    drag = XtCreateManagedWidget("drag", dominosWidgetClass, frame, arg, 1);
 
     XtSetMappedWhenManaged(drag, False);
 

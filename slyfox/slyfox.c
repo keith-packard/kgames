@@ -691,7 +691,7 @@ DeckCallback (Widget w, XtPointer closure, XtPointer data)
     (void) w;
     (void) closure;
     (void) data;
-    if (input->action == HandActionStart)
+    if (input->action == HandActionClick)
         StartDeal();
 }
 
@@ -726,7 +726,7 @@ StackCallback (Widget w, XtPointer closure, XtPointer data)
     CardPtr     card;
     int         to_type;
 
-    stack = WidgetToStack(w, input->row, input->col);
+    stack = WidgetToStack(w, input->current.row, input->current.col);
     startStack = WidgetToStack(input->start.w, input->start.row, input->start.col);
 
     if (!startStack || !stack)
@@ -739,8 +739,10 @@ StackCallback (Widget w, XtPointer closure, XtPointer data)
         Message(message, "");
         break;
     case HandActionDrag:
-        break;
-    case HandActionStop:
+        if (startStack == stack)
+            break;
+        /* fall through ... */
+    case HandActionClick:
         if (startStack->last)
             card = startStack->last;
         else if (game_state == GAME_DEAL) {
@@ -761,6 +763,9 @@ StackCallback (Widget w, XtPointer closure, XtPointer data)
         break;
     case HandActionExpand:
         Expand(stack);
+        break;
+    case HandActionUnexpand:
+        Message(message, "");
         break;
     }
 }

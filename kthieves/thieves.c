@@ -513,7 +513,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
 
     (void) closure;
     Message (message, "");
-    stack = WidgetToStack(w, input->col);
+    stack = WidgetToStack(w, input->current.col);
     startStack = WidgetToStack(input->start.w, input->start.col);
 
     if (!startStack || !stack)
@@ -523,8 +523,10 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     case HandActionStart:
 	break;
     case HandActionDrag:
-	break;
-    case HandActionStop:
+        if (startStack == stack)
+            break;
+        /* fall through */
+    case HandActionClick:
 	if (startStack == &deckStack) {
 	    if (stack == &deckStack) {
 		Deal ();
@@ -546,6 +548,8 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
         break;
     case HandActionExpand:
         Expand (stack);
+        break;
+    case HandActionUnexpand:
         break;
     }
 }

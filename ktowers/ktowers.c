@@ -531,18 +531,22 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
 
     (void) closure;
     Message (message, "");
-    stack = WidgetToStack(w, input->col);
+    stack = WidgetToStack(w, input->current.col);
     startStack = WidgetToStack(input->start.w, input->start.col);
 
     if (!startStack || !stack)
 	return;
 
+    CardSetAnimate(True);
     switch (input->action) {
     case HandActionStart:
-	break;
+        break;
     case HandActionDrag:
-	break;
-    case HandActionStop:
+        if (startStack == stack)
+            break;
+        CardSetAnimate(False);
+        /* fall through */
+    case HandActionClick:
         card = startStack->last;
         Play (startStack, card, stack);
         CardNextHistory ();
@@ -550,6 +554,8 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
         break;
     case HandActionExpand:
         Expand (stack);
+        break;
+    case HandActionUnexpand:
         break;
     }
 }

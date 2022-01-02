@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
@@ -129,7 +129,7 @@ SuitCardsMoveToStack (SuitCardsPtr	from_suit,
 
     suit = card->card.suit;
     from_stack = &from_suit->suits[CardsSuitToInt(suit)];
-    CardMoveCards (from_stack, card, card, to_stack, to_card, remember); 
+    CardMoveCards (from_stack, card, card, to_stack, to_card, remember);
 }
 
 void
@@ -150,14 +150,14 @@ SuitCardsHandInputToCard (SuitCardsPtr s, HandInputPtr input)
     CardPtr	    card;
 
     if (s->suits[CardsClub].horizontal)
-	suitPosition = input->row;
+	suitPosition = input->current.row;
     else
-	suitPosition = input->col;
+	suitPosition = input->current.col;
     suit = IntToCardsSuit (suitPosition - s->suits[CardsClub].position);
     stack = &s->suits[suit];
     for (card = stack->last; card; card = card->prev)
 	if (card->shouldBeUp &&
-	    card->row == input->row && card->col == input->col)
+	    card->row == input->current.row && card->col == input->current.col)
 	    return card;
     return 0;
 }

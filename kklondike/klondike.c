@@ -606,11 +606,10 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     HandInputPtr    input = (HandInputPtr) data;
     CardStackPtr    stack = NULL;
     CardStackPtr    startStack = NULL;
-    CardPtr	    card = NULL;
 
     (void) closure;
     Message (message, "");
-    stack = WidgetToStack(w, input->col);
+    stack = WidgetToStack(w, input->current.col);
     startStack = WidgetToStack(input->start.w, input->start.col);
 
     if (!startStack || !stack)
@@ -618,40 +617,43 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
 
     switch (input->action) {
     case HandActionStart:
-	break;
+        break;
+    case HandActionClick:
+        if (stack == &deckStacks[0]) {
+            if (!stack->last)
+                ResetDeck ();
+            else
+                Deal ();
+            CardNextHistory ();
+            DisplayStacks ();
+        }
+        else
+        {
+            Play (stack, NULL, stack);
+            CheckStackTop (stack);
+            CardNextHistory ();
+            DisplayStacks ();
+	}
+        break;
     case HandActionDrag:
-	break;
-    case HandActionStop:
-        if (startStack == &deckStacks[0]) {
-            if (stack == &deckStacks[0]) {
-                if (!stack->last)
-                    ResetDeck ();
-                else
-                    Deal ();
-                CardNextHistory ();
-                DisplayStacks ();
-            } else if (stack == &deckStacks[1]) {
+        if (startStack == &deckStacks[0] && stack == &deckStacks[1]) {
+            if (startStack->last) {
                 Deal ();
                 CardNextHistory ();
                 DisplayStacks ();
             }
         }
-        else if (stack == &deckStacks[0]) {
-            if (startStack == &deckStacks[1]) {
-                if (!stack->last) {
-                    ResetDeck ();
-                    CardNextHistory ();
-                    DisplayStacks ();
-                }
+        else if (startStack == &deckStacks[1] && stack == &deckStacks[0])
+        {
+            if (!stack->last) {
+                ResetDeck ();
+                CardNextHistory ();
+                DisplayStacks ();
             }
         }
         else if (startStack->last)
         {
-	    if (startStack != stack)
-                for (card = startStack->last; card; card = card->prev)
-                    if (card->isUp && card->row == input->start.row)
-                        break;
-
+            CardPtr     card = CardFromHandCard(input->start.private);
             Play (startStack, card, stack);
             CheckStackTop (startStack);
             CardNextHistory ();
@@ -660,6 +662,8 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
         break;
     case HandActionExpand:
         Expand (stack);
+        break;
+    case HandActionUnexpand:
         break;
     }
 }

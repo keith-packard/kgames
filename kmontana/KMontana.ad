@@ -39,6 +39,8 @@
 		5 < -5 > \
 		undo \
 		5 < -5 > \
+		hint \
+		5 < -5 > \
 		score \
 		0 <+inf -inf> \
 	} \
@@ -72,6 +74,8 @@
 *deal.label: Deal
 
 *score.label: Score
+
+*hint.label: Hint
 
 *Command.shapeStyle: oval
 

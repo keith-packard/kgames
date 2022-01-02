@@ -41,20 +41,22 @@ HandDragInit(Widget parent, WidgetClass class)
 	Arg	arg[3];
         initialized = TRUE;
 	drag = XtCreateManagedWidget("draghand", class, parent, NULL, 0);
+
+        /* Cards widget smashes these values at initialize time, so
+         * force them by using SetValues afterwards
+         */
 	XtSetArg(arg[0], XtNinternalBorderWidth, 0);
         XtSetArg(arg[1], XtNwantForward, False);
         XtSetArg(arg[2], XtNborderWidth, 0);
-	XtSetValues(drag, arg, 3);
+        XtSetValues(drag, arg, 3);
 	dragParent = parent;
 	XtSetMappedWhenManaged(drag, FALSE);
     }
 }
 
 static void
-Drag (Widget child, XEvent *event)
+Drag (Widget child, Position x, Position y)
 {
-    Position	x = event->xmotion.x - off_x;
-    Position	y = event->xmotion.y - off_y;
     XkwTranslateCoordsPosition(dragParent, child, &x, &y);
 
     XtWidgetGeometry request = {
@@ -68,68 +70,91 @@ Drag (Widget child, XEvent *event)
 }
 
 void
-HandDrag(HandInputPtr input)
+HandDrag(HandInputPtr input, Action action)
 {
-    switch (input->action) {
-    case HandActionStart:
-        start_x = input->event.xbutton.x;
-        start_y = input->event.xbutton.y;
-        if (input->card) {
-            off_x = start_x - input->card->x;
-            off_y = start_y - input->card->y;
+    switch (action) {
+    case ActionStart:
+        start_x = input->start.x;
+        start_y = input->start.y;
+        if (input->start.card) {
+            off_x = start_x - input->start.card->x;
+            off_y = start_y - input->start.card->y;
         } else {
             off_x = 0;
             off_y = 0;
         }
-        XkwTranslateCoordsPosition(dragParent, input->w, &start_x, &start_y);
+        XkwTranslateCoordsPosition(dragParent, input->start.w, &start_x, &start_y);
 	break;
-    case HandActionDrag:
+    case ActionDrag:
 	if (!dragging) {
-            /* Filter out drags that don't move far */
-
-            Position x = input->event.xmotion.x;
-            Position y = input->event.xmotion.y;
-            XkwTranslateCoordsPosition(dragParent, input->w, &x, &y);
-            if ((x - start_x) * (x - start_x) + (y - start_y) * (y - start_y) < 100)
+            if (!input->start.card)
                 break;
 
-            if (input->start.card && !HandCardIsEmpty(input->start.w, input->start.private)) {
-                CardPtr c;
-                HandWidget w = (HandWidget) input->start.w;
-                int row = 0;
-                int col = 0;
-                Boolean first = TRUE;
+            if (HandCardIsEmpty(input->start.w, input->start.private))
+                break;
 
-                xkw_foreach_startat_rev(c, input->start.card, &w->hand.cards, list) {
-                    if (w->hand.row_major) {
-                        if (c->row != input->start.row ||
-                            (!first && w->hand.col_offset >= w->hand.card_width))
-                            break;
-                        col = c->col - input->start.col;
-                    } else {
-                        if (c->col != input->start.col ||
-                            (!first && w->hand.row_offset >= w->hand.card_height))
-                            break;
-                        row = c->row - input->start.row;
+            CardPtr c;
+            HandWidget w = (HandWidget) input->start.w;
+            int row = 0;
+            int col = 0;
+            int rows = 0;
+            int cols = 0;
+            Region region = NULL;
+
+            xkw_foreach_startat_rev(c, input->start.card, &w->hand.cards, list) {
+                Boolean pick = FALSE;
+                switch(w->hand.select) {
+                case HandSelectOverlap:
+                    if (!region || HandCardInRegion(w, c, region)) {
+                        XRectangle rect;
+
+                        HandCardRectangle(w, c, &rect);
+                        if (!region)
+                            region = XCreateRegion();
+                        XUnionRectWithRegion(&rect, region, region);
+
+                        pick = TRUE;
                     }
-                    HandHideCard(input->start.w, c);
-                    HandAddCard(drag, c->private, row, col, XkwHandDefaultOffset);
-                    first = FALSE;
+                    break;
+                case HandSelectOne:
+                    if (c == input->start.card)
+                        pick = TRUE;
+                    break;
+                case HandSelectAll:
+                    pick = TRUE;
+                    break;
                 }
-                Arg args[2];
-                XtSetArg(args[0], XtNcolOffset, w->hand.col_offset);
-                XtSetArg(args[1], XtNrowOffset, w->hand.row_offset);
-                XtSetValues(drag, args, 2);
-                HandSetPreferredSize(drag);
-                dragging = TRUE;
-                Drag(input->w, &input->event);
-                XtMapWidget(drag);
+                if (!pick)
+                    break;
+                col = c->col - input->start.col;
+                row = c->row - input->start.row;
+                if (row >= rows)
+                    rows = row + 1;
+                if (col >= cols)
+                    cols = col + 1;
+                HandHideCard(input->start.w, c);
+                HandAddCard(drag, c->private, row, col,
+                            XkwHandDefaultOffset);
             }
-	} else {
-	    Drag(input->w, &input->event);
+
+            if (region)
+                XDestroyRegion(region);
+
+            Arg args[4];
+            XtSetArg(args[0], XtNcolOffset, w->hand.col_offset);
+            XtSetArg(args[1], XtNrowOffset, w->hand.row_offset);
+            XtSetArg(args[2], XtNnumRows, rows);
+            XtSetArg(args[3], XtNnumCols, cols);
+            XtSetValues(drag, args, 4);
+            HandSetPreferredSize(drag);
 	}
+        Drag(input->current.w, input->current.x - off_x, input->current.y - off_y);
+        if (!dragging) {
+            dragging = TRUE;
+            XtMapWidget(drag);
+        }
 	break;
-    case HandActionStop:
+    case ActionStop:
         if (dragging) {
             dragging = FALSE;
             XtUnmapWidget(drag);
@@ -137,7 +162,7 @@ HandDrag(HandInputPtr input)
             HandShowAllCards(input->start.w);
         }
         break;
-    case HandActionExpand:
+    case ActionExpand:
         break;
     }
 }

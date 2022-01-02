@@ -187,6 +187,8 @@ Deal (void)
 	CardMove (&deckStack, deckStack.last, &stackStacks[col], True);
 	CardTurn (stackStacks[col].last, CardFaceUp, True);
     }
+    CardNextHistory ();
+    DisplayStacks ();
 }
 
 static void
@@ -413,8 +415,13 @@ Play (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 	}
     }
     CardMove (from_stack, from_card, to_stack, True);
+    CheckStackTop (from_stack);
+    CardNextHistory ();
+    DisplayStacks ();
     if (ComputeScore() == MAX_SCORE)
         Message(message, "We have a winner!");
+    else
+        Message(message, "");
 }
 
 static Boolean
@@ -516,9 +523,6 @@ PileAll (void)
 	{
 	    Play (from_stack, from_card, to_stack);
 	    done = True;
-	    CheckStackTop (from_stack);
-	    CardNextHistory ();
-	    DisplayStacks ();
 	}
     } while (to_stack);
     if (!done)
@@ -576,7 +580,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     CardPtr	    card = NULL;
 
     (void) closure;
-    stack = WidgetToStack(w, input->col);
+    stack = WidgetToStack(w, input->current.col);
     startStack = WidgetToStack(input->start.w, input->start.col);
 
     if (!startStack || !stack)
@@ -584,35 +588,32 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
 
     switch (input->action) {
     case HandActionStart:
-        Message (message, "");
 	break;
+    case HandActionClick:
+        CardSetAnimate(True);
+        if (stack == &deckStack) {
+            Deal ();
+        } else if (stack->last) {
+            Play(stack, card, stack);
+        }
+        break;
     case HandActionDrag:
-	break;
-    case HandActionStop:
-	if (startStack == &deckStack) {
-	    if (stack == &deckStack) {
-		Deal ();
-		CardNextHistory ();
-		DisplayStacks ();
-	    }
-	}
-	else if (stack == &deckStack) {
-	}
-	else if (startStack && stack && startStack->last)
+        CardSetAnimate(False);
+        if (stack == startStack)
+            break;
+        if (stack == &deckStack)
+            break;
+	if (startStack->last)
 	{
-	    if (startStack != stack)
-		for (card = startStack->last; card; card = card->prev)
-		    if (card->isUp && card->row == input->start.row)
-			break;
-
+            CardPtr     card = CardFromHandCard(input->start.private);
 	    Play (startStack, card, stack);
-	    CheckStackTop (startStack);
-	    CardNextHistory ();
-	    DisplayStacks ();
 	}
 	break;
     case HandActionExpand:
         Expand(stack);
+        break;
+    case HandActionUnexpand:
+        Message(message, "");
         break;
     }
 }

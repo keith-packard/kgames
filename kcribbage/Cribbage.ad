@@ -17,6 +17,7 @@
 	<Key>:	cribbageKey()
 
 *Cards.immediateUpdate: False
+*Cards.select: one
 *message.numRows: 10
 *message.numCols: 48
 *player.numRows: 6

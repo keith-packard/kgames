@@ -48,6 +48,7 @@ typedef struct {
     XRenderColor	background;
     XRenderColor	foreground;
     double		dpi;
+    Boolean             want_forward;       /* does this widget want event forwarding */
 
     /* private */
     cairo_surface_t	*surface;

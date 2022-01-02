@@ -27,6 +27,7 @@
 #define _CARDS_UTIL_H_
 #include "Xkw/Animate.h"
 #include "Xkw/Cards.h"
+#include "Xkw/list.h"
 
 typedef struct _Card *CardPtr;
 
@@ -128,6 +129,13 @@ CardInReverseAlternatingSuitRingOrder (CardPtr);
 
 void
 CardDisplayStack (CardStackPtr);
+
+static inline
+CardPtr
+CardFromHandCard(XtPointer private)
+{
+    return container_of(private, CardRec, display);
+}
 
 void	CardTurn (CardPtr, CardFace, Boolean);
 void	CardMove (CardStackPtr, CardPtr, CardStackPtr, Boolean);

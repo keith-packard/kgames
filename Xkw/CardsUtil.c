@@ -618,6 +618,7 @@ CardUndo ()
     if (!history)
 	return False;
     serial = history->serial;
+    CardSetAnimate(True);
     for (h = history; h && h->serial == serial; h = p)
     {
 	p = h->prev;

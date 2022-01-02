@@ -52,26 +52,30 @@ typedef struct _HandDisplay {
 typedef enum {
     HandActionStart,
     HandActionDrag,
-    HandActionStop,
+    HandActionClick,
     HandActionExpand,
+    HandActionUnexpand,
 } HandAction;
+
+typedef enum {
+    HandSelectOverlap,
+    HandSelectOne,
+    HandSelectAll
+} HandSelect;
 
 typedef struct _HandLocation {
     Widget	w;
-    Position	row, col;
     Position    x, y;
-    XtPointer	private;
+    Position	row, col;
     struct _HandCard *card;
+    XtPointer	private;
+    Boolean     dragging;
 } HandLocation;
 
 typedef struct _HandInput {
-    Widget	    w;
-    Position	    row, col;
-    struct _HandCard *card;
-    XtPointer       private;
-    XEvent	    event;
-    HandAction	    action;
+    HandLocation    current;
     HandLocation    start;
+    HandAction	    action;
     String	    *params;
     Cardinal	    *num_params;
 } HandInputRec, *HandInputPtr;
@@ -111,9 +115,6 @@ HandCardIsEmpty (Widget gw, XtPointer private);
 
 void
 HandDragInit(Widget parent, WidgetClass class);
-
-void
-HandDrag(HandInputPtr input);
 
 #define InsertRow -1
 #define InsertCol -1
@@ -160,7 +161,8 @@ HandDrag(HandInputPtr input);
 #define XtCInsert	"Insert"
 #define XtNimmediateUpdate  "immediateUpdate"
 #define XtCImmediateUpdate  "ImmediateUpdate"
-#define XtNwantForward "wantForward"
-#define XtCWantForward "WantForward"
+#define XtNselect "select"
+#define XtCSelect "Select"
+#define XtRHandSelect "HandSelect"
 #endif /* _XtHand_h */
 /* DON'T ADD STUFF AFTER THIS #endif */
