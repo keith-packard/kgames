@@ -8,6 +8,7 @@ extern	Window	xwindow;
 extern	XFontStruct	*font, *backFont;
 extern	Pixmap	fill;
 extern	GC	text_gc, xor_gc;
+extern  double  scale;
 
 # define MAXBITMAPS	4
 

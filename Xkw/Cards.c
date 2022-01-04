@@ -251,12 +251,6 @@ CardsReplaceCard (gw, data, card)
     }
 
 static void
-InputCallback (Widget w, XtPointer closure, XtPointer data)
-{
-    CardDrag((HandInputPtr) data);
-}
-
-static void
 Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     CardsWidget	req = (CardsWidget) greq,
@@ -272,7 +266,6 @@ Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
     setSizeVars (req, new);
 
     XtAddCallback (gnew, XtNdisplayCallback, DisplayCallback, (XtPointer) gnew);
-    XtAddCallback (gnew, XtNinputCallback, InputCallback, (XtPointer) gnew);
 
     /* back surface */
     Pixmap back = new->cards.back;
@@ -438,6 +431,18 @@ DisplayCallback (Widget gw, XtPointer closure, XtPointer data)
     }
 }
 
+static Boolean
+CardsCardIsEmpty(Widget gw, XtPointer private)
+{
+    CardsCardRec *card = private;
+
+    if (!card)
+        return TRUE;
+    if (card->suit == CardsEmpty || card->suit == CardsNone)
+        return TRUE;
+    return FALSE;
+}
+
 CardsClassRec	cardsClassRec = {
   { /* core fields */
     /* superclass		*/	(WidgetClass) SuperClass,
@@ -475,10 +480,13 @@ CardsClassRec	cardsClassRec = {
   },
   { /* simple fields */
     /* change_sensitive		*/	XtInheritChangeSensitive,
-    /* extension		*/	NULL
+  },
+  {
+    /* ksimple fields */
+    /* empty			*/	0
   },
   { /* hand fields */
-    /* ignore                   */	0
+      .card_is_empty = CardsCardIsEmpty,
   },
   { /* cards fields */
     /* ignore			*/	0

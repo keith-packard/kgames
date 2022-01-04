@@ -81,12 +81,6 @@ CardsRankName (CardsRank r);
 char *
 CardsSuitName (CardsSuit s);
 
-void
-CardDragInit(Widget parent);
-
-void
-CardDrag(HandInputPtr input);
-
 /* Add aliases to stuff which is simply inherited from the Hand widget */
 
 #define CardsRemoveCard	HandRemoveCard
@@ -102,6 +96,12 @@ typedef struct _CardsRec *CardsWidget;
 typedef struct _CardsClassRec *CardsWidgetClass;
 
 extern WidgetClass  cardsWidgetClass;
+
+static inline void
+CardDragInit(Widget parent)
+{
+    HandDragInit(parent, cardsWidgetClass);
+}
 
 #define XtNcardWidth "cardWidth"
 #define XtCCardWidth "CardWidth"

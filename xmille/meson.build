@@ -37,6 +37,7 @@ srcs_xmille = [
   'types.c',
   'uiXt.c',
   'varpush.c',
+  'MilleCards.c',
 ]
 
 subdir('cards')

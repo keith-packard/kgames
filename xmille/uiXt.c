@@ -32,6 +32,7 @@
 # include	"gray.bm"
 # include	"cards-svg.h"
 # include	"Mille-res.h"
+# include       "MilleCards.h"
 
 # include	"card.h"
 
@@ -528,49 +529,26 @@ XtActionsRec actions[] = {
 };
 
 static void
-DisplayCallback (Widget w, XtPointer closure, XtPointer data)
-{
-    HandDisplayPtr  display = (HandDisplayPtr) data;
-    int		    card_no;
-    struct card	    *card;
-    cairo_t	    *cr = display->cr;
-
-    cairo_scale(cr, scale, scale);
-    card_no = (int) (intptr_t) display->private;
-    if (card_no == -2)
-	card = &deck;
-    else if (card_no < 0 || NUM_CARDS <= card_no)
-	card = &blank;
-    else
-	card = &svg_cards[card_no];
-
-    XkwRsvgDraw(cr, WIDTH, HEIGHT, card->rsvg_handle);
-}
-
-static void
 InputCallback (Widget w, XtPointer closure, XtPointer data)
 {
     HandInputPtr    input = (HandInputPtr) data;
-    String	    type;
 
-    if (input->action != HandActionStart)
+    if (input->action != HandActionStop)
         return;
 
-    if (w == human_hand) {
+    if (input->start.w == human_hand)
+    {
 	Movetype = M_REASONABLE;
-	if (*input->num_params) {
-	    type = *input->params;
-	    if (!strcmp (type, "play"))
-		Movetype = M_PLAY;
-	    else if (!strcmp (type, "reasonable"))
-		Movetype = M_REASONABLE;
-	    else if (!strcmp (type, "discard"))
-		Movetype = M_DISCARD;
-	}
-	Card_no = input->col;
+        if (input->w == human_play || input->w == human_safeties)
+            Movetype = M_PLAY;
+        else if (input->w == human_hand)
+            Movetype = M_REASONABLE;
+        else if (input->w == deck_hand)
+            Movetype = M_DISCARD;
+	Card_no = input->start.col;
 	getmove_done = 1;
     }
-    else if (w == deck_hand)
+    else if (input->start.w == deck_hand)
     {
 	Movetype = M_DRAW;
 	getmove_done = 1;
@@ -603,8 +581,8 @@ make_hand (char *name, Widget parent, int rows, int cols, Bool overlap_rows)
     XtSetArg (args[i], XtNdisplayY, display_y); i++;
     XtSetArg (args[i], XtNdisplayWidth, WIDTH * scale - display_x * 2); i++;
     XtSetArg (args[i], XtNdisplayHeight, HEIGHT * scale - display_y * 2); i++;
-    hand = XtCreateManagedWidget (name, handWidgetClass, parent, args, i);
-    XtAddCallback (hand, XtNdisplayCallback, DisplayCallback, (XtPointer) hand);
+    hand = XtCreateManagedWidget (name, milleCardsWidgetClass, parent, args, i);
+    XtAddCallback (hand, XtNinputCallback, InputCallback, NULL);
     return hand;
 }
 
@@ -762,14 +740,12 @@ init_ui (int *argc, char **argv)
     XtSetArg (arg[1], XtNnumCols, 48);
     score = XtCreateManagedWidget ("score", padWidgetClass, layout,
 				   arg, TWO);
-    XtAddCallback (deck_hand, XtNinputCallback, InputCallback, NULL);
     HandAddCard (deck_hand, (XtPointer) -2, 0, 0, XkwHandDefaultOffset);
     message = XtCreateManagedWidget ("message", klabelWidgetClass, layout, NULL, ZERO);
     errors = XtCreateManagedWidget ("errors", klabelWidgetClass, layout, NULL, ZERO);
     human_miles = XtCreateManagedWidget ("humanMiles", thermoWidgetClass, layout, NULL, ZERO);
     human_play = make_hand ("humanPlay", layout, 3, 7, True);
     human_hand = make_hand ("humanHand", layout, 1, 7, False);
-    XtAddCallback (human_hand, XtNinputCallback, InputCallback, NULL);
     human_safeties = make_hand ("humanSafeties", layout, 2, 2, False);
     human_safety_label = XtCreateManagedWidget ("humanSafetyLabel", klabelWidgetClass, layout, NULL, ZERO);
     newscore ();
