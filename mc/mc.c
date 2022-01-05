@@ -264,7 +264,6 @@ Deal(void)
 	next_stack = FirstEmpty();
     }
     Message(deckCount, "%d", cardsLeft);
-
     CardNextHistory();
 }
 
@@ -462,75 +461,65 @@ Save(void)
 
 /* Callbacks to user interface functions */
 
+static CardStackPtr
+WidgetToStack(Widget w, int row, int col)
+{
+    if (w == cards)
+	return &cardStacks[row * NUM_COLS + col];
+    if (w == deck)
+	return &deckStack;
+    return NULL;
+}
+
 static void
-CardsCallback (Widget w, XtPointer closure, XtPointer data)
+InputCallback (Widget w, XtPointer closure, XtPointer data)
 {
     HandInputPtr    input = (HandInputPtr) data;
-    CardStackPtr    stack = NULL;
-    String      type = "";
-    int         i;
-
-#define MOVE	0
-#define HINT	1
-#define UNHINT	2
-#define	SELECT	3
+    CardStackPtr    stack, startStack;
 
     (void) closure;
-    stack = &cardStacks[input->row * NUM_COLS + input->col];
-
-    if (*input->num_params)
-        type = *input->params;
+    stack = WidgetToStack(input->current.w, input->current.row, input->current.col);
+    startStack = WidgetToStack(input->start.w, input->start.row, input->start.col);
 
     switch (input->action) {
     case HandActionStart:
-        Message (message, "");
-        if (!strcmp(type, "source")) {
-            if (!fromStack)
-                i = SELECT;
-            else
-                i = MOVE;
-        } else if (!strcmp(type, "clear")) {
-            fromStack = NULL;
-        } else {
-            return;
-        }
-        switch (i) {
-        case SELECT:
-            fromStack = stack;
-            if (!fromStack->last)
-                Message(message, "Selected space is empty.");
-            break;
-        case MOVE:
-            if (fromStack) {
-                Play(fromStack, stack);
-                fromStack = NULL;
-            }
+        break;
+    case HandActionClick:
+        if (stack == &deckStack) {
+            Deal();
             break;
         }
+        if (!startStack->last) {
+            Message(message, "Selected space is empty.");
+            break;
+        }
+        stack = FindMove(startStack);
+        if (!stack) {
+            Message(message, "No move.");
+            break;
+        }
+        Play(startStack, stack);
+        DisplayStacks();
+        break;
+    case HandActionDrag:
+        if (stack == &deckStack || startStack == &deckStack)
+            break;
+        if (!startStack->last) {
+            Message(message, "Selected space is empty.");
+            break;
+        }
+        Play(startStack, stack);
         DisplayStacks();
 	break;
-    case HandActionDrag:
-        break;
     case HandActionExpand:
         FindAMove(stack);
         DisplayStacks();
         break;
-    case HandActionStop:
+    case HandActionUnexpand:
         UnHint();
         DisplayStacks();
         break;
     }
-}
-
-static void
-DealCallback (Widget w, XtPointer closure, XtPointer data)
-{
-    HandInputPtr    input = (HandInputPtr) data;
-
-    (void) w;
-    (void) closure;
-    if (!input || input->action == HandActionStart)
-        Deal();
 }
 
 static void
@@ -598,15 +587,6 @@ SaveCallback (Widget w, XtPointer closure, XtPointer data)
 
 /* actions to user interface functions */
 
-static void DealAction (Widget w, XEvent *e, String *p, Cardinal *n)
-{
-    (void) w;
-    (void) e;
-    (void) p;
-    (void) n;
-    Deal ();
-}
-
 static void UndoAction (Widget w, XEvent *e, String *p, Cardinal *n)
 {
     (void) w;
@@ -672,7 +652,6 @@ static void BestMoveAction (Widget w, XEvent *e, String *p, Cardinal *n)
 
 XtActionsRec actions[] = {
     { "montecarloUndo", UndoAction, },
-    { "montecarloDeal", DealAction, },
     { "montecarloNewGame", NewGameAction, },
     { "montecarloScore", ScoreAction, },
     { "montecarloQuit", QuitAction, },
@@ -748,9 +727,6 @@ main(int argc, char **argv)
 					   menuBar, NULL, ZERO);
     fileMenu = CreateMenu(fileMenuButton, "fileMenu",
 			  fileMenuEntries, XtNumber(fileMenuEntries));
-    deal = XtCreateManagedWidget("deal", kcommandWidgetClass,
-				 menuBar, NULL, ZERO);
-    XtAddCallback(deal, XtNcallback, DealCallback, NULL);
     newGame = XtCreateManagedWidget("newGame", kcommandWidgetClass,
 				    menuBar, NULL, ZERO);
     XtAddCallback(newGame, XtNcallback, NewGameCallback, NULL);
@@ -764,11 +740,11 @@ main(int argc, char **argv)
 				  menuBar, NULL, ZERO);
     XtAddCallback(score, XtNcallback, ScoreCallback, NULL);
     cards = XtCreateManagedWidget("cards", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback(cards, XtNinputCallback, CardsCallback, NULL);
+    XtAddCallback(cards, XtNinputCallback, InputCallback, NULL);
 
     deck = XtCreateManagedWidget("deck", cardsWidgetClass, frame, NULL, 0);
     deckCount = XtCreateManagedWidget("deckCount", klabelWidgetClass, frame, NULL, 0);
-    XtAddCallback(deck, XtNinputCallback, DealCallback, NULL);
+    XtAddCallback(deck, XtNinputCallback, InputCallback, NULL);
 
     waste = XtCreateManagedWidget("waste", cardsWidgetClass, frame, NULL, 0);
     wasteLabel = XtCreateManagedWidget("wasteLabel", klabelWidgetClass, frame, NULL, 0);

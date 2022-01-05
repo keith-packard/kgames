@@ -533,25 +533,43 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
 {
     HandInputPtr    input = (HandInputPtr) data;
 
-    if (input->action != HandActionStop)
-        return;
-
-    if (input->start.w == human_hand)
-    {
-	Movetype = M_REASONABLE;
-        if (input->w == human_play || input->w == human_safeties)
-            Movetype = M_PLAY;
-        else if (input->w == human_hand)
+    switch (input->action) {
+    default:
+        break;
+    case HandActionClick:
+        if (input->start.w == human_hand)
+        {
             Movetype = M_REASONABLE;
-        else if (input->w == deck_hand)
-            Movetype = M_DISCARD;
-	Card_no = input->start.col;
-	getmove_done = 1;
-    }
-    else if (input->start.w == deck_hand)
-    {
-	Movetype = M_DRAW;
-	getmove_done = 1;
+            getmove_done = 1;
+            Card_no = input->start.col;
+        }
+        else if (input->start.w == deck_hand)
+        {
+            Movetype = M_DRAW;
+            getmove_done = 1;
+            Card_no = input->start.col;
+        }
+        break;
+    case HandActionDrag:
+        if (input->start.w == human_hand) {
+            if (input->current.w == human_miles ||
+                input->current.w == human_play ||
+                input->current.w == human_safeties)
+            {
+                Movetype = M_PLAY;
+                getmove_done = 1;
+                Card_no = input->start.col;
+            }
+            break;
+        }
+        else if (input->start.w == deck_hand)
+        {
+            if (input->current.w == human_hand) {
+                Movetype = M_DRAW;
+                getmove_done = 1;
+                Card_no = input->start.col;
+            }
+        }
     }
 }
 

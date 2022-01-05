@@ -198,11 +198,13 @@ Undo (void)
     DisplayStacks ();
 }
 
+#define MAX_SCORE 340
+
 static void
 Score (void)
 {
-    Message (message, "Current position scores %d out of 340.",
-	     ComputeScore ());
+    Message (message, "Current position scores %d out of %d.",
+	     ComputeScore (), MAX_SCORE);
 }
 
 static void
@@ -380,6 +382,8 @@ Play (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 	}
     }
     CardMove (from_stack, from_card, to_stack, True);
+    if (ComputeScore() == MAX_SCORE)
+        Message(message, "We have a winner!");
 }
 
 static void
@@ -527,27 +531,31 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
 
     (void) closure;
     Message (message, "");
-    stack = WidgetToStack(w, input->col);
+    stack = WidgetToStack(w, input->current.col);
     startStack = WidgetToStack(input->start.w, input->start.col);
 
     if (!startStack || !stack)
 	return;
 
+    CardSetAnimate(True);
     switch (input->action) {
     case HandActionStart:
-	break;
+        break;
     case HandActionDrag:
-	break;
-    case HandActionStop:
-        for (card = startStack->last; card; card = card->prev)
-            if (card->isUp && card->row == input->start.row)
-                break;
+        if (startStack == stack)
+            break;
+        CardSetAnimate(False);
+        /* fall through */
+    case HandActionClick:
+        card = startStack->last;
         Play (startStack, card, stack);
         CardNextHistory ();
         DisplayStacks ();
         break;
     case HandActionExpand:
         Expand (stack);
+        break;
+    case HandActionUnexpand:
         break;
     }
 }

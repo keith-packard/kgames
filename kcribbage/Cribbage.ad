@@ -17,16 +17,16 @@
 	<Key>:	cribbageKey()
 
 *Cards.immediateUpdate: False
+*Cards.select: one
 *message.numRows: 10
 *message.numCols: 48
-*player.numRows: 6
+*player.numRows: 1
 *player.numCols: 6
-*player.overlap: both
-*player.borderWidth: 0
-*computer.numRows: 6
+*player.overlap: neither
+
+*computer.numRows: 1
 *computer.numCols: 6
-*computer.overlap: both
-*computer.borderWidth: 0
+*computer.overlap: neither
 
 *tableScore.borderWidth: 0
 *tableScore.label:
@@ -42,12 +42,16 @@
 *compname.justify: left
 
 *playcrib.numRows: 1
-*playcrib.numCols: 1
-*playcrib.borderWidth: 0
+*playcrib.numCols: 6
+*playcrib.overlap: neither
 
 *compcrib.numRows: 1
-*compcrib.numCols: 1
-*compcrib.borderWidth: 0
+*compcrib.numCols: 6
+*compcrib.overlap: neither
+
+*deck.numRows: 1
+*deck.numCols: 1
+*deck.overlap: neither
 
 *fileMenuButton.leftBitmap: menu12
 *fileMenuButton.menuName: fileMenu
@@ -75,21 +79,20 @@
 			horizontal { \
 				menuBar < +inf -inf * > \
 			} \
+			computer < -50% * -50% > \
+			compcrib < -50% * -50% > \
 			horizontal { \
-				player < -50% * -50% > \
 				vertical { \
 					tableScore < +inf -inf * > \
-					table < -50% * -50% > \
+					table < +inf -50% * -50% > \
 				} \
-				computer < -50% * -50% > \
+				vertical { \
+					height tableScore < >\
+					deck < -50% * -50% > \
+				} \
 			} \
-			horizontal { \
-				0 < +inf > \
-				playcrib < +1 -1 * +1 -1 >\
-				0 < +inf > \
-				compcrib < +1 -1 * +1 -1 >\
-				0 < +inf > \
-			} \
+			playcrib < -50% * -50% > \
+			player < -50% * -50% > \
 		} \
 		vertical { \
 			playname < +inf * -100% >\

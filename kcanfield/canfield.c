@@ -43,6 +43,7 @@
 # include	<Xkw/Message.h>
 # include	<Xkw/KLabel.h>
 # include	<KCanfield-res.h>
+# include       <Xkw/list.h>
 
 Widget	    toplevel;
 Widget	    frame;
@@ -78,8 +79,6 @@ CardStackRec	foundation[NUM_FOUNDATION];
 CardRec		rawcards[NUM_CARDS];
 
 #define INIT_STOCK  13
-
-int		dealNumber;
 
 typedef struct _canfieldResources {
     int		animationSpeed;
@@ -134,7 +133,6 @@ FirstDeal (void)
 	CardMove (&deck, deck.last, &tableau[col], False);
 	CardTurn (tableau[col].last, CardFaceUp, False);
     }
-    dealNumber = 0;
 }
 
 static void
@@ -192,6 +190,8 @@ ResetTalon (void)
 	CardMove (&talon, talon.last, &deck, True);
 	CardTurn (deck.last, CardFaceDown, True);
     }
+    CardNextHistory ();
+    DisplayStacks ();
 }
 
 static void
@@ -201,13 +201,17 @@ Deal (void)
 
     for (deal = 0; deal < DEAL_COUNT; deal++)
     {
-	if (!deck.last)
-	{
-	    Message (message, "No more cards in the deck.");
-	    return;
+	if (!deck.last) {
+            if (!deal)
+                Message (message, "No more cards in the deck.");
+	    break;
 	}
 	CardMove (&deck, deck.last, &talon, True);
 	CardTurn (talon.last, CardFaceUp, True);
+    }
+    if (deal) {
+        CardNextHistory ();
+        DisplayStacks ();
     }
 }
 
@@ -234,11 +238,13 @@ Undo (void)
     DisplayStacks ();
 }
 
+#define MAX_SCORE       260
+
 static void
 Score (void)
 {
-    Message (message, "Current position scores %d out of 260.",
-	     ComputeScore ());
+    Message (message, "Current position scores %d out of %d.",
+	     ComputeScore (), MAX_SCORE);
 }
 
 static void
@@ -495,6 +501,13 @@ Play (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
         if (stock.last)
             CardMove(&stock, stock.last, from_stack, True);
     }
+    CheckStackTop (from_stack);
+    CardNextHistory ();
+    DisplayStacks ();
+    if (ComputeScore() == MAX_SCORE)
+        Message(message, "We have a winner!");
+    else
+        Message(message, "");
 }
 
 static Boolean
@@ -601,6 +614,7 @@ FoundationAll (void)
     Boolean	    done = False;
 
     Message (message, "");
+    CardSetAnimate(True);
     do {
 	to_stack = 0;
 	FindOne (FindFoundationPlay);
@@ -608,9 +622,6 @@ FoundationAll (void)
 	{
 	    Play (from_stack, from_card, to_stack);
 	    done = True;
-	    CheckStackTop (from_stack);
-	    CardNextHistory ();
-	    DisplayStacks ();
 	}
     } while (to_stack);
     if (!done)
@@ -670,11 +681,10 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     HandInputPtr    input = (HandInputPtr) data;
     CardStackPtr    stack = NULL;
     CardStackPtr    startStack = NULL;
-    CardPtr	    card = NULL;
 
     (void) closure;
     Message (message, "");
-    stack = WidgetToStack(w, input->col);
+    stack = WidgetToStack(w, input->current.col);
     startStack = WidgetToStack(input->start.w, input->start.col);
 
     if (!startStack || !stack)
@@ -682,33 +692,35 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
 
     switch (input->action) {
     case HandActionStart:
-	break;
+        break;
+    case HandActionClick:
+        CardSetAnimate(True);
+        if (stack == &deck) {
+            if (!stack->last)
+                ResetTalon ();
+            else
+                Deal ();
+        } else
+            Play (stack, NULL, stack);
+        break;
     case HandActionDrag:
-	break;
-    case HandActionStop:
+        CardSetAnimate(False);
         if (startStack == &deck) {
-            if (stack == &deck) {
-                if (!stack->last)
-                    ResetTalon ();
-                else
-                    Deal ();
-		CardNextHistory ();
-		DisplayStacks ();
-            }
+            if (stack == &talon)
+                Deal ();
+        } else if (startStack == &talon && stack == &deck) {
+            if (!stack->last)
+                ResetTalon();
         } else {
-	    if (startStack != stack)
-		for (card = startStack->last; card; card = card->prev)
-		    if (card->isUp && card->row == input->start.row)
-			break;
-
+            CardPtr     card = CardFromHandCard(input->start.private);
             Play (startStack, card, stack);
-            CheckStackTop (startStack);
-            CardNextHistory ();
-            DisplayStacks ();
         }
         break;
     case HandActionExpand:
         Expand(stack);
+        break;
+    case HandActionUnexpand:
+        break;
     }
 }
 

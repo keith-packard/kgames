@@ -177,6 +177,7 @@ playhand(BOOLEAN mycrib)
 	sorthand(chand, FULLHAND);
 	sorthand(phand, FULLHAND);
 	makeknown(chand, FULLHAND);
+        UIPrintHand(chand, FULLHAND, COMPUTER, TRUE);
 	UIPrintHand(phand, FULLHAND, PLAYER, FALSE);
 	discard(mycrib);
 	if (cut(mycrib, deckpos))
@@ -184,6 +185,8 @@ playhand(BOOLEAN mycrib)
 	if (peg(mycrib))
 	    return TRUE;
 	UIEraseHand (TABLE);
+        UIPrintHand(chand, FULLHAND, COMPUTER, TRUE);
+	UIPrintHand(phand, FULLHAND, PLAYER, FALSE);
 	if (score(mycrib))
 	    return TRUE;
 	return FALSE;
@@ -225,6 +228,10 @@ discard(BOOLEAN mycrib)
 	register char	*prompt;
 	CARD		crd;
 
+        crib[0].rank = EMPTY;
+        crib[1].rank = EMPTY;
+        crib[2].rank = EMPTY;
+        crib[3].rank = EMPTY;
 	UIPrintCrib (mycrib ? COMPUTER : PLAYER, &turnover, TRUE);
 	prompt = (quiet ? "Discard --> " : "Discard a card --> ");
 	cdiscard(mycrib);			/* puts best discard at end */
@@ -232,6 +239,7 @@ discard(BOOLEAN mycrib)
 	remove_card(crd, phand, FULLHAND);
 	UIPrintHand (phand, FULLHAND, PLAYER, FALSE);
 	crib[0] = crd;
+	UIPrintCrib (mycrib ? COMPUTER : PLAYER, &turnover, TRUE);
 /* next four lines same as last four except for cdiscard() */
 	crd = phand[UIGetPlayerCard(phand, FULLHAND - 1, prompt)];
 	remove_card(crd, phand, FULLHAND - 1);
@@ -240,6 +248,7 @@ discard(BOOLEAN mycrib)
 	crib[2] = chand[4];
 	crib[3] = chand[5];
 	chand[4].rank = chand[4].suit = chand[5].rank = chand[5].suit = EMPTY;
+	UIPrintCrib (mycrib ? COMPUTER : PLAYER, &turnover, TRUE);
 }
 
 /*
@@ -474,9 +483,9 @@ score(BOOLEAN mycrib)
 		return TRUE;
 	    if (comphand(chand, "hand"))
 		return TRUE;
-	    UIPause();
+	    UIWait();
             r = comphand(crib, "crib");
-            UIPause();
+            UIWait();
 	    if (r)
 		return TRUE;
 	}

@@ -65,6 +65,8 @@ Widget	    score;
 #define NUM_COLS    13
 #define NUM_CARDS   52
 
+#define MAX_SCORE 336
+
 CardStackRec	cardStacks[NUM_CARDS];
 CardStackRec	deckStack;
 CardRec		rawcards[NUM_CARDS];
@@ -331,6 +333,18 @@ ResetDealNumber (void *closure)
 }
 
 static void
+CheckWin(void)
+{
+    int score = ComputeScore();
+    if (dealNumber > NUM_DEALS)
+        score += 100 * (dealNumber - NUM_DEALS);
+    if (score == MAX_SCORE)
+        Message(message, "We have a winner!");
+    else
+        Message(message, "");
+}
+
+static void
 Deal (void)
 {
     ForAllCardVars;
@@ -374,6 +388,7 @@ Deal (void)
     DisplayStacks ();
     CardSetAnimate (True);
     CardNextHistory ();
+    CheckWin();
 }
 
 static void
@@ -411,8 +426,8 @@ Undo (void)
 static void
 Score (void)
 {
-    Message (message, "Current position scores %d out of 336.",
-	     ComputeScore ());
+    Message (message, "Current position scores %d out of %d.",
+	     ComputeScore (), MAX_SCORE);
 }
 
 static void
@@ -532,6 +547,7 @@ Play (CardStackPtr from_stack, CardStackPtr to_stack)
 	}
     }
     MontanaDo (from_stack, to_stack);
+    CheckWin();
 }
 
 #define MAX_MOVES   16
@@ -634,9 +650,9 @@ BestMove (void)
     card = s.moves[best][0]->last;
     if (card->card.rank == Cards2)
 	Message (message, "Play the %P in column %d (%d)",
-		 card->card, s.moves[best][1]->position, score);
+		 &card->card, s.moves[best][1]->position, score);
     else
-	Message (message, "Play the %P (%d)", card->card, score);
+	Message (message, "Play the %P (%d)", &card->card, score);
 }
 
 static void
@@ -701,7 +717,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     if (*input->num_params > 0)
         type = input->params[0];
 
-    stack = &cardStacks[input->row * NUM_COLS + input->col];
+    stack = &cardStacks[input->current.row * NUM_COLS + input->current.col];
     startStack = &cardStacks[input->start.row * NUM_COLS + input->start.col];
 
 #define MOVE	0
@@ -718,8 +734,11 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
 	    i = SELECT;
         break;
     case HandActionDrag:
-        return;
-    case HandActionStop:
+        CardSetAnimate(False);
+        i = MOVE;
+        break;
+    case HandActionClick:
+        CardSetAnimate(True);
 	if (hintStack)
 	    i = UNHINT;
 	else
@@ -732,13 +751,16 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
         else
             hintForward = True;
         break;
+    case HandActionUnexpand:
+        i = UNHINT;
+        break;
     }
 
     switch (i) {
     case HINT:
 	if (!stack->last)
 	{
-	    if (input->col == 0)
+	    if (input->current.col == 0)
 		return;
 	    stack = stack - 1;
 	    hintForward = False;
@@ -801,6 +823,15 @@ UndoCallback (Widget w, XtPointer closure, XtPointer data)
     (void) closure;
     (void) data;
     Undo ();
+}
+
+static void
+HintCallback (Widget w, XtPointer closure, XtPointer data)
+{
+    (void) w;
+    (void) closure;
+    (void) data;
+    BestMove ();
 }
 
 static void
@@ -940,14 +971,13 @@ XtResource resources[] = {
     { "animationSpeed", "AnimationSpeed", XtRInt, sizeof (int),
      offset(animationSpeed), XtRImmediate, (XtPointer) -1},
     { "searchDepth", "SearchDepth", XtRInt, sizeof (int),
-     offset(searchDepth), XtRImmediate, (XtPointer) 20},
+     offset(searchDepth), XtRImmediate, (XtPointer) 40},
 };
 
 XrmOptionDescRec options[] = {
-    { "-smallCards",	"*Cards.smallCards",	XrmoptionNoArg, "True", },
-    { "-squareCards",	"*Cards.roundCards",	XrmoptionNoArg, "False", },
     { "-noanimate",	"*animationSpeed",	XrmoptionNoArg, "0", },
-    { "-animationSpeed",	"*animationSpeed",	XrmoptionSepArg, NULL },
+    { "-animationSpeed","*animationSpeed",	XrmoptionSepArg, NULL },
+    { "-searchDepth",   "*searchDepth",         XrmoptionSepArg, NULL },
 };
 
 int
@@ -986,6 +1016,9 @@ main (int argc, char **argv)
     undo = XtCreateManagedWidget ("undo", kcommandWidgetClass,
 				  menuBar, NULL, ZERO);
     XtAddCallback(undo, XtNcallback, UndoCallback, NULL);
+    hint = XtCreateManagedWidget ("hint", kcommandWidgetClass,
+				  menuBar, NULL, ZERO);
+    XtAddCallback(hint, XtNcallback, HintCallback, NULL);
     score = XtCreateManagedWidget ("score", kcommandWidgetClass,
 				   menuBar, NULL, ZERO);
     XtAddCallback(score, XtNcallback, ScoreCallback, NULL);

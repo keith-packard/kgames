@@ -25,6 +25,8 @@
  */
 
 #include	<stdlib.h>
+#include        <stdint.h>
+#include        <assert.h>
 #include	<X11/Intrinsic.h>
 #include	<X11/StringDefs.h>
 #include	<X11/Shell.h>
@@ -75,6 +77,8 @@ Widget      gameState;
 #define NUM_KINGS 4
 #define NUM_CARDS   104
 
+#define MAX_SCORE   104
+
 CardStackRec deckStack;
 CardStackRec drawStack;
 CardStackRec tmpStack;
@@ -96,8 +100,7 @@ int         reserveCountNumber;
 #define	STACK_TYPE_ACE		1
 #define	STACK_TYPE_KING		2
 #define	STACK_TYPE_RESERVE	3
-#define	STACK_TYPE_DEAL		4
-#define	STACK_TYPE_DRAW		5
+#define	STACK_TYPE_DRAW		4
 
 static int
 StackType(CardStackPtr stack)
@@ -108,7 +111,7 @@ StackType(CardStackPtr stack)
         stack->widget == row4)
         return STACK_TYPE_RESERVE;
     if (stack->widget == draw)
-        return STACK_TYPE_DEAL;
+        return STACK_TYPE_DRAW;
     if (stack->widget == aces)
         return STACK_TYPE_ACE;
     if (stack->widget == kings)
@@ -118,7 +121,6 @@ StackType(CardStackPtr stack)
 
 CardStackPtr fromStack;
 CardPtr     fromCard;
-int         dealNumber;
 Bool        initialDeal;
 Bool        hard = False;
 
@@ -214,6 +216,12 @@ GetKingsAndAces(void)
     CardsSuit   aces_found[NUM_ACES],
                 kings_found[NUM_KINGS];
 
+    for (i = 0; i < NUM_ACES; i++)
+        aces_found[i] = CardsNone;
+
+    for (i = 0; i < NUM_KINGS; i++)
+        kings_found[i] = CardsNone;
+
     /* walk thru deck, pulling out aces & kings, tossing rest on tmp */
     while ((card = deckStack.last)) {
 	if (card->card.rank == CardsAce) {
@@ -245,32 +253,72 @@ GetKingsAndAces(void)
     }
 
     /* move tmp back to deck */
+    i = 0;
     while ((card = tmpStack.last)) {
 	CardMove(&tmpStack, card, &deckStack, False);
+        i++;
     }
+    assert (i == 104 - NUM_ACES - NUM_KINGS);
+}
+
+static void
+AddSeen(CardStackPtr stack, uint8_t *seen)
+{
+    CardPtr c;
+
+    for (c = stack->first; c; c = c->next) {
+        int i = c - rawcards;
+        if (seen[i]) {
+            printf("seen twice %d\n", i);
+            assert(0);
+        }
+        seen[i] = 1;
+    }
+}
+
+static void
+ValidateCards(void)
+{
+    uint8_t seen[NUM_CARDS];
+    int s;
+
+    memset(seen, '\0', sizeof(seen));
+    AddSeen(&deckStack, seen);
+    AddSeen(&drawStack, seen);
+    AddSeen(&tmpStack, seen);
+    for (s = 0; s < NUM_ROWS * NUM_COLS; s++)
+        AddSeen(&stackStacks[s], seen);
+    for (s = 0; s < NUM_ACES; s++)
+        AddSeen(&aceStacks[s], seen);
+    for (s = 0; s < NUM_KINGS; s++)
+        AddSeen(&kingStacks[s], seen);
+
+    for (s = 0; s < NUM_CARDS; s++)
+        if (!seen[s]) {
+            printf("lost %d\n", s);
+            assert(0);
+        }
 }
 
 static void
 FirstDeal (void)
 {
-    int         row,
-                col;
+    int         s;
     CardStackPtr stack;
 
     GetKingsAndAces();
-    for (row = 0, stack = stackStacks; row < NUM_ROWS; row++) {
-	for (col = 0; col < NUM_COLS; col++, stack++) {
-	    CardMove(&deckStack, deckStack.last, stack, False);
-	    CardTurn(stack->last, CardFaceUp, False);
-	}
+    for (s = 0; s < NUM_ROWS * NUM_COLS; s++) {
+        stack = &stackStacks[s];
+        CardMove(&deckStack, deckStack.last, stack, False);
+        CardTurn(stack->last, CardFaceUp, False);
     }
-    dealNumber = (52 * 2) - (NUM_ROWS * NUM_COLS) - 8;
     ShowDealNumber();
     game_state = GAME_DEAL;
     ShowGameState();
     reserveCountNumber = 0;
     ShowReserveCount();
     initialDeal = True;
+    ValidateCards();
 }
 
 /*
@@ -356,6 +404,7 @@ DisplayStacks (void)
     CardsUpdateDisplay(row2);
     CardsUpdateDisplay(row3);
     CardsUpdateDisplay(row4);
+    ValidateCards();
 }
 
 /* User interface functions */
@@ -379,7 +428,12 @@ ShowReserveCount(void)
 static void
 ShowDealNumber(void)
 {
-    Message(deckCount, "Cards left: %d", dealNumber);
+    CardPtr c;
+    int i = 0;
+
+    for (c = deckStack.first; c; c = c->next)
+        i++;
+    Message(deckCount, "Cards left: %d", i);
 }
 
 static void
@@ -387,13 +441,6 @@ ResetReserveCount(void *closure)
 {
     reserveCountNumber = (int) (intptr_t) closure;
     ShowReserveCount();
-}
-
-static void
-ResetDealNumber(void *closure)
-{
-    dealNumber = (int) (intptr_t) closure;
-    ShowDealNumber();
 }
 
 static void
@@ -421,9 +468,8 @@ Deal(Bool autoplay)
     }
     CardMove(&deckStack, deckStack.last, &drawStack, True);
     CardTurn(drawStack.last, CardFaceUp, True);
-    CardRecordHistoryCallback(ResetDealNumber, (void *) (intptr_t) dealNumber);
-    --dealNumber;
     ShowDealNumber();
+    ValidateCards();
 }
 
 static void
@@ -437,9 +483,8 @@ FillSpace(CardStackPtr to_stack)
 	return;
     CardMove(&deckStack, deckStack.last, to_stack, True);
     CardTurn(to_stack->last, CardFaceUp, True);
-    CardRecordHistoryCallback(ResetDealNumber, (void *) (intptr_t) dealNumber);
-    --dealNumber;
     ShowDealNumber();
+    ValidateCards();
 }
 
 static void
@@ -474,8 +519,8 @@ Undo (void)
 static void
 Score (void)
 {
-    Message(message, "Current position scores %d out of 104.",
-	    ComputeScore());
+    Message(message, "Current position scores %d out of %d.",
+	    ComputeScore(), MAX_SCORE);
 }
 
 static void
@@ -577,6 +622,7 @@ Play(CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 		}
 	    }
 	}
+        assert (from_stack != to_stack);
 	CardMove(from_stack, from_card, to_stack, True);
 	if (to_type == STACK_TYPE_RESERVE) {
 	    CardRecordHistoryCallback(ResetReserveCount, (void *) (intptr_t) reserveCountNumber);
@@ -596,6 +642,10 @@ Play(CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 	break;
     }
     DisplayStacks();
+    if (ComputeScore() == MAX_SCORE)
+        Message(message, "We have a winner!");
+    else
+        Message(message, "");
 }
 
 static void
@@ -691,7 +741,7 @@ DeckCallback (Widget w, XtPointer closure, XtPointer data)
     (void) w;
     (void) closure;
     (void) data;
-    if (input->action == HandActionStart)
+    if (input->action == HandActionClick)
         StartDeal();
 }
 
@@ -726,7 +776,7 @@ StackCallback (Widget w, XtPointer closure, XtPointer data)
     CardPtr     card;
     int         to_type;
 
-    stack = WidgetToStack(w, input->row, input->col);
+    stack = WidgetToStack(w, input->current.row, input->current.col);
     startStack = WidgetToStack(input->start.w, input->start.row, input->start.col);
 
     if (!startStack || !stack)
@@ -739,8 +789,10 @@ StackCallback (Widget w, XtPointer closure, XtPointer data)
         Message(message, "");
         break;
     case HandActionDrag:
-        break;
-    case HandActionStop:
+        if (startStack == stack)
+            break;
+        /* fall through ... */
+    case HandActionClick:
         if (startStack->last)
             card = startStack->last;
         else if (game_state == GAME_DEAL) {
@@ -761,6 +813,9 @@ StackCallback (Widget w, XtPointer closure, XtPointer data)
         break;
     case HandActionExpand:
         Expand(stack);
+        break;
+    case HandActionUnexpand:
+        Message(message, "");
         break;
     }
 }

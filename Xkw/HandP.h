@@ -66,6 +66,13 @@ extern HandClassRec handClassRec;
 
 typedef enum { ClipUnclipped, ClipPartclipped, ClipAllclipped } HandClip;
 
+typedef enum {
+    ActionExpand,
+    ActionStart,
+    ActionDrag,
+    ActionStop,
+} Action;
+
 typedef struct _HandCard {
     struct xkw_list list;
     XtPointer	    private;
@@ -81,6 +88,15 @@ HandShowAllCards (Widget gw);
 
 void
 HandHideCard (Widget gw, CardPtr c);
+
+Bool
+HandCardInRegion (HandWidget w, CardPtr card, Region region);
+
+void
+HandCardRectangle(HandWidget w, CardPtr card, XRectangle *c);
+
+void
+HandDrag(HandInputPtr input, Action action);
 
 typedef struct {
     /*
@@ -106,13 +122,15 @@ typedef struct {
     Boolean	    force_erase;	/* erase stack even if card replaces */
     XtCallbackList  display_callback;	/* func to display cards */
     XtCallbackList  input_callback;	/* func called on button press */
-    Boolean         want_forward;       /* does this widget want event forwarding */
+    HandSelect      select;             /* what cards to select for drag */
 
     /* List of cards could be changed by resource, but easier by func */
     struct xkw_list cards;
     Region	    damage;		/* Damage caused by card changes */
     Dimension	    real_col_offset;	/* when widget gets reshaped, */
     Dimension	    real_row_offset;	/*  the offset values are adjusted */
+    XtWorkProcId    update_proc;
+    XtIntervalId    erase_proc;
 
 } HandPart;
 

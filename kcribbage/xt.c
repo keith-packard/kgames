@@ -58,6 +58,7 @@ static Widget	    computer;
 static Widget	    message;
 static Widget	    player;
 static Widget	    table;
+static Widget       deckWidget;
 static Widget	    playcrib;
 static Widget	    playName;
 static Widget	    playScore;
@@ -87,6 +88,7 @@ static CribbageCardRec	playerCards[NUM_CARDS];
 static CribbageCardRec	tableCards[NUM_CARDS];
 static CribbageCardRec	playcribCards[NUM_CARDS];
 static CribbageCardRec	compcribCards[NUM_CARDS];
+static CribbageCardRec  deckCards[1];
 
 #define SCORE_WIDTH	41
 #define SCORE_HEIGHT	9
@@ -137,14 +139,9 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     (void) closure;
 
     switch (input->action) {
-    case HandActionStop:
-        if (input->w == input->start.w &&
-            input->col == input->start.col &&
-            input->row == input->start.row)
-        {
-            selectedCard = input->row;
-            cardSelected = True;
-        }
+    case HandActionClick:
+        selectedCard = input->current.col;
+        cardSelected = True;
         break;
     default:
         break;
@@ -239,6 +236,7 @@ UIInit (int argc, char **argv)
     XtAddCallback (playcrib, XtNinputCallback, InputCallback, NULL);
     compcrib = XtCreateManagedWidget ("compcrib", cardsWidgetClass, layout, NULL, 0);
     XtAddCallback (compcrib, XtNinputCallback, InputCallback, NULL);
+    deckWidget = XtCreateManagedWidget ("deck", cardsWidgetClass, layout, NULL, 0);
     message = XtCreateManagedWidget ("message", padWidgetClass, layout, NULL, 0);
     XtRealizeWidget (toplevel);
 }
@@ -303,6 +301,7 @@ UIRefresh (void)
     HandUpdateDisplay (table);
     HandUpdateDisplay (playcrib);
     HandUpdateDisplay (compcrib);
+    HandUpdateDisplay (deckWidget);
 }
 
 void
@@ -395,12 +394,8 @@ updateCards (Widget w, CARD *h, int n, CribbageCardPtr cards, BOOLEAN blank)
     {
 	if (h[i].rank == EMPTY)
 	{
-	    if (cards[i].private)
-	    {
-		CardsRemoveCard (w, cards[i].private);
-		cards[i].private = 0;
-		cards[i].card.suit = CardsNone;
-	    }
+            suit = CardsEmpty;
+            rank = CardsAce;
 	}
 	else
 	{
@@ -414,16 +409,16 @@ updateCards (Widget w, CARD *h, int n, CribbageCardPtr cards, BOOLEAN blank)
 		suit = CardsSuitMap[h[i].suit];
 		rank = CardsRankMap[h[i].rank];
 	    }
-	    if (cards[i].card.suit != suit || cards[i].card.rank != rank)
-	    {
-		cards[i].card.suit = suit;
-		cards[i].card.rank = rank;
-		if (cards[i].private)
-		    CardsReplaceCard (w, cards[i].private, &cards[i].card);
-		else
-		    cards[i].private = CardsAddCard (w, &cards[i].card, i, i);
-	    }
-	}
+        }
+        if (cards[i].card.suit != suit || cards[i].card.rank != rank)
+        {
+            cards[i].card.suit = suit;
+            cards[i].card.rank = rank;
+            if (cards[i].private)
+                CardsReplaceCard (w, cards[i].private, &cards[i].card);
+            else
+                cards[i].private = CardsAddCard (w, &cards[i].card, 0, i);
+        }
     }
     for (; i < NUM_CARDS; i++) {
 	if (cards[i].private)
@@ -438,7 +433,22 @@ updateCards (Widget w, CARD *h, int n, CribbageCardPtr cards, BOOLEAN blank)
 void
 UIPrintHand (CARD *h, int n, int who, BOOLEAN blank)
 {
-    updateCards (widget (who), h, n, Cards(who), blank);
+    Widget              w;
+    CribbageCardPtr     cards;
+
+    if (h == crib) {
+        if (who == COMPUTER) {
+            w = compcrib;
+            cards = compcribCards;
+        } else {
+            w = playcrib;
+            cards = playcribCards;
+        }
+    } else {
+        w = widget(who);
+        cards = Cards(who);
+    }
+    updateCards (w, h, n, cards, blank);
 }
 
 void
@@ -462,8 +472,9 @@ UIPrintCrib (int who, CARD *card, BOOLEAN blank)
 	ocards = compcribCards;
     }
 
-    updateCards (w, card, 1, cards, blank);
-    updateCards (ow, NULL, 0, ocards, blank);
+    updateCards (w, crib, 4, cards, TRUE);
+    updateCards (ow, NULL, 0, ocards, TRUE);
+    updateCards (deckWidget, card, 1, deckCards, blank);
 }
 
 void

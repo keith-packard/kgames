@@ -96,6 +96,8 @@ static XtResource resources[] = {
       offset (foreground), XtRString, XtDefaultForeground },
     { XtNdpi, XtCDpi, XtRDpi, sizeof(double),
       offset (dpi), XtRString, "" },
+    {XtNwantForward, XtCWantForward, XtRBoolean, sizeof(Boolean),
+     offset(want_forward), XtRImmediate, (XtPointer) True},
 };
 #undef offset
 

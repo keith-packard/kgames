@@ -285,11 +285,13 @@ Undo (void)
     DisplayStacks ();
 }
 
+#define MAX_SCORE 728
+
 static void
 Score (void)
 {
-    Message (message, "Current position scores %d out of 728.",
-	     ComputeScore ());
+    Message (message, "Current position scores %d out of %d.",
+	     ComputeScore (), MAX_SCORE);
 }
 
 static void
@@ -370,6 +372,8 @@ Play (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 	}
     }
     CardMove (from_stack, from_card, to_stack, True);
+    if (ComputeScore() == MAX_SCORE)
+        Message(message, "We have a winner!");
 }
 
 static Boolean
@@ -509,7 +513,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
 
     (void) closure;
     Message (message, "");
-    stack = WidgetToStack(w, input->col);
+    stack = WidgetToStack(w, input->current.col);
     startStack = WidgetToStack(input->start.w, input->start.col);
 
     if (!startStack || !stack)
@@ -519,8 +523,10 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     case HandActionStart:
 	break;
     case HandActionDrag:
-	break;
-    case HandActionStop:
+        if (startStack == stack)
+            break;
+        /* fall through */
+    case HandActionClick:
 	if (startStack == &deckStack) {
 	    if (stack == &deckStack) {
 		Deal ();
@@ -542,6 +548,8 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
         break;
     case HandActionExpand:
         Expand (stack);
+        break;
+    case HandActionUnexpand:
         break;
     }
 }
