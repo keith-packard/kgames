@@ -608,6 +608,7 @@ MakeFirstMove (void)
     }
     if (max_domino)
     {
+        game_over = FALSE;
 	PlayerFirstMove (max_player, max_domino);
 	i = DISPLAY_BOARD;
 	if (max_player != &player[1])
