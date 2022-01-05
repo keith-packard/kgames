@@ -199,6 +199,9 @@ prscore(bool for_real);
 void
 animate_move (int player, int orig_type, int orig_arg, int dest_type, int dest_arg);
 
+void
+animate_enable (int enable);
+
 /* comp.c */
 void
 calcmove(void);

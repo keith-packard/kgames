@@ -537,6 +537,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     default:
         break;
     case HandActionClick:
+        animate_enable(1);
         if (input->start.w == human_hand)
         {
             Movetype = M_REASONABLE;
@@ -551,12 +552,21 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
         }
         break;
     case HandActionDrag:
+        if (input->start.w == input->current.w)
+            break;
+        animate_enable(0);
         if (input->start.w == human_hand) {
             if (input->current.w == human_miles ||
                 input->current.w == human_play ||
                 input->current.w == human_safeties)
             {
                 Movetype = M_PLAY;
+                getmove_done = 1;
+                Card_no = input->start.col;
+            }
+            else if (input->current.w == deck_hand)
+            {
+                Movetype = M_DISCARD;
                 getmove_done = 1;
                 Card_no = input->start.col;
             }
