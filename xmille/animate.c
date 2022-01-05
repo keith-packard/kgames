@@ -16,6 +16,8 @@ extern int	iscolor;
 extern double scale;
 double	animation_speed = .5;
 
+static int enabled = 1;
+
 static void
 do_animate (int ox, int oy, int dx, int dy);
 
@@ -30,10 +32,16 @@ animate_move (int player, int orig_type, int orig_arg, int dest_type, int dest_a
 {
 	int	ox, oy, dx, dy;
 
-	if (!animation_speed) return;
+	if (!animation_speed || (!enabled && player == PLAYER)) return;
 	compute_position (player, orig_type, orig_arg, &ox, &oy);
 	compute_position (player, dest_type, dest_arg, &dx, &dy);
 	do_animate (ox, oy, dx, dy);
+}
+
+void
+animate_enable(int enable)
+{
+    enabled = enable;
 }
 
 # define abs(x)	((x) < 0 ? -(x) : (x))
