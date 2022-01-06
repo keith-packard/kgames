@@ -29,6 +29,9 @@
 	<Key>Tab:	milleDraw()\n\
 	<Key>p:		milleDraw()
 
+*humanHand.translations: #override \n\
+	<Btn3Up>: stop(discard)
+
 *layout.layout: vertical {\
 MenuBarBorderWidth = 1\
 HumanHandBorderWidth = 1\

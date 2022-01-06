@@ -532,6 +532,10 @@ static void
 InputCallback (Widget w, XtPointer closure, XtPointer data)
 {
     HandInputPtr    input = (HandInputPtr) data;
+    String arg = "";
+
+    if (*input->num_params > 0)
+        arg = input->params[0];
 
     switch (input->action) {
     default:
@@ -540,7 +544,10 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
         animate_enable(1);
         if (input->start.w == human_hand)
         {
-            Movetype = M_REASONABLE;
+            if (strcmp(arg, "discard") == 0)
+                Movetype = M_DISCARD;
+            else
+                Movetype = M_REASONABLE;
             getmove_done = 1;
             Card_no = input->start.col;
         }
