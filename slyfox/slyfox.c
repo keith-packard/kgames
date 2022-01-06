@@ -784,6 +784,7 @@ StackCallback (Widget w, XtPointer closure, XtPointer data)
 
     to_type = StackType(stack);
 
+    CardSetAnimate(True);
     switch (input->action) {
     case HandActionStart:
         Message(message, "");
@@ -791,6 +792,7 @@ StackCallback (Widget w, XtPointer closure, XtPointer data)
     case HandActionDrag:
         if (startStack == stack)
             break;
+        CardSetAnimate(False);
         /* fall through ... */
     case HandActionClick:
         if (startStack->last)

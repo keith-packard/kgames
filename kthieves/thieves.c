@@ -519,12 +519,14 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     if (!startStack || !stack)
 	return;
 
+    CardSetAnimate(True);
     switch (input->action) {
     case HandActionStart:
 	break;
     case HandActionDrag:
         if (startStack == stack)
             break;
+        CardSetAnimate(False);
         /* fall through */
     case HandActionClick:
 	if (startStack == &deckStack) {

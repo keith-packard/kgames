@@ -629,12 +629,14 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     case HandActionStart:
         break;
     case HandActionClick:
+        CardSetAnimate(True);
         if (stack == &deckStack)
             Deal ();
         else
             Play(stack, NULL, stack);
         break;
     case HandActionDrag:
+        CardSetAnimate(False);
 	if (startStack == &deckStack) {
 	    if (&stackStacks[0] <= stack && stack < &stackStacks[NUM_STACKS])
 		Deal ();

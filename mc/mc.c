@@ -498,6 +498,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
             Message(message, "No move.");
             break;
         }
+        CardSetAnimate(True);
         Play(startStack, stack);
         DisplayStacks();
         break;
@@ -508,6 +509,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
             Message(message, "Selected space is empty.");
             break;
         }
+        CardSetAnimate(False);
         Play(startStack, stack);
         DisplayStacks();
 	break;

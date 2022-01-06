@@ -619,6 +619,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     case HandActionStart:
         break;
     case HandActionClick:
+        CardSetAnimate(True);
         if (stack == &deckStacks[0]) {
             if (!stack->last)
                 ResetDeck ();
@@ -636,6 +637,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
 	}
         break;
     case HandActionDrag:
+        CardSetAnimate(False);
         if (startStack == &deckStacks[0] && stack == &deckStacks[1]) {
             if (startStack->last) {
                 Deal ();

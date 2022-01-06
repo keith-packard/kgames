@@ -139,8 +139,11 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     (void) closure;
 
     switch (input->action) {
+    case HandActionDrag:
+        if (input->start.w == input->current.w)
+            break;
     case HandActionClick:
-        selectedCard = input->current.col;
+        selectedCard = input->start.col;
         cardSelected = True;
         break;
     default:
@@ -560,13 +563,11 @@ int
 UIReadChar (void)
 {
     int	    c;
-    XEvent  event;
 
     ShowCursor ();
     UIRefresh ();
     while (text_in == text_out) {
-	XtNextEvent (&event);
-	XtDispatchEvent (&event);
+	XtProcessEvent (XtIMAll);
     }
     c = textbuf[text_out++];
     if (text_out == text_in)
@@ -685,15 +686,13 @@ UIClearMsg (void)
 int
 UIGetPlayerCard (CARD *hand, int n, char *prompt)
 {
-    XEvent  event;
     for (;;) {
 	msg (prompt);
 	UIRefresh ();
 	cardSelected = False;
 	while (!cardSelected)
 	{
-	    XtNextEvent (&event);
-	    XtDispatchEvent (&event);
+            XtProcessEvent(XtIMAll);
 	}
 	if (0 <= selectedCard && selectedCard < n)
 	{
