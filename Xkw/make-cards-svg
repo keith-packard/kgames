@@ -22,6 +22,12 @@ esac
 	    echo ""
 	done
     done
+    
+    file="$dir"/cards/game.svg
+    echo "const char svg_card_game[]" =
+    sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/^/    "/' -e 's/$/\\n"/' "$file"
+    echo "    ;";
+    echo ""
 
     echo "const char *const svg_cards[52] = {"
     for suit in C D H S; do
@@ -37,4 +43,5 @@ esac
     echo '#define svg_card_width 270'
     echo '#define svg_card_height 420'
     echo "extern const char *const svg_cards[52];"
+    echo "extern const char svg_card_game[];"
 ) > "$2"

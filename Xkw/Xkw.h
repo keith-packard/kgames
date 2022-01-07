@@ -135,6 +135,9 @@ XkwDialogAddButton(Widget dialog, _Xconst char* name, XtCallbackProc function,
 RsvgHandle *
 XkwRsvgCreate(const char *str);
 
+void
+XkwRsvgDestroy(RsvgHandle *handle);
+
 double
 XkwRsvgAspect(RsvgHandle *rsvg);
 
@@ -170,6 +173,12 @@ XkwGetEventCoords(XEvent *e, Position *x, Position *y);
 
 Bool
 XkwForwardEvent(Widget to, Widget from, XEvent *e);
+
+void
+XkwSetIcon(Widget toplevel, const char *svg);
+
+void
+XkwSetCardIcon(Widget toplevel);
 
 _XFUNCPROTOEND
 

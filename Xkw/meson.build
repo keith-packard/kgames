@@ -57,6 +57,7 @@ srcs_xkw = [
   'Events.c',
   'Hand.c',
   'HandDrag.c',
+  'Icon.c',
   'Layout.c',
   'medium.c',
   'Message.c',

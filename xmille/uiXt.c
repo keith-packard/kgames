@@ -786,6 +786,9 @@ init_ui (int *argc, char **argv)
     newscore ();
     prscore (FALSE);
     XtRealizeWidget (toplevel);
+
+    XkwSetIcon(toplevel, icon.svg);
+
     yes_or_no_shell = XtCreatePopupShell ("yesOrNo", transientShellWidgetClass,
 			        toplevel, NULL, ZERO);
     yes_or_no_dialog = XtCreateManagedWidget ("yesOrNoDialog", layoutWidgetClass,

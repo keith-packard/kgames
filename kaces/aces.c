@@ -826,10 +826,6 @@ main (int argc, char **argv)
 			      &argc, argv, True,
 			      defaultResources);
 
-    Arg	args[1];
-    XtSetArg(args[0], XtNinput, True);
-    XtSetValues(toplevel, args, ONE);
-
     XtGetApplicationResources (toplevel, (XtPointer)&acesResources, resources,
 			       XtNumber (resources), NULL, 0);
 
@@ -876,6 +872,7 @@ main (int argc, char **argv)
 				   False);
     (void) XSetWMProtocols (XtDisplay(toplevel), XtWindow(toplevel),
                             &wm_delete_window, 1);
+    XkwSetCardIcon(toplevel);
 
     XtMainLoop ();
 }

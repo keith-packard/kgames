@@ -34,6 +34,12 @@ XkwRsvgCreate(const char *str)
 	return rsvg_handle_new_from_data((const guint8 *) str, strlen(str), &error);
 }
 
+void
+XkwRsvgDestroy(RsvgHandle *handle)
+{
+        g_object_unref(handle);
+}
+
 double
 XkwRsvgAspect(RsvgHandle *rsvg)
 {

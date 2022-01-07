@@ -803,5 +803,7 @@ main (int argc, char **argv)
     (void) XSetWMProtocols (XtDisplay(toplevel), XtWindow(toplevel),
                             &wm_delete_window, 1);
 
+    XkwSetCardIcon(toplevel);
+
     XtMainLoop ();
 }

@@ -240,6 +240,7 @@ UIInit (int argc, char **argv)
     deckWidget = XtCreateManagedWidget ("deck", cardsWidgetClass, layout, NULL, 0);
     message = XtCreateManagedWidget ("message", padWidgetClass, layout, NULL, 0);
     XtRealizeWidget (toplevel);
+    XkwSetCardIcon(toplevel);
 }
 
 void
