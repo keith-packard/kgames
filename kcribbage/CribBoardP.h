@@ -47,17 +47,18 @@ typedef struct _CribBoardClassRec {
 
 extern CribBoardClassRec cribBoardClassRec;
 
+#define NUM_PEG         2
+#define NUM_PLAYER      2
+
 typedef struct {
     /* resources */
-    XRenderColor    pegColor;
+    XRenderColor    pegColor[NUM_PLAYER];
     XRenderColor    holeColor;
-    XRenderColor    trackColor;
-    int		    numPegs;
     int		    numCols;
     int		    numRows;
 
     /* private state */
-    int		    *pegs;
+    int             pegs[NUM_PLAYER][NUM_PEG];
 } CribBoardPart;
 
 typedef struct _CribBoardRec {

@@ -61,9 +61,8 @@ static Widget	    table;
 static Widget       deckWidget;
 static Widget	    playcrib;
 static Widget	    playName;
-static Widget	    playScore;
 static Widget	    compName;
-static Widget	    compScore;
+static Widget	    scoreWidget;
 static Widget	    compcrib;
 static Widget	    tableScore;
 
@@ -232,9 +231,8 @@ UIInit (int argc, char **argv)
     XtAddCallback (table, XtNinputCallback, InputCallback, NULL);
     tableScore = XtCreateManagedWidget ("tableScore", klabelWidgetClass, layout, NULL, 0);
     playName = XtCreateManagedWidget ("playname", klabelWidgetClass, layout, NULL, 0);
-    playScore = XtCreateManagedWidget ("playscore", cribBoardWidgetClass, layout, NULL, 0);
+    scoreWidget = XtCreateManagedWidget ("score", cribBoardWidgetClass, layout, NULL, 0);
     compName = XtCreateManagedWidget ("compname", klabelWidgetClass, layout, NULL, 0);
-    compScore = XtCreateManagedWidget ("compscore", cribBoardWidgetClass, layout, NULL, 0);
     playcrib = XtCreateManagedWidget ("playcrib", cardsWidgetClass, layout, NULL, 0);
     XtAddCallback (playcrib, XtNinputCallback, InputCallback, NULL);
     compcrib = XtCreateManagedWidget ("compcrib", cardsWidgetClass, layout, NULL, 0);
@@ -263,22 +261,22 @@ static int compPegs[2];
 static int playPegs[2];
 
 static void
-resetPegs (Widget w, int *pegs)
+resetPegs (Widget w, int who, int *pegs)
 {
     int	    i;
 
     for (i = 0; i < 2; i++)
     {
 	pegs[i] = CribBoardUnset;
-	XkwCribBoardSetPeg (w, i, CribBoardUnset);
+	XkwCribBoardSetPeg (w, who, i, CribBoardUnset);
     }
 }
 
 void
 UIInitBoard (void)
 {
-    resetPegs (compScore, compPegs);
-    resetPegs (playScore, playPegs);
+    resetPegs (scoreWidget, PLAYER, playPegs);
+    resetPegs (scoreWidget, COMPUTER, compPegs);
     Message(compName, "My score");
     Message(playName, "Your score");
 }
@@ -490,7 +488,6 @@ UITableScore (int score, int n)
 void
 UIPrintPeg (int score, BOOLEAN on, int who)
 {
-    Widget	w;
     Widget      l;
     int		*pegs;
     int		i;
@@ -498,14 +495,12 @@ UIPrintPeg (int score, BOOLEAN on, int who)
 
     if (who == COMPUTER)
     {
-	w = compScore;
         l = compName;
 	pegs = compPegs;
         label = "My";
     }
     else
     {
-	w = playScore;
         l = playName;
 	pegs = playPegs;
         label = "Your";
@@ -530,7 +525,7 @@ UIPrintPeg (int score, BOOLEAN on, int who)
 	    i = 1;
     }
     pegs[i] = score;
-    XkwCribBoardSetPeg (w, i, score - 1);
+    XkwCribBoardSetPeg (scoreWidget, who, i, score - 1);
     Message(l, "%s score: %d", label, score);
 }
 

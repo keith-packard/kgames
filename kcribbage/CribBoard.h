@@ -49,7 +49,10 @@
 
 /* define any special resource names here that are not in <X11/StringDefs.h> */
 
-#define XtNpegColor "pegColor"
+#define XtNpeg1Color "peg1Color"
+#define XtNpeg2Color "peg2Color"
+#define XtNpeg3Color "peg3Color"
+#define XtNpeg4Color "peg4Color"
 #define XtNholeColor "holeColor"
 #define XtNpegSize "pegSize"
 #define XtCPegSize "PegSize"
@@ -78,6 +81,6 @@ typedef struct _CribBoardRec*	    CribBoardWidget;
 extern WidgetClass cribBoardWidgetClass;
 
 void
-XkwCribBoardSetPeg (Widget gw, int i, int v);
+XkwCribBoardSetPeg (Widget gw, int i, int p, int v);
 
 #endif /* _CribBoard_h */

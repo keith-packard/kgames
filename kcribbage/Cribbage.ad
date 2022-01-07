@@ -7,8 +7,8 @@
 *tableScore.Foreground: #fffff0
 *table.Background: #337744
 *table.Foreground: #fffff0
-*playscore.pegColor: red
-*compscore.pegColor: blue
+*score.peg1Color: #ff1010
+*score.peg2Color: #1010ff
 
 *borderWidth: 0
 *SimpleMenu.borderWidth: 1
@@ -37,8 +37,10 @@
 *table.overlap: both
 
 *playname.label: Your score
+*playname.Foreground: #ff0000
 *playname.justify: left
 *compname.label: My score
+*compname.Foreground: #0000ff
 *compname.justify: left
 
 *playcrib.numRows: 1
@@ -96,9 +98,8 @@
 		} \
 		vertical { \
 			playname < +inf * -100% >\
-			playscore < +1 -1 * +1 -1 >\
+			score < +1 -1 * +1 -1 >\
 			compname < +inf * -100% >\
-			compscore < +1 -1 * +1 -1 >\
 			message < * +inf -inf > \
 		} \
 		-1 \
