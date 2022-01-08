@@ -19,7 +19,12 @@
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 #
-res_files = res_gen.process('Reversi.ad')
+ad_file = configure_file(input: 'Reversi.ad.in',
+                         output: '@BASENAME@',
+                         configuration: conf_data,
+                         install: false)
+
+res_files = res_gen.process(ad_file)
 
 srcs_reversi = [
   'corners.c',
@@ -59,11 +64,25 @@ edges_c = custom_target('edges.c',
 			capture: true,
 			command : [makeedge, '@INPUT@'])
 
+make_xreversi_svg = find_program('make-xreversi-svg')
+
+icon_files = custom_target('xreversi-icon',
+			   depend_files : 'xreversi.svg',
+			   output : ['xreversi-svg.c', 'xreversi-svg.h'],
+			   command : [make_xreversi_svg, '@OUTPUT0@', '@OUTPUT1@'])
+
 executable('xreversi',
-	   srcs_reversi, edges_c, res_files,
+	   srcs_reversi, edges_c, res_files, icon_files,
 	   include_directories: inc,
 	   dependencies: [x_libs],
 	   link_with: [lib_xkw],
 	   install: true)
 
 install_man('xreversi.6')
+
+install_data('xreversi.svg', install_dir : svg_icon_dir)
+
+configure_file(input: 'xreversi.desktop.in',
+	       output: '@BASENAME@',
+	       configuration: conf_data,
+	       install_dir : desktop_dir)

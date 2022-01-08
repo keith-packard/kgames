@@ -13,7 +13,7 @@
 
 *allowShellResize: True
 *message.justify: left
-*message.label: Keith's Dominos, Version 1.0
+*message.label: Keith's Dominos, Version @KGAMES_VERSION@
 *Command.borderWidth: 1
 *borderWidth: 0
 *menuBar.layout: vertical { \

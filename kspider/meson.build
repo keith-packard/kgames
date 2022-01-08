@@ -19,7 +19,12 @@
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 #
-res_files = res_gen.process('KSpider.ad')
+ad_file = configure_file(input: 'KSpider.ad.in',
+                         output: '@BASENAME@',
+                         configuration: conf_data,
+                         install: false)
+
+res_files = res_gen.process(ad_file)
 
 executable('kspider',
 	   'spider.c', res_files,
@@ -28,3 +33,7 @@ executable('kspider',
 	   link_with: [lib_xkw],
 	   install: true)
 install_man('kspider.6')
+configure_file(input: 'kspider.desktop.in',
+	       output: '@BASENAME@',
+	       configuration: conf_data,
+	       install_dir : desktop_dir)

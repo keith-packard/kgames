@@ -16,7 +16,7 @@
 
 *error.justify:		left
 *error.borderWidth:	0
-*error.Label:
+*error.Label:		XReversi Version @KGAMES_VERSION@
 
 *quit.Label:		Quit
 *hint.Label:		Hint

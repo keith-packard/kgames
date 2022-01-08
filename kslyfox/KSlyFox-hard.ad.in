@@ -69,7 +69,7 @@
 	<BtnUp>:	select(dest)
 
 *message.justify: left
-*message.label: Sly Fox (hard), Version 0.9
+*message.label: Sly Fox (hard), Version @KGAMES_VERSION@
 
 *row1.borderWidth: 0
 *row2.borderWidth: 0

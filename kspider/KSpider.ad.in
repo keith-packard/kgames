@@ -5,22 +5,28 @@
 *borderWidth: 0
 *SimpleMenu.borderWidth: 1
 
-*deck.numCols: 2
+*deck.numCols: 1
 *deck.numRows: 1
 
-*piles.numCols: 4
+*piles.numCols: 8
 *piles.numRows: 1
 
 *Cards.immediateUpdate: False
 
-*stacks.numCols: 7
-*stacks.numRows: 9
+*stacks.numCols: 10
+*stacks.numRows: 7
 *stacks.rowsHint: True
 *stacks.overlap: vertical
 *stacks.immediate_update: false
 
+*frame.translations: #override \
+	<Key>u:		spiderUndo()\n\
+	<Key>n:		spiderNewGame()\n\
+	<Key>s:		spiderScore()\n\
+	<Key>?:		spiderFindAMove()
+
 *message.justify: left
-*message.label: Keith's Aces Up, Version 1.0
+*message.label: Keith's Spider, Version @KGAMES_VERSION@
 *menuBar.layout: vertical { \
 	5 < -5 >\
 	horizontal { \
@@ -34,16 +40,12 @@
 		hint \
 		5 < -5 > \
 		score \
-		5 < -5 > \
-		pileAll \
 		0 <+inf -inf> \
 	} \
 	5 < -5 > \
 }
 *frame.layout: vertical {\
-	horizontal {\
-		menuBar < +inff -100% * >\
-	} \
+	menuBar < +inff -100% * >\
 	10 < -inf > \
 	horizontal { \
 		10 < -inf > \
@@ -54,9 +56,7 @@
 	} \
 	10 < -inf > \
 	stacks < -50% * +inf -50% > \
-	horizontal { \
-		message < +inff -100% * > \
-	} \
+	message < +inff -100% * > \
 }
 
 *fileMenuButton.leftBitmap: menu12
@@ -76,12 +76,10 @@
 
 *score.label: Score
 
-*pileAll.label: Fill Piles
-
 *Command.shapeStyle: oval
 
 *frame.translations: #override \
-	<Key>u:		acesUndo()\n\
-	<Key>n:		acesNewGame()\n\
-	<Key>s:		acesScore()\n\
-	<Key>?:		acesFindAMove()
+	<Key>u:		spiderUndo()\n\
+	<Key>n:		spiderNewGame()\n\
+	<Key>s:		spiderScore()\n\
+	<Key>?:		spiderFindAMove()

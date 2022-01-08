@@ -5,35 +5,27 @@
 *borderWidth: 0
 *SimpleMenu.borderWidth: 1
 
-*cards.numCols: 13
-*cards.numRows: 4
-*cards.overlap: none
-*smallCards: true
-*cards.immediateUpdate: False
-*cards.rowMajor: True
+*deck.numCols: 2
+*deck.numRows: 1
 
-*cards.translations: #override \
-	Shift<BtnDown>: expand(hint-previous)\n\
-	Shift<BtnUp>:\n\
-	<Btn4Down>: zoomout()\n\
-	<Btn4Up>:\n\
-	<Btn5Down>: zoomin()\n\
-	<Btn5Up>:\n\
-	<Btn1Down>: start()\n\
-	<BtnDown>: expand(hint)\n\
-	<BtnMotion>: drag()\n\
-	<BtnUp>: stop()
+*piles.numCols: 4
+*piles.numRows: 1
+
+*Cards.immediateUpdate: False
+
+*stacks.numCols: 7
+*stacks.numRows: 9
+*stacks.rowsHint: True
+*stacks.overlap: vertical
+*stacks.immediate_update: false
 
 *message.justify: left
-
-*message.label: Keith's Montana, Version 1.0
+*message.label: Keith's Aces Up, Version @KGAMES_VERSION@
 *menuBar.layout: vertical { \
 	5 < -5 >\
 	horizontal { \
 		5 < -5 > \
 		fileMenuButton \
-		5 < -5 > \
-		deal \
 		5 < -5 > \
 		newGame \
 		5 < -5 > \
@@ -42,6 +34,8 @@
 		hint \
 		5 < -5 > \
 		score \
+		5 < -5 > \
+		pileAll \
 		0 <+inf -inf> \
 	} \
 	5 < -5 > \
@@ -51,9 +45,16 @@
 		menuBar < +inff -100% * >\
 	} \
 	10 < -inf > \
-	cards < +100% -100% * +100% -100% > \
 	horizontal { \
-		dealDisplay < -100% * > \
+		10 < -inf > \
+		deck < -75% * -90% > \
+		10 < +inf -inf > \
+		piles < -100% * -90% > \
+		10 < -inf > \
+	} \
+	10 < -inf > \
+	stacks < -50% * +inf -50% > \
+	horizontal { \
 		message < +inff -100% * > \
 	} \
 }
@@ -71,16 +72,16 @@
 
 *undo.label: Undo
 
-*deal.label: Deal
+*hint.label: Hint
 
 *score.label: Score
 
-*hint.label: Hint
+*pileAll.label: Fill Piles
 
 *Command.shapeStyle: oval
 
 *frame.translations: #override \
-	<Key>u:		montanaUndo()\n\
-	<Key>n:		montanaNewGame()\n\
-	<Key>s:		montanaScore()\n\
-	<Key>?:		montanaBestMove()
+	<Key>u:		acesUndo()\n\
+	<Key>n:		acesNewGame()\n\
+	<Key>s:		acesScore()\n\
+	<Key>?:		acesFindAMove()

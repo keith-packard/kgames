@@ -19,7 +19,12 @@
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 #
-res_files = res_gen.process('KTabby.ad')
+ad_file = configure_file(input: 'KTabby.ad.in',
+                         output: '@BASENAME@',
+                         configuration: conf_data,
+                         install: false)
+
+res_files = res_gen.process(ad_file)
 
 executable('ktabby',
 	   'tabby.c', res_files,
@@ -28,3 +33,7 @@ executable('ktabby',
 	   link_with: [lib_xkw],
 	   install: true)
 install_man('ktabby.6')
+configure_file(input: 'ktabby.desktop.in',
+	       output: '@BASENAME@',
+	       configuration: conf_data,
+	       install_dir : desktop_dir)

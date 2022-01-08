@@ -19,7 +19,12 @@
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 #
-res_files = res_gen.process('KMontana.ad')
+ad_file = configure_file(input: 'KMontana.ad.in',
+                         output: '@BASENAME@',
+                         configuration: conf_data,
+                         install: false)
+
+res_files = res_gen.process(ad_file)
 
 executable('kmontana',
 	   'montana.c', res_files,
@@ -28,3 +33,7 @@ executable('kmontana',
 	   link_with: [lib_xkw],
 	   install: true)
 install_man('kmontana.6')
+configure_file(input: 'kmontana.desktop.in',
+	       output: '@BASENAME@',
+	       configuration: conf_data,
+	       install_dir : desktop_dir)

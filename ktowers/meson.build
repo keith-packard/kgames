@@ -19,7 +19,12 @@
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 #
-res_files = res_gen.process('KTowers.ad')
+ad_file = configure_file(input: 'KTowers.ad.in',
+                         output: '@BASENAME@',
+                         configuration: conf_data,
+                         install: false)
+
+res_files = res_gen.process(ad_file)
 
 executable('ktowers',
 	   'ktowers.c', res_files,
@@ -28,3 +33,7 @@ executable('ktowers',
 	   link_with: [lib_xkw],
 	   install: true)
 install_man('ktowers.6')
+configure_file(input: 'ktowers.desktop.in',
+	       output: '@BASENAME@',
+	       configuration: conf_data,
+	       install_dir : desktop_dir)

@@ -52,10 +52,22 @@ svg_icon_dir = datadir / 'icons/hicolor/scalable/apps'
 
 desktop_dir = datadir / 'applications'
 
+conf_data = configuration_data()
+conf_data.set('KGAMES_VERSION', meson.project_version(),
+	      description: 'KGames version in unquoted string form.')
+conf_data.set('KGAMES_VERSION_STRING',
+	      '"@0@"'.format(meson.project_version()),
+	      description: 'KGames version in quoted string form.')
+conf_data.set('BINDIR', prefix / bindir)
+conf_data.set('ICONDIR', prefix / svg_icon_dir)
+
 inc_dirs = ['.']
 
-
 inc = include_directories(inc_dirs)
+
+configure_file(output : 'kgames.h',
+	       configuration: conf_data,
+	       install: false)
 
 subdir('Xkw')
 subdir('kaces')

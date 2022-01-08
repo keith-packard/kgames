@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=KTowers
+GenericName=Solitaire Game
+Comment=Play Seahaven Towers solitaire
+Keywords=game;card;solitaire;patience
+Exec=@BINDIR@/ktowers
+Icon=@ICONDIR@/kgames.svg
+StartupNotify=false
+Terminal=false
+Type=Application
+Categories=Game;CardGame

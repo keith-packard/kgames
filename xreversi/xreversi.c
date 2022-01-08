@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include "revers.h"
 #include "Reversi-res.h"
+#include "xreversi-svg.h"
 
 static Widget	topLevel, layout, reversi, error;
 
@@ -312,6 +313,7 @@ dispInit(int argc, char **argv)
     XtSetKeyboardFocus (layout, levelValue);
     turn = XtCreateManagedWidget ("turn", klabelWidgetClass, layout, NULL, ZERO);
     XtRealizeWidget(topLevel);
+    XkwSetIcon(topLevel, svg_xreversi);
 }
 
 int

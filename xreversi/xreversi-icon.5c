@@ -1,0 +1,87 @@
+#!/usr/bin/env nickle
+
+autoimport Cairo;
+
+real size = 64;
+real width = size;
+real height = size;
+real board_width = 2;
+real board_height = 2;
+real stone_width = 0.75;
+real M_PI = pi;
+
+
+void
+set_back_color(cairo_t cr)
+{
+	set_source_rgba(cr, .2, .4{6}, .2{6}, 1);
+}
+
+void
+set_white_color(cairo_t cr)
+{
+	set_source_rgba(cr, 1, 1, 1, 1);
+}
+
+void
+set_black_color(cairo_t cr)
+{
+	set_source_rgba(cr, 0, 0, 0, 1);
+}
+
+void
+set_grid_color(cairo_t cr)
+{
+	set_black_color(cr);
+}
+
+void
+draw_begin(cairo_t cr)
+{
+	scale(cr, width / board_width, height / board_height);
+	set_line_width(cr, 0.04);
+}
+
+void
+draw_stone(cairo_t cr, int x, int y)
+{
+	arc(cr, x + 0.5, y + 0.5, stone_width / 2, 0, pi * 2);
+	fill(cr);
+}
+
+void
+draw_grid(cairo_t cr)
+{
+	set_grid_color(cr);
+	for (int i = 0; i <= board_height; i++) {
+		move_to(cr, i, 0);
+		line_to(cr, i, board_width);
+	}
+	for (int i = 0; i <= board_width; i++) {
+		move_to(cr, 0, i);
+		line_to(cr, board_height, i);
+	}
+	stroke(cr);
+}
+
+void
+doit()
+{
+	cairo_t cr = new_svg("xreversi.svg", width, height);
+
+	draw_begin(cr);
+	set_back_color(cr);
+	paint(cr);
+	draw_grid(cr);
+	set_white_color(cr);
+	draw_stone(cr, 0, 0);
+	draw_stone(cr, 1, 1);
+	set_black_color(cr);
+	draw_stone(cr, 1, 0);
+	draw_stone(cr, 0, 1);
+
+	show_page(cr);
+	destroy(cr);
+}
+
+doit();

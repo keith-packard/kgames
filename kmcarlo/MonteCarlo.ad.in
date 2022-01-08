@@ -32,7 +32,7 @@
 *cards.rowMajor: True
 
 *message.justify: left
-*message.label: Monte Carlo, Version 0.9
+*message.label: Monte Carlo, Version @KGAMES_VERSION@
 *cards.borderWidth: 0
 *menuBar.layout: vertical { \
 	5 < -5 >\

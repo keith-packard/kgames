@@ -1,4 +1,3 @@
-*Command.shapeStyle: oval
 *Background: #fffff0
 *menuBar.Background: #337744
 *Cards.Background: #337744
@@ -6,8 +5,7 @@
 *borderWidth: 0
 *SimpleMenu.borderWidth: 1
 
-*suits.numCols: 4
-*suits.numRows: 1
+*deck.numCols: 1
 *deck.numRows: 1
 
 *piles.numCols: 4
@@ -15,13 +13,19 @@
 
 *Cards.immediateUpdate: False
 
-*stacks.numCols: 10
+*stacks.numCols: 4
 *stacks.numRows: 7
 *stacks.rowsHint: True
 *stacks.overlap: vertical
 
+*tail.numCols: 1
+*tail.numRows: 7
+*tail.rowsHint: True
+*tail.overlap: vertical
+
 *message.justify: left
-*message.label: Keith's Towers, Version 1.0
+*message.label: Keith's Tabby Cat, Version @KGAMES_VERSION@
+
 *menuBar.layout: vertical { \
 	5 < -5 >\
 	horizontal { \
@@ -46,13 +50,19 @@
 	10 < -inf > \
 	horizontal { \
 		10 < -inf > \
-		suits < -75% * -90% > \
-		10 < +inf -inf > \
 		piles < -100% * -90% > \
+		10 < +inf -inf > \
+		deck < -75% * -90% > \
 		10 < -inf > \
 	} \
 	10 < -inf > \
-	stacks < -50% * +inf -50% > \
+	horizontal { \
+		10 < -inf > \
+		stacks < -50% * +inf -50% > \
+		10 < +inf -inf > \
+		tail < -75% * +inf -50% > \
+		10 < -inf > \
+	} \
 	message < +inff -100% * > \
 }
 
@@ -75,8 +85,10 @@
 
 *pileAll.label: Fill Piles
 
+*Command.shapeStyle: oval
+
 *frame.translations: #override \
-	<Key>u:		ktowersUndo()\n\
-	<Key>n:		ktowersNewGame()\n\
-	<Key>s:		ktowersScore()\n\
-	<Key>?:		ktowersFindAMove()
+	<Key>u:		tabbyUndo()\n\
+	<Key>n:		tabbyNewGame()\n\
+	<Key>s:		tabbyScore()\n\
+	<Key>?:		tabbyFindAMove()

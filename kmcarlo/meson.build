@@ -19,7 +19,12 @@
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 #
-res_files = res_gen.process('MonteCarlo.ad')
+ad_file = configure_file(input: 'MonteCarlo.ad.in',
+                         output: '@BASENAME@',
+                         configuration: conf_data,
+                         install: false)
+
+res_files = res_gen.process(ad_file)
 
 executable('kmcarlo',
 	   'mc.c', res_files,
@@ -28,3 +33,7 @@ executable('kmcarlo',
 	   link_with: [lib_xkw],
 	   install: true)
 install_man('kmcarlo.6')
+configure_file(input: 'kmcarlo.desktop.in',
+	       output: '@BASENAME@',
+	       configuration: conf_data,
+	       install_dir : desktop_dir)

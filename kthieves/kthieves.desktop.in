@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=KThieves
+GenericName=Solitaire Game
+Comment=Play 40 Thieves solitaire
+Keywords=game;card;solitaire;patience
+Exec=@BINDIR@/kthieves
+Icon=@ICONDIR@/kgames.svg
+StartupNotify=false
+Terminal=false
+Type=Application
+Categories=Game;CardGame

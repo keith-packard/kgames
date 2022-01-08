@@ -30,13 +30,31 @@ srcs_dominos = [
   'util.c',
 ]
 
-res_files = res_gen.process('Dominos.ad')
+ad_file = configure_file(input: 'Dominos.ad.in',
+                         output: '@BASENAME@',
+                         configuration: conf_data,
+                         install: false)
+
+res_files = res_gen.process(ad_file)
+
+make_dominos_svg = find_program('make-dominos-svg')
+
+dominos_files = custom_target('svg-dominos',
+			      output : ['dominos-svg.c', 'dominos-svg.h'],
+			      command : [make_dominos_svg, '@OUTPUT0@', '@OUTPUT1@'])
+
+install_data('kdominos.svg', install_dir : svg_icon_dir)
 
 executable('kdominos',
-	   srcs_dominos, res_files,
+	   srcs_dominos, res_files, dominos_files,
 	   include_directories: inc,
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
 
 install_man('kdominos.6')
+
+configure_file(input: 'kdominos.desktop.in',
+	       output: '@BASENAME@',
+	       configuration: conf_data,
+	       install_dir : desktop_dir)
