@@ -31,11 +31,8 @@
 # include	<X11/Xutil.h>
 # include	"gray.bm"
 # include	"cards-svg.h"
-
-#ifdef CTRL
-# undef CTRL
-#endif
-#define CTRL(x)	(x - 'A' + 1)
+# include	"Mille-res.h"
+# include       "MilleCards.h"
 
 # include	"card.h"
 
@@ -165,17 +162,13 @@ debug (int pos, char *string, int a0, int a1, int a2)
 
 static int  yn_done, yn_answer;
 
-static void YesFunc (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+static void YesFunc (Widget w, XtPointer closure, XtPointer data)
 {
     yn_answer = 1;
     yn_done = 1;
 }
 
-static void NoFunc (w, closure, data)
-    Widget	w;
-    XtPointer	closure, data;
+static void NoFunc (Widget w, XtPointer closure, XtPointer data)
 {
     yn_answer = 0;
     yn_done = 1;
@@ -536,49 +529,64 @@ XtActionsRec actions[] = {
 };
 
 static void
-DisplayCallback (Widget w, XtPointer closure, XtPointer data)
-{
-    HandDisplayPtr  display = (HandDisplayPtr) data;
-    int		    card_no;
-    struct card	    *card;
-    cairo_t	    *cr = display->cr;
-
-    cairo_scale(cr, scale, scale);
-    card_no = (int) (intptr_t) display->private;
-    if (card_no == -2)
-	card = &deck;
-    else if (card_no < 0 || NUM_CARDS <= card_no)
-	card = &blank;
-    else
-	card = &svg_cards[card_no];
-
-    XkwRsvgDraw(cr, WIDTH, HEIGHT, card->rsvg_handle);
-}
-
-static void
 InputCallback (Widget w, XtPointer closure, XtPointer data)
 {
     HandInputPtr    input = (HandInputPtr) data;
-    String	    type;
+    String arg = "";
 
-    if (w == human_hand) {
-	Movetype = M_REASONABLE;
-	if (*input->num_params) {
-	    type = *input->params;
-	    if (!strcmp (type, "play"))
-		Movetype = M_PLAY;
-	    else if (!strcmp (type, "reasonable"))
-		Movetype = M_REASONABLE;
-	    else if (!strcmp (type, "discard"))
-		Movetype = M_DISCARD;
-	}
-	Card_no = input->col;
-	getmove_done = 1;
-    }
-    else if (w == deck_hand)
-    {
-	Movetype = M_DRAW;
-	getmove_done = 1;
+    if (*input->num_params > 0)
+        arg = input->params[0];
+
+    switch (input->action) {
+    default:
+        break;
+    case HandActionClick:
+        animate_enable(1);
+        if (input->start.w == human_hand)
+        {
+            if (strcmp(arg, "discard") == 0)
+                Movetype = M_DISCARD;
+            else
+                Movetype = M_REASONABLE;
+            getmove_done = 1;
+            Card_no = input->start.col;
+        }
+        else if (input->start.w == deck_hand)
+        {
+            Movetype = M_DRAW;
+            getmove_done = 1;
+            Card_no = input->start.col;
+        }
+        break;
+    case HandActionDrag:
+        if (input->start.w == input->current.w)
+            break;
+        animate_enable(0);
+        if (input->start.w == human_hand) {
+            if (input->current.w == human_miles ||
+                input->current.w == human_play ||
+                input->current.w == human_safeties)
+            {
+                Movetype = M_PLAY;
+                getmove_done = 1;
+                Card_no = input->start.col;
+            }
+            else if (input->current.w == deck_hand)
+            {
+                Movetype = M_DISCARD;
+                getmove_done = 1;
+                Card_no = input->start.col;
+            }
+            break;
+        }
+        else if (input->start.w == deck_hand)
+        {
+            if (input->current.w == human_hand) {
+                Movetype = M_DRAW;
+                getmove_done = 1;
+                Card_no = input->start.col;
+            }
+        }
     }
 }
 
@@ -608,8 +616,8 @@ make_hand (char *name, Widget parent, int rows, int cols, Bool overlap_rows)
     XtSetArg (args[i], XtNdisplayY, display_y); i++;
     XtSetArg (args[i], XtNdisplayWidth, WIDTH * scale - display_x * 2); i++;
     XtSetArg (args[i], XtNdisplayHeight, HEIGHT * scale - display_y * 2); i++;
-    hand = XtCreateManagedWidget (name, handWidgetClass, parent, args, i);
-    XtAddCallback (hand, XtNdisplayCallback, DisplayCallback, (XtPointer) hand);
+    hand = XtCreateManagedWidget (name, milleCardsWidgetClass, parent, args, i);
+    XtAddCallback (hand, XtNinputCallback, InputCallback, NULL);
     return hand;
 }
 
@@ -620,6 +628,7 @@ DoRestore (Widget w, XtPointer closure, XtPointer data)
     (void) closure;
     (void) data;
     rest();
+    prboard();
 }
 
 static void
@@ -672,11 +681,8 @@ init_ui (int *argc, char **argv)
     Arg			arg[2];
     Visual		*visual;
 
-#ifdef APPDEFAULTS
-    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
-#endif
-
-    toplevel = XtInitialize (argv[0], "Mille", 0, 0, argc, argv);
+    toplevel = XkwInitialize ("Mille", 0, 0,
+			      argc, argv, True, defaultResources);
 
     Arg	args[1];
     XtSetArg(args[0], XtNinput, True);
@@ -769,19 +775,20 @@ init_ui (int *argc, char **argv)
     XtSetArg (arg[1], XtNnumCols, 48);
     score = XtCreateManagedWidget ("score", padWidgetClass, layout,
 				   arg, TWO);
-    XtAddCallback (deck_hand, XtNinputCallback, InputCallback, NULL);
     HandAddCard (deck_hand, (XtPointer) -2, 0, 0, XkwHandDefaultOffset);
     message = XtCreateManagedWidget ("message", klabelWidgetClass, layout, NULL, ZERO);
     errors = XtCreateManagedWidget ("errors", klabelWidgetClass, layout, NULL, ZERO);
     human_miles = XtCreateManagedWidget ("humanMiles", thermoWidgetClass, layout, NULL, ZERO);
     human_play = make_hand ("humanPlay", layout, 3, 7, True);
     human_hand = make_hand ("humanHand", layout, 1, 7, False);
-    XtAddCallback (human_hand, XtNinputCallback, InputCallback, NULL);
     human_safeties = make_hand ("humanSafeties", layout, 2, 2, False);
     human_safety_label = XtCreateManagedWidget ("humanSafetyLabel", klabelWidgetClass, layout, NULL, ZERO);
     newscore ();
     prscore (FALSE);
     XtRealizeWidget (toplevel);
+
+    XkwSetIcon(toplevel, icon.svg);
+
     yes_or_no_shell = XtCreatePopupShell ("yesOrNo", transientShellWidgetClass,
 			        toplevel, NULL, ZERO);
     yes_or_no_dialog = XtCreateManagedWidget ("yesOrNoDialog", layoutWidgetClass,
@@ -800,6 +807,7 @@ init_ui (int *argc, char **argv)
 				prompted_dialog, NULL, ZERO);
     prompted_value = XtCreateManagedWidget ("promptedValue", ktextLineWidgetClass,
 				prompted_dialog, NULL, ZERO);
+    XtAddCallback(prompted_value, XtNcallback, YesFunc, NULL);
     XkwDialogAddButton (prompted_dialog, "promptedOk", YesFunc, NULL);
     XkwDialogAddButton (prompted_dialog, "promptedCancel", NoFunc, NULL);
     XtRealizeWidget (prompted_shell);
@@ -940,12 +948,11 @@ void
 prboard(void)
 {
 
-	register PLAY	*pp;
-	register int	i, k;
+	PLAY	*pp;
 
-	for (k = 0; k < 2; k++) {
+	for (int k = 0; k < 2; k++) {
 		pp = &Player[k];
-		for (i = 0; i < NUM_SAFE; i++)
+		for (int i = 0; i < NUM_SAFE; i++)
 			if (pp->safety[i] == S_PLAYED) {
 				if (k == 0) {
 					HumanSafety (i + S_CONV, i);
@@ -960,8 +967,8 @@ prboard(void)
 			ComputerBattle (pp->battle);
 			ComputerSpeed (pp->speed);
 		}
-		for (i = C_25; i <= C_200; i++) {
-			register int		end;
+		for (int i = C_25; i <= C_200; i++) {
+			int		end;
 
 			end = pp->nummiles[i];
 			if (k == 0)
@@ -972,7 +979,7 @@ prboard(void)
 	}
 	prscore(TRUE);
 	pp = &Player[PLAYER];
-	for (i = 0; i < HAND_SZ; i++) {
+	for (int i = 0; i < HAND_SZ; i++) {
 		HumanHand (pp->hand[i], i);
 	}
 	DisplayDeck (Topcard - Deck);
@@ -1004,9 +1011,8 @@ InScore (int line, int player, char *text)
 void
 prscore(bool for_real)
 {
-
-	register PLAY	*pp;
-	register char	*Score_fmt = "%4d  ";
+	PLAY		*pp;
+	const char Score_fmt[] = "%4d  ";
 	char		buffer[512];
 
 	ComputerDistance (Player[1].mileage);

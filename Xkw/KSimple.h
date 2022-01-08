@@ -28,4 +28,7 @@ extern WidgetClass ksimpleWidgetClass;
 typedef struct _KSimpleClassRec	*KSimpleWidgetClass;
 typedef struct _KSimpleRec	*KSimpleWidget;
 
+#define XtNwantForward "wantForward"
+#define XtCWantForward "WantForward"
+
 #endif /* _XkwKSimple_h_ */

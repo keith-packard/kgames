@@ -29,6 +29,9 @@
 	<Key>Tab:	milleDraw()\n\
 	<Key>p:		milleDraw()
 
+*humanHand.translations: #override \n\
+	<Btn3Up>: stop(discard)
+
 *layout.layout: vertical {\
 MenuBarBorderWidth = 1\
 HumanHandBorderWidth = 1\
@@ -107,25 +110,15 @@ horizontal { \
 *message.Background: light gray
 *message.borderWidth: 0
 
-*Hand.Background: light gray
-*Hand.internalBorderWidth: 3
-*Hand.translations: #override \
-	<Btn1Down>:	select(reasonable)\n\
-	<Btn2Down>:	select(play)\n\
-	<Btn3Down>:	select(discard)\n
-	Shift<BtnDown>:	select(discard)
+*MilleCards.Background: light gray
+*MilleCards.internalBorderWidth: 3
 
 *Thermo.borderWidth: 1
 *Thermo.mercuryColor: blue
-*Thermo.thickness: 15
 *Thermo.minimum: 0
 *Thermo.maximum: 1000
-*Thermo.minorStart: 0
-*Thermo.majorStart: 0
 *Thermo.minorStep: 25
 *Thermo.majorStep: 100
-*Thermo.minorTickLen: 4
-*Thermo.majorTickLen: 8
 *Thermo.vertical: false
 *Thermo.width: 500
 
@@ -186,17 +179,6 @@ horizontal { \
 
 *promptedShell.allowShellResize: true
 *promptedValue*editType: edit
-*promptedValue.translations: #override\
-     Ctrl<Key>J:    milleYes()\n\
-     Ctrl<Key>M:    milleYes()\n\
-     <Key>Linefeed: milleYes()\n\
-     <Key>Return:   milleYes()\n\
-     Ctrl<Key>O:    Noop()\n\
-     Meta<Key>I:    Noop()\n\
-     Ctrl<Key>N:    Noop()\n\
-     Ctrl<Key>P:    Noop()\n\
-     Ctrl<Key>Z:    Noop()\n\
-     Meta<Key>Z:    Noop()
 		  
 *promptedDialog.layout: vertical {\
 	Spacing = (20 % of height promptedLabel) \
@@ -205,8 +187,8 @@ horizontal { \
 	$Spacing < +inf -inf > \
 	horizontal { \
 		$Spacing < -inf > \
-		promptedValue \
-		$Spacing < +inf -inf > \
+		promptedValue < +inf * +inf > \
+		$Spacing < -inf > \
 	} \
 	horizontal { \
 		$Spacing < -inf > \

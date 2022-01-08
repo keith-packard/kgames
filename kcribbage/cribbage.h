@@ -71,6 +71,9 @@ void
 UIWait (void);
 
 void
+UIPause(void);
+
+void
 UIEraseHand (int who);
 
 void

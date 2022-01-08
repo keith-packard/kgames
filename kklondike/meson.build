@@ -19,11 +19,12 @@
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 #
+res_files = res_gen.process('KKlondike.ad')
+
 executable('kklondike',
-	   'klondike.c',
+	   'klondike.c', res_files,
 	   include_directories: inc,
 	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
 install_man('kklondike.6')
-install_data('KKlondike.ad',             rename: 'KKlondike',              install_dir : app_defaults)

@@ -2,7 +2,7 @@
  *	display.c
  */
 
-# include	"reversi.h"
+# include	"revers.h"
 # include	<curses.h>
 # include	<ctype.h>
 

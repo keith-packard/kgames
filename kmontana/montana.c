@@ -43,6 +43,7 @@
 # include	<X11/Xutil.h>
 # include	<Xkw/CardsUtil.h>
 # include	<Xkw/Message.h>
+# include	"KMontana-res.h"
 
 Widget	    toplevel;
 Widget	    frame;
@@ -63,6 +64,8 @@ Widget	    score;
 #define NUM_ROWS    4
 #define NUM_COLS    13
 #define NUM_CARDS   52
+
+#define MAX_SCORE 336
 
 CardStackRec	cardStacks[NUM_CARDS];
 CardStackRec	deckStack;
@@ -330,6 +333,18 @@ ResetDealNumber (void *closure)
 }
 
 static void
+CheckWin(void)
+{
+    int score = ComputeScore();
+    if (dealNumber > NUM_DEALS)
+        score += 100 * (dealNumber - NUM_DEALS);
+    if (score == MAX_SCORE)
+        Message(message, "We have a winner!");
+    else
+        Message(message, "");
+}
+
+static void
 Deal (void)
 {
     ForAllCardVars;
@@ -373,6 +388,7 @@ Deal (void)
     DisplayStacks ();
     CardSetAnimate (True);
     CardNextHistory ();
+    CheckWin();
 }
 
 static void
@@ -410,8 +426,8 @@ Undo (void)
 static void
 Score (void)
 {
-    Message (message, "Current position scores %d out of 336.",
-	     ComputeScore ());
+    Message (message, "Current position scores %d out of %d.",
+	     ComputeScore (), MAX_SCORE);
 }
 
 static void
@@ -531,6 +547,7 @@ Play (CardStackPtr from_stack, CardStackPtr to_stack)
 	}
     }
     MontanaDo (from_stack, to_stack);
+    CheckWin();
 }
 
 #define MAX_MOVES   16
@@ -633,9 +650,9 @@ BestMove (void)
     card = s.moves[best][0]->last;
     if (card->card.rank == Cards2)
 	Message (message, "Play the %P in column %d (%d)",
-		 card->card, s.moves[best][1]->position, score);
+		 &card->card, s.moves[best][1]->position, score);
     else
-	Message (message, "Play the %P (%d)", card->card, score);
+	Message (message, "Play the %P (%d)", &card->card, score);
 }
 
 static void
@@ -684,55 +701,66 @@ Save (void)
 /* Callbacks to user interface functions */
 
 static void
-CardsCallback (Widget w, XtPointer closure, XtPointer data)
+InputCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    CardsInputPtr    input = (CardsInputPtr) data;
-    CardStackPtr    stack;
-    String	    type;
-    int		    i;
-    Boolean	    hintForward;
+    HandInputPtr    input = (HandInputPtr) data;
+    CardStackPtr    stack = NULL;
+    CardStackPtr    startStack = NULL;
+    int             i;
+    Boolean         hintForward;
+    String          type = "";
+
+    (void) closure;
+    (void) w;
+    Message (message, "");
+
+    if (*input->num_params > 0)
+        type = input->params[0];
+
+    stack = &cardStacks[input->current.row * NUM_COLS + input->current.col];
+    startStack = &cardStacks[input->start.row * NUM_COLS + input->start.col];
+
 #define MOVE	0
 #define HINT	1
 #define UNHINT	2
 #define	SELECT	3
 
-    (void) w;
-    (void) closure;
-    Message (message, "");
-    stack = &cardStacks[input->row * NUM_COLS + input->col];
-    if (!*input->num_params)
-	return;
-    type = *input->params;
-    if (!strcmp (type, "hint-or-select"))
-    {
-	if (!stack->last)
+    switch (input->action) {
+    case HandActionStart:
+	if (!stack->last) {
 	    i = HINT;
-	else
+            hintForward = True;
+	} else
 	    i = SELECT;
-    } else if (!strcmp (type, "unhint-or-move")) {
+        break;
+    case HandActionDrag:
+        CardSetAnimate(False);
+        i = MOVE;
+        break;
+    case HandActionClick:
+        CardSetAnimate(True);
 	if (hintStack)
 	    i = UNHINT;
 	else
 	    i = MOVE;
-    } else if (!strcmp (type, "hint-previous")) {
-	i = HINT;
-	hintForward = False;
-    } else if (!strcmp (type, "hint-next")) {
-	i = HINT;
-	hintForward = True;
-    } else if (!strcmp (type, "unhint")) {
-	i = UNHINT;
-    } else if (!strcmp (type, "hint")) {
-	i = HINT;
-	hintForward = True;
-    } else {
-	return;
+        break;
+    case HandActionExpand:
+        i = HINT;
+        if (!strcmp(type, "hint-previous"))
+            hintForward = False;
+        else
+            hintForward = True;
+        break;
+    case HandActionUnexpand:
+        i = UNHINT;
+        break;
     }
+
     switch (i) {
     case HINT:
 	if (!stack->last)
 	{
-	    if (input->col == 0)
+	    if (input->current.col == 0)
 		return;
 	    stack = stack - 1;
 	    hintForward = False;
@@ -743,13 +771,10 @@ CardsCallback (Widget w, XtPointer closure, XtPointer data)
 	UnHint ();
 	break;
     case SELECT:
-	fromStack = stack;
 	break;
     case MOVE:
-	if (fromStack) {
-	    Play (fromStack, stack);
-	    fromStack = NULL;
-	}
+	if (startStack)
+	    Play (startStack, stack);
 	break;
     }
     DisplayStacks ();
@@ -798,6 +823,15 @@ UndoCallback (Widget w, XtPointer closure, XtPointer data)
     (void) closure;
     (void) data;
     Undo ();
+}
+
+static void
+HintCallback (Widget w, XtPointer closure, XtPointer data)
+{
+    (void) w;
+    (void) closure;
+    (void) data;
+    BestMove ();
 }
 
 static void
@@ -937,14 +971,13 @@ XtResource resources[] = {
     { "animationSpeed", "AnimationSpeed", XtRInt, sizeof (int),
      offset(animationSpeed), XtRImmediate, (XtPointer) -1},
     { "searchDepth", "SearchDepth", XtRInt, sizeof (int),
-     offset(searchDepth), XtRImmediate, (XtPointer) 20},
+     offset(searchDepth), XtRImmediate, (XtPointer) 40},
 };
 
 XrmOptionDescRec options[] = {
-    { "-smallCards",	"*Cards.smallCards",	XrmoptionNoArg, "True", },
-    { "-squareCards",	"*Cards.roundCards",	XrmoptionNoArg, "False", },
     { "-noanimate",	"*animationSpeed",	XrmoptionNoArg, "0", },
-    { "-animationSpeed",	"*animationSpeed",	XrmoptionSepArg, NULL },
+    { "-animationSpeed","*animationSpeed",	XrmoptionSepArg, NULL },
+    { "-searchDepth",   "*searchDepth",         XrmoptionSepArg, NULL },
 };
 
 int
@@ -952,16 +985,8 @@ main (int argc, char **argv)
 {
     Atom wm_delete_window;
 
-#ifdef APPDEFAULTS
-    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
-#endif
-
-    toplevel = XtInitialize (argv[0], "KMontana", options, XtNumber(options),
-			     &argc, argv);
-
-    Arg	args[1];
-    XtSetArg(args[0], XtNinput, True);
-    XtSetValues(toplevel, args, ONE);
+    toplevel = XkwInitialize ("KMontana", options, XtNumber(options),
+			      &argc, argv, True, defaultResources);
 
     XtGetApplicationResources (toplevel, (XtPointer)&montanaResources, resources,
 			       XtNumber (resources), NULL, 0);
@@ -991,11 +1016,14 @@ main (int argc, char **argv)
     undo = XtCreateManagedWidget ("undo", kcommandWidgetClass,
 				  menuBar, NULL, ZERO);
     XtAddCallback(undo, XtNcallback, UndoCallback, NULL);
+    hint = XtCreateManagedWidget ("hint", kcommandWidgetClass,
+				  menuBar, NULL, ZERO);
+    XtAddCallback(hint, XtNcallback, HintCallback, NULL);
     score = XtCreateManagedWidget ("score", kcommandWidgetClass,
 				   menuBar, NULL, ZERO);
     XtAddCallback(score, XtNcallback, ScoreCallback, NULL);
     cards = XtCreateManagedWidget ("cards", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (cards, XtNinputCallback, CardsCallback, NULL);
+    XtAddCallback (cards, XtNinputCallback, InputCallback, NULL);
     message = XtCreateManagedWidget ("message", klabelWidgetClass, frame, NULL, 0);
     srandom (getpid () ^ time ((long *) 0));
     NewGame ();
@@ -1004,6 +1032,8 @@ main (int argc, char **argv)
 				   False);
     (void) XSetWMProtocols (XtDisplay(toplevel), XtWindow(toplevel),
                             &wm_delete_window, 1);
+
+    XkwSetCardIcon(toplevel);
 
     XtMainLoop ();
 }

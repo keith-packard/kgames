@@ -2,7 +2,7 @@
  *	cornerscores.c
  */
 
-# include	"reversi.h"
+# include	"revers.h"
 
 scoreT cornerscores[4][4][4][4] = {
 	{

@@ -4,7 +4,7 @@
  *	move player to x,y in board
  */
 
-# include	"reversi.h"
+# include	"revers.h"
 
 int		offsets[] = { -11, -10, -9, -1, 1, 9, 10, 11, 0 };
 

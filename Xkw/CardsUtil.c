@@ -171,6 +171,13 @@ CardIsInOrder (CardPtr a, CardPtr b)
 }
 
 Boolean
+CardIsInRingOrder (CardPtr a, CardPtr b)
+{
+    return a->face == b->face &&
+        (a->card.rank + 1 == b->card.rank || (a->card.rank == CardsKing && b->card.rank == CardsAce));
+}
+
+Boolean
 CardIsInSuitOrder (CardPtr a, CardPtr b)
 {
     return a->face == b->face &&
@@ -178,10 +185,26 @@ CardIsInSuitOrder (CardPtr a, CardPtr b)
 	   CardIsInOrder (a, b);
 }
 
+Boolean
+CardIsInSuitRingOrder (CardPtr a, CardPtr b)
+{
+    return a->face == b->face &&
+	   a->card.suit == b->card.suit &&
+	   CardIsInRingOrder (a, b);
+}
+
 CardPtr
 CardInSuitOrder (CardPtr card)
 {
     while (card->next && CardIsInSuitOrder (card->next, card))
+	card = card->next;
+    return card;
+}
+
+CardPtr
+CardInSuitRingOrder (CardPtr card)
+{
+    while (card->next && CardIsInSuitRingOrder (card->next, card))
 	card = card->next;
     return card;
 }
@@ -195,6 +218,14 @@ CardInOrder (CardPtr card)
 }
 
 CardPtr
+CardInRingOrder (CardPtr card)
+{
+    while (card->next && CardIsInRingOrder (card->next, card))
+	card = card->next;
+    return card;
+}
+
+CardPtr
 CardInReverseSuitOrder (CardPtr card)
 {
     while (card->prev && CardIsInSuitOrder (card, card->prev))
@@ -203,9 +234,25 @@ CardInReverseSuitOrder (CardPtr card)
 }
 
 CardPtr
+CardInReverseSuitRingOrder (CardPtr card)
+{
+    while (card->prev && CardIsInSuitRingOrder (card, card->prev))
+	card = card->prev;
+    return card;
+}
+
+CardPtr
 CardInReverseOrder (CardPtr card)
 {
     while (card->prev && CardIsInOrder (card, card->prev))
+	card = card->prev;
+    return card;
+}
+
+CardPtr
+CardInReverseRingOrder (CardPtr card)
+{
+    while (card->prev && CardIsInRingOrder (card, card->prev))
 	card = card->prev;
     return card;
 }
@@ -224,6 +271,13 @@ CardIsInAlternatingSuitOrder (CardPtr a, CardPtr b)
 	   IsAlternateSuit (a->card.suit, b->card.suit);
 }
 
+Boolean
+CardIsInAlternatingSuitRingOrder (CardPtr a, CardPtr b)
+{
+    return CardIsInRingOrder (a,b) &&
+	   IsAlternateSuit (a->card.suit, b->card.suit);
+}
+
 CardPtr
 CardInAlternatingSuitOrder (CardPtr card)
 {
@@ -233,9 +287,25 @@ CardInAlternatingSuitOrder (CardPtr card)
 }
 
 CardPtr
+CardInAlternatingSuitRingOrder (CardPtr card)
+{
+    while (card->next && CardIsInAlternatingSuitRingOrder (card->next, card))
+	card = card->next;
+    return card;
+}
+
+CardPtr
 CardInReverseAlternatingSuitOrder (CardPtr card)
 {
     while (card->prev && CardIsInAlternatingSuitOrder (card, card->prev))
+	card = card->prev;
+    return card;
+}
+
+CardPtr
+CardInReverseAlternatingSuitRingOrder (CardPtr card)
+{
+    while (card->prev && CardIsInAlternatingSuitRingOrder (card, card->prev))
 	card = card->prev;
     return card;
 }
@@ -548,6 +618,7 @@ CardUndo ()
     if (!history)
 	return False;
     serial = history->serial;
+    CardSetAnimate(True);
     for (h = history; h && h->serial == serial; h = p)
     {
 	p = h->prev;

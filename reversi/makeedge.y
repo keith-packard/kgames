@@ -411,7 +411,7 @@ main (int argc, char **argv)
 
 	if (argc > 1)
 		freopen(argv[1], "r", stdin);
-	printf("#include \"reversi.h\"\n");
+	printf("#include \"revers.h\"\n");
 	printf("#pragma GCC diagnostic ignored \"-Wmissing-braces\"\n");
 	printf("scoreT edgescores [4][4][4][4][4][4][4][4] = {\n");
 	ret = yyparse ();

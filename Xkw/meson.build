@@ -23,6 +23,13 @@
 flex = find_program('flex')
 bison = find_program('bison')
 
+make_resource = find_program('make-resource')
+
+res_gen = generator(make_resource,
+		    output : ['@BASENAME@-res.h'],
+		    arguments : [ '@INPUT@', '@OUTPUT@' ]
+		   )
+
 flex_gen = generator(flex,
 		     output : ['@BASENAME@.c'],
 		     arguments : [ '-o', '@OUTPUT@', '-P', 'LayYY', '@INPUT@'])
@@ -47,7 +54,10 @@ srcs_xkw = [
   'CardsUtil.c',
   'Dialog.c',
   'Draw.c',
+  'Events.c',
   'Hand.c',
+  'HandDrag.c',
+  'Icon.c',
   'Layout.c',
   'medium.c',
   'Message.c',
@@ -59,6 +69,8 @@ srcs_xkw = [
   'KCommand.c',
   'KLabel.c',
   'KMenuButton.c',
+  'KPorthole.c',
+  'KScrollbar.c',
   'KSimple.c',
   'KSimpleMenu.c',
   'KSme.c',
@@ -73,11 +85,11 @@ lib_xkw = library('Xkw',
 		  srcs_xkw, flex_files, bison_files, cards_files,
 		  dependencies: x_libs,
 		  install: true,
-		  version: '2.0.0',
+		  version: '3.0.0',
 		  include_directories: inc)
 
-executable('layout',
-	   'layout.c',
+executable('lodemo',
+	   'lodemo.c',
 	   dependencies: x_libs,
 	   include_directories: inc,
 	   link_with: [lib_xkw],

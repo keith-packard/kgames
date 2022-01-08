@@ -42,6 +42,7 @@
 # include	<X11/Xutil.h>
 # include	<Xkw/CardsUtil.h>
 # include	<Xkw/Message.h>
+# include	"KTabby-res.h"
 
 Widget	    toplevel;
 Widget	    frame;
@@ -71,8 +72,6 @@ CardStackRec	tailStack;
 
 CardRec		rawcards[NUM_CARDS];
 
-CardStackPtr	fromStack;
-CardPtr		fromCard;
 int		dealNumber;
 
 typedef struct _tabbyResources {
@@ -193,6 +192,8 @@ Deal (void)
 	CardMove (&deckStack, deckStack.last, &stackStacks[col], True);
 	CardTurn (stackStacks[col].last, CardFaceUp, True);
     }
+    CardNextHistory ();
+    DisplayStacks ();
 }
 
 static void
@@ -202,8 +203,6 @@ NewGame (void)
     CardsRemoveAllCards (piles);
     CardsRemoveAllCards (stacks);
     CardsRemoveAllCards (tail);
-    fromStack = 0;
-    fromCard = 0;
     InitStacks ();
     GenerateCards ();
     CardShuffle (&deckStack, False);
@@ -220,11 +219,13 @@ Undo (void)
     DisplayStacks ();
 }
 
+#define MAX_SCORE 340
+
 static void
 Score (void)
 {
-    Message (message, "Current position scores %d out of 340.",
-	     ComputeScore ());
+    Message (message, "Current position scores %d out of %d.",
+	     ComputeScore (), MAX_SCORE);
 }
 
 static void
@@ -273,7 +274,7 @@ IsLegalRegularPlay (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_
     CardPtr to_card;
 
     to_card = to_stack->last;
-    if (to_card && CardIsInOrder (from_card, to_card))
+    if (to_card && CardIsInRingOrder (from_card, to_card))
 	return True;
     return False;
 }
@@ -289,7 +290,7 @@ FindRegularPlay (CardStackPtr from_stack, CardPtr *from_cardp)
     if (*from_cardp)
 	from_card = *from_cardp;
     else if (from_stack->last)
-	from_card = CardInReverseOrder (from_stack->last);
+	from_card = CardInReverseRingOrder (from_stack->last);
     else
 	return NULL;
     for (i = 0; i < NUM_STACKS; i++)
@@ -322,7 +323,7 @@ FindTailPlay (CardStackPtr from_stack, CardPtr *from_cardp)
     if (*from_cardp)
 	from_card = *from_cardp;
     else if (from_stack->last)
-	from_card = CardInReverseOrder (from_stack->last);
+	from_card = CardInReverseRingOrder (from_stack->last);
     else
 	return NULL;
     if (IsLegalTailPlay (from_stack, from_card, &tailStack))
@@ -352,7 +353,7 @@ FindEmptyPlay (CardStackPtr from_stack, CardPtr *from_cardp)
     if (*from_cardp)
 	from_card = *from_cardp;
     else if (from_stack->last)
-	from_card = CardInReverseOrder (from_stack->last);
+	from_card = CardInReverseRingOrder (from_stack->last);
     else
 	return NULL;
     for (i = 0; i < NUM_STACKS; i++)
@@ -377,7 +378,7 @@ Play (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 	Message (message, "Card not turned up.");
 	return;
     }
-    if (from_card && CardInOrder (from_card)->next != NULL)
+    if (from_card && CardInRingOrder (from_card)->next != NULL)
     {
 	Message (message, "Cards not in order.");
 	return;
@@ -387,7 +388,7 @@ Play (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 	if (to_stack->widget == stacks)
 	{
 	    if (!from_card)
-		from_card = CardInReverseOrder (from_stack->last);
+		from_card = CardInReverseRingOrder (from_stack->last);
 	    if (!IsLegalRegularPlay (from_stack, from_card, to_stack) &&
 		!IsLegalEmptyPlay (from_stack, from_card, to_stack))
 	    {
@@ -403,7 +404,7 @@ Play (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 	else if (to_stack->widget == tail)
 	{
 	    if (!from_card)
-		from_card = CardInReverseOrder (from_stack->last);
+		from_card = CardInReverseRingOrder (from_stack->last);
 	    if (!IsLegalTailPlay (from_stack, from_card, to_stack))
 	    {
 		Message (message, "Can't move the %P to the tail.",
@@ -414,7 +415,7 @@ Play (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 	else if (to_stack->widget == piles)
 	{
 	    if (!from_card)
-		from_card = CardInReverseOrder (from_stack->last);
+		from_card = CardInReverseRingOrder (from_stack->last);
 	    if (!IsLegalPilePlay (from_stack, from_card, to_stack))
 	    {
 		Message (message, "Can't move the %P to a pile.",
@@ -443,6 +444,13 @@ Play (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 	}
     }
     CardMove (from_stack, from_card, to_stack, True);
+    if (ComputeScore() == MAX_SCORE)
+        Message(message, "We have a winner!");
+    else
+        Message(message, "");
+    CheckStackTop (from_stack);
+    CardNextHistory ();
+    DisplayStacks ();
 }
 
 static Boolean
@@ -455,7 +463,7 @@ AlreadyEmpty (CardPtr a, CardPtr b)
 static Boolean
 AlreadyInOrder (CardPtr a, CardPtr b)
 {
-    if (a && b && CardIsInOrder (a,b))
+    if (a && b && CardIsInRingOrder (a,b))
 	return True;
     return False;
 }
@@ -476,7 +484,7 @@ FindAMove (void)
 	if (goodenough[col]) continue; \
 	from_stack = &stackStacks[col]; \
 	if (!from_stack->last) continue; \
-	from_card = CardInReverseOrder (from_stack->last); \
+	from_card = CardInReverseRingOrder (from_stack->last); \
 	if (!already (from_card, from_card->prev)) \
 	    to_stack = func(from_stack, &from_card); \
 	else \
@@ -570,7 +578,7 @@ Expand (CardStackPtr stack)
 	    if (card->face == CardFaceUp)
 	    {
 		MessageAppend (" %p", &card->card);
-		t = CardInOrder (card);
+		t = CardInRingOrder (card);
 		if (t != card && t != card->next)
 		{
 		    card = t;
@@ -588,82 +596,62 @@ Expand (CardStackPtr stack)
 
 /* Callbacks to user interface functions */
 
-static void
-StackCallback (Widget w, XtPointer closure, XtPointer data)
+static CardStackPtr
+WidgetToStack(Widget w, int col)
 {
-    CardsInputPtr    input = (CardsInputPtr) data;
-    CardStackPtr    stack;
-    CardPtr	    card;
-    String	    type;
-
-    (void) closure;
-    Message (message, "");
     if (w == stacks)
-	stack = &stackStacks[input->col];
-    else if (w == piles)
-	stack = &pileStacks[input->col];
-    else if (w == tail)
-	stack = &tailStack;
-    else
-	return;
-    for (card = stack->last; card; card = card->prev)
-	if (card->isUp && card->row == input->row)
-	    break;
-    if (*input->num_params) {
-	type = *input->params;
-	if (!strcmp (type, "deck_source"))
-	{
-	    fromStack = stack;
-	    fromCard = stack->last;
-	}
-	else if (!strcmp (type, "stack_source"))
-	{
-	    fromStack = stack;
-	    fromCard = 0;
-	    if (!fromStack->last)
-		Message (message, "Selected stack is empty.");
-	}
-	else if (!strcmp (type, "card_source"))
-	{
-	    if (!card)
-		Message (message, "No card selected.");
-	    else
-	    {
-		fromStack = stack;
-		fromCard = card;
-	    }
-	}
-	else if (!strcmp (type, "dest"))
-	{
-	    if (fromStack)
-	    {
-		Play (fromStack, fromCard, stack);
-		CheckStackTop (fromStack);
-		fromStack = NULL;
-		CardNextHistory ();
-		DisplayStacks ();
-	    }
-	}
-	else if (!strcmp (type, "expand"))
-	{
-	    Expand (stack);
-	}
-    }
+	return &stackStacks[col];
+    if (w == piles)
+	return &pileStacks[col];
+    if (w == deck)
+	return &deckStack;
+    if (w == tail)
+        return &tailStack;
+    return NULL;
 }
 
 static void
-DeckCallback (Widget w, XtPointer closure, XtPointer data)
+InputCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    CardsInputPtr    input = (CardsInputPtr) data;
+    HandInputPtr    input = (HandInputPtr) data;
+    CardStackPtr    stack = NULL;
+    CardStackPtr    startStack = NULL;
 
-    (void) w;
     (void) closure;
     Message (message, "");
-    if (*input->num_params && !strcmp (*input->params, "deck_source"))
-    {
-	Deal ();
-	CardNextHistory ();
-	DisplayStacks ();
+    stack = WidgetToStack(w, input->current.col);
+    startStack = WidgetToStack(input->start.w, input->start.col);
+
+    if (!startStack || !stack)
+	return;
+
+    switch (input->action) {
+    case HandActionStart:
+        break;
+    case HandActionClick:
+        CardSetAnimate(True);
+        if (stack == &deckStack)
+            Deal ();
+        else
+            Play(stack, NULL, stack);
+        break;
+    case HandActionDrag:
+        CardSetAnimate(False);
+	if (startStack == &deckStack) {
+	    if (&stackStacks[0] <= stack && stack < &stackStacks[NUM_STACKS])
+		Deal ();
+	}
+	else if (input->start.private)
+        {
+            CardPtr     card = CardFromHandCard(input->start.private);
+            Play (startStack, card, stack);
+	}
+        break;
+    case HandActionExpand:
+        Expand (stack);
+        break;
+    case HandActionUnexpand:
+        break;
     }
 }
 
@@ -871,16 +859,8 @@ main (int argc, char **argv)
 {
     Atom wm_delete_window;
 
-#ifdef APPDEFAULTS
-    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
-#endif
-
-    toplevel = XtInitialize (argv[0], "KTabby", options, XtNumber(options),
-			     &argc, argv);
-
-    Arg	args[1];
-    XtSetArg(args[0], XtNinput, True);
-    XtSetValues(toplevel, args, ONE);
+    toplevel = XkwInitialize ("KTabby", options, XtNumber(options),
+			      &argc, argv, True, defaultResources);
 
     XtGetApplicationResources (toplevel, (XtPointer)&tabbyResources, resources,
 			       XtNumber (resources), NULL, 0);
@@ -915,13 +895,13 @@ main (int argc, char **argv)
 				   menuBar, NULL, ZERO);
     XtAddCallback(pileAll, XtNcallback, PileAllCallback, NULL);
     deck = XtCreateManagedWidget ("deck", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (deck, XtNinputCallback, DeckCallback, NULL);
+    XtAddCallback (deck, XtNinputCallback, InputCallback, NULL);
     piles = XtCreateManagedWidget ("piles", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (piles, XtNinputCallback, StackCallback, NULL);
+    XtAddCallback (piles, XtNinputCallback, InputCallback, NULL);
     stacks = XtCreateManagedWidget ("stacks", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (stacks, XtNinputCallback, StackCallback, NULL);
+    XtAddCallback (stacks, XtNinputCallback, InputCallback, NULL);
     tail = XtCreateManagedWidget ("tail", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (tail, XtNinputCallback, StackCallback, NULL);
+    XtAddCallback (tail, XtNinputCallback, InputCallback, NULL);
     message = XtCreateManagedWidget ("message", klabelWidgetClass, frame, NULL, 0);
     srandom (getpid () ^ time ((long *) 0));
     NewGame ();
@@ -930,6 +910,8 @@ main (int argc, char **argv)
 				   False);
     (void) XSetWMProtocols (XtDisplay(toplevel), XtWindow(toplevel),
                             &wm_delete_window, 1);
+
+    XkwSetCardIcon(toplevel);
 
     XtMainLoop ();
 }

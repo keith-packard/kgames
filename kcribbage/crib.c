@@ -95,7 +95,7 @@ game(void)
 		}
 		i = (random() >> 4) % CARDS;		/* random cut */
 		do {					/* comp cuts deck */
-		    j = (rand() >> 4) % CARDS;
+		    j = (random() >> 4) % CARDS;
 		} while (j == i);
 		addmsg(quiet ? "You cut " : "You cut the ");
 		msgcard(deck[i], FALSE);
@@ -177,6 +177,7 @@ playhand(BOOLEAN mycrib)
 	sorthand(chand, FULLHAND);
 	sorthand(phand, FULLHAND);
 	makeknown(chand, FULLHAND);
+        UIPrintHand(chand, FULLHAND, COMPUTER, TRUE);
 	UIPrintHand(phand, FULLHAND, PLAYER, FALSE);
 	discard(mycrib);
 	if (cut(mycrib, deckpos))
@@ -184,6 +185,8 @@ playhand(BOOLEAN mycrib)
 	if (peg(mycrib))
 	    return TRUE;
 	UIEraseHand (TABLE);
+        UIPrintHand(chand, FULLHAND, COMPUTER, TRUE);
+	UIPrintHand(phand, FULLHAND, PLAYER, FALSE);
 	if (score(mycrib))
 	    return TRUE;
 	return FALSE;
@@ -225,6 +228,10 @@ discard(BOOLEAN mycrib)
 	register char	*prompt;
 	CARD		crd;
 
+        crib[0].rank = EMPTY;
+        crib[1].rank = EMPTY;
+        crib[2].rank = EMPTY;
+        crib[3].rank = EMPTY;
 	UIPrintCrib (mycrib ? COMPUTER : PLAYER, &turnover, TRUE);
 	prompt = (quiet ? "Discard --> " : "Discard a card --> ");
 	cdiscard(mycrib);			/* puts best discard at end */
@@ -232,6 +239,7 @@ discard(BOOLEAN mycrib)
 	remove_card(crd, phand, FULLHAND);
 	UIPrintHand (phand, FULLHAND, PLAYER, FALSE);
 	crib[0] = crd;
+	UIPrintCrib (mycrib ? COMPUTER : PLAYER, &turnover, TRUE);
 /* next four lines same as last four except for cdiscard() */
 	crd = phand[UIGetPlayerCard(phand, FULLHAND - 1, prompt)];
 	remove_card(crd, phand, FULLHAND - 1);
@@ -240,6 +248,7 @@ discard(BOOLEAN mycrib)
 	crib[2] = chand[4];
 	crib[3] = chand[5];
 	chand[4].rank = chand[4].suit = chand[5].rank = chand[5].suit = EMPTY;
+	UIPrintCrib (mycrib ? COMPUTER : PLAYER, &turnover, TRUE);
 }
 
 /*
@@ -294,6 +303,15 @@ static CARD		Table[14];
 
 static int		Tcnt;
 
+#define screen_update(pause) do {               \
+        UIPrintHand (ph, pnum, PLAYER, FALSE);  \
+        UIPrintHand (ch, cnum, COMPUTER, TRUE); \
+        prtable(sum);                           \
+        UIRefresh();                            \
+        if (pause)                              \
+            UIPause();                          \
+    } while(0)
+
 BOOLEAN
 peg(BOOLEAN mycrib)
 {
@@ -315,9 +333,6 @@ peg(BOOLEAN mycrib)
 	myturn = !mycrib;
 	for (;;) {
 	    last = TRUE;				/* enable last flag */
-	    UIPrintHand (ph, pnum, PLAYER, FALSE);
-	    UIPrintHand (ch, cnum, COMPUTER, TRUE);
-	    prtable(sum);
 	    if (myturn) {				/* my tyrn to play */
 		if (!anymove(ch, cnum, sum)) {		/* if no card to play */
 		    if (!mego && cnum) {		/* go for comp? */
@@ -328,8 +343,10 @@ peg(BOOLEAN mycrib)
 			myturn = !myturn;
 		    else {				/* give him his point */
 			msg(quiet ? "You get one" : "You get one point");
-			if (chkscr(&pscore, 1))
+			if (chkscr(&pscore, 1)) {
+                            screen_update(FALSE);
 			    return TRUE;
+                        }
 			sum = 0;
 			mego = ugo = FALSE;
 			Tcnt = 0;
@@ -357,8 +374,10 @@ peg(BOOLEAN mycrib)
 			    "I get %d points playing ", k);
 			msgcard(crd, FALSE);
 			endmsg(TRUE);
-			if (chkscr(&cscore, k))
+			if (chkscr(&cscore, k)) {
+                            screen_update(FALSE);
 			    return TRUE;
+                        }
 		    }
 		    myturn = !myturn;
 		}
@@ -373,9 +392,10 @@ peg(BOOLEAN mycrib)
 			myturn = !myturn;
 		    else {
 			msg(quiet ? "I get one" : "I get one point");
-			UIWait();
-			if (chkscr(&cscore, 1))
+			if (chkscr(&cscore, 1)) {
+                            screen_update(FALSE);
 			    return TRUE;
+                        }
 			sum = 0;
 			mego = ugo = FALSE;
 			Tcnt = 0;
@@ -389,7 +409,7 @@ peg(BOOLEAN mycrib)
 		    }
 		    else
 			for (;;) {
-			    UIPrintHand (ph, pnum, PLAYER, FALSE);
+                            screen_update(FALSE);
 			    crd = ph[UIGetPlayerCard(ph, pnum, "Your play: ")];
 			    if (sum + VAL(crd.rank) <= 31)
 				break;
@@ -403,15 +423,17 @@ peg(BOOLEAN mycrib)
 		    Table[Tcnt++] = crd;
 		    if (i > 0) {
 			msg(quiet ? "You got %d" : "You got %d points", i);
-			if (chkscr(&pscore, i))
+			if (chkscr(&pscore, i)) {
+                            screen_update(FALSE);
 			    return TRUE;
+                        }
 		    }
 		    myturn = !myturn;
 		}
 	    }
+            screen_update(TRUE);
 	    if (sum >= 31) {
-		if (!myturn)
-		    UIWait();
+                msg("Next round");
 		sum = 0;
 		mego = ugo = FALSE;
 		Tcnt = 0;
@@ -420,13 +442,9 @@ peg(BOOLEAN mycrib)
 	    if (!pnum && !cnum)
 		break;					/* both done */
 	}
-	UIPrintHand (ph, pnum, PLAYER, FALSE);
-	UIPrintHand (ch, cnum, COMPUTER, TRUE);
-	prtable(sum);
 	if (last) {
 	    if (played) {
 		msg(quiet ? "I get one for last" : "I get one point for last");
-		UIWait();
 		if (chkscr(&cscore, 1))
 		    return TRUE;
 	    }
@@ -458,6 +476,7 @@ prtable(int score)
 BOOLEAN
 score(BOOLEAN mycrib)
 {
+        BOOLEAN r;
 	sorthand(crib, CINHAND);
 	if (mycrib) {
 	    if (plyrhand(phand, "hand"))
@@ -465,7 +484,9 @@ score(BOOLEAN mycrib)
 	    if (comphand(chand, "hand"))
 		return TRUE;
 	    UIWait();
-	    if (comphand(crib, "crib"))
+            r = comphand(crib, "crib");
+            UIWait();
+	    if (r)
 		return TRUE;
 	}
 	else {

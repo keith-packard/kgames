@@ -30,9 +30,7 @@
 # include	<X11/Xaw/Box.h>
 # include	<X11/Xaw/Dialog.h>
 # include	<X11/Xaw/Cardinals.h>
-# include	<X11/Xaw/Porthole.h>
 # include	<X11/Xaw/Panner.h>
-# include	<X11/Xaw/Scrollbar.h>
 # include	"Dominos.h"
 # include	<Xkw/Layout.h>
 # include 	<Xkw/Message.h>
@@ -40,15 +38,21 @@
 # include	<Xkw/KLabel.h>
 # include	<Xkw/KCommand.h>
 # include	<Xkw/KMenuButton.h>
+# include	<Xkw/KSimple.h>
 # include	<Xkw/KSimpleMenu.h>
 # include	<Xkw/KSmeBSB.h>
+# include	<Xkw/KScrollbar.h>
+# include	<Xkw/KPorthole.h>
 # include	<X11/Xutil.h>
-# include	"dominos.h"
+# include	"domino.h"
+# include	"Dominos-res.h"
 # include	<stdio.h>
 
 Widget	    toplevel;
 Widget	    frame;
-Widget	    panner;
+Widget	    scroll_h;
+Widget	    corner;
+Widget	    scroll_v;
 Widget	    porthole;
 Widget	    board_w;
 Widget	    player_porthole;
@@ -66,6 +70,7 @@ Widget	    draw;
 Widget	    zoom_in;
 Widget	    zoom_out;
 Widget	    score_w[MAX_PLAYERS];
+Widget	    drag;
 
 int	    total_score[MAX_PLAYERS];
 int	    last_score[MAX_PLAYERS];
@@ -175,7 +180,7 @@ PlayEdgeFunc (DominoPtr source,
     return TRUE;
 }
 
-static void
+static Bool
 Play (DominoPtr *player,
       DominoPtr domino,
       DominoPtr target,
@@ -190,6 +195,7 @@ Play (DominoPtr *player,
 	DisplayDominos (DISPLAY_PLAYER|DISPLAY_BOARD);
 	if (!game_over)
 	    ComputerMove ();
+	return TRUE;
     }
     else
     {
@@ -204,8 +210,10 @@ Play (DominoPtr *player,
 	    DisplayDominos (DISPLAY_PLAYER|DISPLAY_BOARD);
 	    if (!game_over)
 		ComputerMove ();
+	    return TRUE;
 	}
     }
+    return FALSE;
 }
 
 static void
@@ -268,7 +276,7 @@ Score (void)
 	scores[i] = 0;
 	for (domino = player[i]; domino; domino = domino->peer[LinkPeer])
 	    scores[i] += domino->pips[0] + domino->pips[1];
-	if (scores[i] < best)
+	if (scores[i] < best || (scores[i] == 0 && player[i] == NULL))
 	{
 	    best = scores[i];
 	    best_i = i;
@@ -600,6 +608,7 @@ MakeFirstMove (void)
     }
     if (max_domino)
     {
+        game_over = FALSE;
 	PlayerFirstMove (max_player, max_domino);
 	i = DISPLAY_BOARD;
 	if (max_player != &player[1])
@@ -615,88 +624,124 @@ MakeFirstMove (void)
     return FALSE;
 }
 
-/*	Function Name: PannerCallback
- *	Description: called when the panner has moved.
- *	Arguments: panner - the panner widget.
- *                 closure - *** NOT USED ***.
- *                 report_ptr - the panner record.
- *	Returns: none.
- */
-
 static void
-PannerCallback(Widget w, XtPointer closure, XtPointer report_ptr)
+SetScrollbar(Widget w,
+	     Position p,
+	     Dimension child,
+	     Dimension parent)
 {
-    Arg args[2];
-    XawPannerReport *report = (XawPannerReport *) report_ptr;
-    Widget child = (Widget) closure;
-
-    (void) w;
-    XtSetArg (args[0], XtNx, -report->slider_x);
-    XtSetArg (args[1], XtNy, -report->slider_y);
-
-    XtSetValues(child, args, TWO);
+    double pos = -(double) p / ((double) child - (double) parent);
+    XkwScrollbarSetThumb(w, pos, (double) parent / (double) child);
 }
 
-/*	Function Name: PortholeCallback
- *	Description: called when the porthole or its child has
- *                   changed
- *	Arguments: porthole - the porthole widget.
- *                 panner_ptr - the panner widget.
- *                 report_ptr - the porthole record.
- *	Returns: none.
- */
-
 static void
-PortholeCallback(Widget w, XtPointer panner_ptr, XtPointer report_ptr)
+UpdateScrollbars(Widget child,
+		 Position x, Position y,
+		 Dimension child_width, Dimension child_height,
+		 Dimension parent_width, Dimension parent_height)
 {
-    Arg args[10];
-    Cardinal n = 0;
-    XawPannerReport *report = (XawPannerReport *) report_ptr;
-    Widget panner = (Widget) panner_ptr;
-
-    (void) w;
-    XtSetArg (args[n], XtNsliderX, report->slider_x); n++;
-    XtSetArg (args[n], XtNsliderY, report->slider_y); n++;
-    if (report->changed != (XawPRSliderX | XawPRSliderY)) {
-	XtSetArg (args[n], XtNsliderWidth, report->slider_width); n++;
-	XtSetArg (args[n], XtNsliderHeight, report->slider_height); n++;
-	XtSetArg (args[n], XtNcanvasWidth, report->canvas_width); n++;
-	XtSetArg (args[n], XtNcanvasHeight, report->canvas_height); n++;
+    if (child == player_w) {
+	SetScrollbar(player_scrollbar, x, child_width, parent_width);
     }
-    XtSetValues (panner, args, n);
+    if (child == board_w) {
+	SetScrollbar(scroll_h, x, child_width, parent_width);
+	SetScrollbar(scroll_v, y, child_height, parent_height);
+    }
 }
 
+/* Called when scrollbar is moved */
 static void
-PlayerScrollbarCallback (Widget w, XtPointer closure, XtPointer data)
+ScrollbarCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    Widget	player_w = (Widget) closure;
-    float	pos = *((float *) data);
-    Arg		args[10];
-    Cardinal	n;
-    Dimension	player_width;
-    Position	player_x;
+    Widget child = (Widget) closure;
+    double pos = *((double *) data);
+    Arg args[4];
+    Position	child_x, child_y;
+    Dimension	child_width, child_height;
+    Dimension  	parent_width, parent_height;
+    XtOrientation orientation;
 
-    (void) w;
-    n = 0;
-    XtSetArg (args[n], XtNwidth, &player_width); n++;
-    XtGetValues (player_w, args, n);
-    player_x = -((float) player_width) * pos;
-    n = 0;
-    XtSetArg (args[n], XtNx, player_x); n++;
-    XtSetValues (player_w, args, n);
+    /* child geometry */
+    XtSetArg(args[0], XtNx, &child_x);
+    XtSetArg(args[1], XtNy, &child_y);
+    XtSetArg(args[2], XtNwidth, &child_width);
+    XtSetArg(args[3], XtNheight, &child_height);
+    XtGetValues(child, args, 4);
+
+    /* parent geometry */
+    XtSetArg(args[0], XtNwidth, &parent_width);
+    XtSetArg(args[1], XtNheight, &parent_height);
+    XtGetValues(XtParent(child), args, 2);
+
+    /* scrollbar direction */
+    XtSetArg(args[0], XtNorientation, &orientation);
+    XtGetValues(w, args, 1);
+
+    Dimension	parent_length, child_length;
+    Position	child_position, new_child_position;
+    if (orientation == XtorientVertical) {
+	parent_length = parent_height;
+	child_position = child_y;
+	child_length = child_height;
+    } else {
+	parent_length = parent_width;
+	child_position = child_x;
+	child_length = child_width;
+    }
+
+    if (pos == XkwScrollbarPageDown)
+	new_child_position = child_position - parent_length * 0.75;
+    else if (pos == XkwScrollbarPageUp)
+	new_child_position = child_position + parent_length * 0.75;
+    else
+	new_child_position = ((double) parent_length - (double) child_length) * pos;
+
+    if (new_child_position < (Position) (parent_length - child_length))
+	new_child_position = (Position) (parent_length - child_length);
+
+    if (new_child_position > 0)
+	new_child_position = 0;
+
+    if (new_child_position != child_position) {
+	if (orientation == XtorientVertical)
+	    child_y = new_child_position;
+	else
+	    child_x = new_child_position;
+	Arg args[2];
+	XtSetArg(args[0], XtNx, child_x);
+	XtSetArg(args[1], XtNy, child_y);
+	XtSetValues(child, args, 2);
+	UpdateScrollbars(child, child_x, child_y,
+			 child_width, child_height,
+			 parent_width, parent_height);
+    }
 }
 
+/* Called when porthole has moved */
 static void
-PlayerPortholeCallback (Widget w, XtPointer closure, XtPointer data)
+PortholeCallback(Widget w, XtPointer closure, XtPointer data)
 {
-    float  top, shown;
-    XawPannerReport *report = (XawPannerReport *) data;
-    Widget scrollbar = (Widget) closure;
+    Widget child = (Widget) data;
+    Arg args[4];
+    Position	child_x, child_y;
+    Dimension	child_width, child_height;
+    Dimension  	parent_width, parent_height;
 
-    (void) w;
-    top = ((float) report->slider_x) / ((float) report->canvas_width);
-    shown = ((float) report->slider_width) / ((float) report->canvas_width);
-    XawScrollbarSetThumb (scrollbar, top, shown);
+    /* child geometry */
+    XtSetArg(args[0], XtNx, &child_x);
+    XtSetArg(args[1], XtNy, &child_y);
+    XtSetArg(args[2], XtNwidth, &child_width);
+    XtSetArg(args[3], XtNheight, &child_height);
+    XtGetValues(child, args, 4);
+
+    /* parent geometry */
+    XtSetArg(args[0], XtNwidth, &parent_width);
+    XtSetArg(args[1], XtNheight, &parent_height);
+    XtGetValues(XtParent(child), args, 2);
+
+    UpdateScrollbars(child, child_x, child_y,
+		     child_width, child_height,
+		     parent_width, parent_height);
 }
 
 static void
@@ -820,24 +865,61 @@ SaveCallback (Widget w, XtPointer closure, XtPointer data)
 static int	    selected_player;
 static DominoPtr    selected_domino;
 
-/*ARGSUSED*/
-static void
-BoardCallback (Widget w, XtPointer closure, XtPointer data)
-{
-    DominosInputPtr input = (DominosInputPtr) data;
+static DominoPtr    drag_domino_ptr;
+static DominoRec    drag_domino;
 
-    (void) w;
-    (void) closure;
-    if (strcmp (*input->params, "dest") != 0)
-    {
-	selected_domino = 0;
-	selected_player = 0;
-	return;
-    }
-    if (!selected_domino)
-	return;
-    Play (&player[selected_player], selected_domino,
-	  input->domino, input->direction, input->distance);
+static void
+TranslateCoords(Widget from, Widget to, Position *x, Position *y)
+{
+    Position	to_x, to_y;
+    Position	from_x, from_y;
+
+    XtTranslateCoords(to, 0, 0, &to_x, &to_y);
+    XtTranslateCoords(from, 0, 0, &from_x, &from_y);
+
+    *x += from_x - to_x;
+    *y += from_y - to_y;
+}
+
+static void
+Drag (Widget child, XEvent *event)
+{
+    Dimension	width, height;
+    Arg		arg[2];
+
+    XtSetArg(arg[0], XtNwidth, &width);
+    XtSetArg(arg[1], XtNheight, &height);
+    XtGetValues(drag, arg, 2);
+
+    Position	x = event->xmotion.x - width / 2;
+    Position	y = event->xmotion.y - height / 2;
+    TranslateCoords(child, frame, &x, &y);
+
+    XtWidgetGeometry request = {
+	.x = x,
+	.y = y,
+	.stack_mode = Above,
+	.request_mode = CWX | CWY | CWStackMode
+    };
+
+    XtMakeGeometryRequest(drag, &request, NULL);
+}
+
+static void
+StartDrag (Widget child, XEvent *event)
+{
+    drag_domino.pips[0] = selected_domino->pips[0];
+    drag_domino.pips[1] = selected_domino->pips[1];
+    drag_domino_ptr = &drag_domino;
+    DominosSetDominos(drag, &drag_domino_ptr);
+    Drag(child, event);
+    XtMapWidget(drag);
+}
+
+static void
+StopDrag (void)
+{
+    XtUnmapWidget(drag);
 }
 
 static void
@@ -847,14 +929,57 @@ PlayerCallback (Widget w, XtPointer closure, XtPointer data)
 
     (void) w;
     (void) closure;
-    selected_domino = 0;
-    selected_player = 0;
-    if (strcmp (*input->params, "source") != 0)
-	return;
-    if (input->domino && input->distance == 0)
-    {
-	selected_player = (intptr_t) closure;
-	selected_domino = input->domino;
+    switch (input->action) {
+    case DominosActionStart:
+	if (input->domino && input->distance == 0)
+	{
+	    selected_player = (intptr_t) closure;
+	    selected_domino = input->domino;
+	    selected_domino->hide = True;
+	    DisplayDominos(DISPLAY_PLAYER);
+	    StartDrag(w, &input->event);
+	}
+	break;
+    case DominosActionDrag:
+	Drag(w, &input->event);
+	break;
+    default:
+	StopDrag();
+	if (selected_domino) {
+	    selected_domino->hide = False;
+	    DisplayDominos(DISPLAY_PLAYER);
+	    selected_domino = NULL;
+	}
+	break;
+    }
+}
+
+static void
+BoardCallback (Widget w, XtPointer closure, XtPointer data)
+{
+    DominosInputPtr input = (DominosInputPtr) data;
+
+    (void) w;
+    (void) closure;
+    switch (input->action) {
+    case DominosActionStop:
+	StopDrag();
+	if (selected_domino) {
+	    selected_domino->hide = False;
+	    if (!Play (&player[selected_player], selected_domino,
+		       input->domino, input->direction, input->distance))
+		DisplayDominos(DISPLAY_PLAYER);
+	    selected_domino = NULL;
+	}
+	break;
+    default:
+	StopDrag();
+	if (selected_domino) {
+	    selected_domino->hide = False;
+	    DisplayDominos(DISPLAY_PLAYER);
+	    selected_domino = NULL;
+	}
+	break;
     }
 }
 
@@ -1043,17 +1168,11 @@ main (int argc, char **argv)
 {
     Atom	wm_delete_window;
     int		i;
+    int		restored;
+    Arg         arg[1];
 
-#ifdef APPDEFAULTS
-    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
-#endif
-
-    toplevel = XtInitialize (argv[0], "Dominos", options, XtNumber(options),
-			     &argc, argv);
-
-    Arg	args[1];
-    XtSetArg(args[0], XtNinput, True);
-    XtSetValues(toplevel, args, ONE);
+    toplevel = XkwInitialize("Dominos", options, XtNumber(options),
+			     &argc, argv, True, defaultResources);
 
     XtGetApplicationResources (toplevel, (XtPointer)&dominosResources, resources,
 			       XtNumber (resources), NULL, 0);
@@ -1104,38 +1223,48 @@ main (int argc, char **argv)
 	score_w[i] = XtCreateManagedWidget(foo, klabelWidgetClass,
 					   menuBar, NULL, ZERO);
     }
-    porthole = XtCreateManagedWidget("porthole", portholeWidgetClass,
+    porthole = XtCreateManagedWidget("porthole", kportholeWidgetClass,
 				     frame, NULL, ZERO);
 
-    panner = XtCreateManagedWidget("panner", pannerWidgetClass,
+    scroll_h = XtCreateManagedWidget("scroll_h", kscrollbarWidgetClass,
+				     frame, NULL, ZERO);
+
+    corner = XtCreateManagedWidget("corner", ksimpleWidgetClass,
 				   frame, NULL, ZERO);
+
+    scroll_v = XtCreateManagedWidget("scroll_v", kscrollbarWidgetClass,
+				     frame, NULL, ZERO);
 
     board_w = XtCreateManagedWidget ("board", dominosWidgetClass, porthole, NULL, 0);
 
-    XtAddCallback (board_w, XtNinputCallback, BoardCallback, NULL);
+    XtAddCallback(board_w, XtNinputCallback, BoardCallback, NULL);
 
-    XtAddCallback(porthole, XtNreportCallback, PortholeCallback,
-		  (XtPointer) panner);
+    XtAddCallback (porthole, XtNcallback, PortholeCallback, NULL);
 
-    XtAddCallback(panner, XtNreportCallback, PannerCallback,
-		  (XtPointer) board_w);
+    XtAddCallback(scroll_h, XtNcallback, ScrollbarCallback, (XtPointer) board_w);
 
-    player_porthole = XtCreateManagedWidget("player_porthole", portholeWidgetClass,
+    XtAddCallback(scroll_v, XtNcallback, ScrollbarCallback, (XtPointer) board_w);
+
+    player_porthole = XtCreateManagedWidget("player_porthole", kportholeWidgetClass,
 					  frame, NULL, ZERO);
 
-    player_scrollbar = XtCreateManagedWidget("player_scrollbar", scrollbarWidgetClass,
+    player_scrollbar = XtCreateManagedWidget("player_scrollbar", kscrollbarWidgetClass,
 					     frame, NULL, ZERO);
 
     player_w = XtCreateManagedWidget ("player", dominosWidgetClass,
 				      player_porthole, NULL, 0);
 
-    XtAddCallback (player_porthole, XtNreportCallback, PlayerPortholeCallback,
-		   (XtPointer) player_scrollbar);
+    XtAddCallback (player_porthole, XtNcallback, PortholeCallback, NULL);
 
-    XtAddCallback (player_scrollbar, XtNjumpProc, PlayerScrollbarCallback,
+    XtAddCallback (player_scrollbar, XtNcallback, ScrollbarCallback,
 		   (XtPointer) player_w);
 
     XtAddCallback(player_w, XtNinputCallback, PlayerCallback, NULL);
+
+    XtSetArg(arg[0], XtNwantForward, FALSE);
+    drag = XtCreateManagedWidget("drag", dominosWidgetClass, frame, arg, 1);
+
+    XtSetMappedWhenManaged(drag, False);
 
     message = XtCreateManagedWidget ("message", klabelWidgetClass, frame, NULL, 0);
 
@@ -1143,9 +1272,17 @@ main (int argc, char **argv)
 
     srandom (getpid () ^ time ((long *) 0));
 
-    Message (message, "Keith's Dominos, Version 1.0");
-    if (!Restore ())
+    restored = Restore();
+
+    MessageStart();
+    MessageAppend("Keith's Dominos, Version 1.0.");
+    if (restored)
+	MessageAppend(" (Resuming existing game)");
+    MessageEnd(message);
+
+    if (!restored)
     {
+	game_over = True;
 	NewGame ();
 	DisplayScores ();
     }

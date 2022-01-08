@@ -49,17 +49,44 @@ typedef struct _HandDisplay {
     XtPointer	    private;
 } HandDisplayRec, *HandDisplayPtr;
 
+typedef enum {
+    HandActionStart,
+    HandActionDrag,
+    HandActionClick,
+    HandActionExpand,
+    HandActionUnexpand,
+} HandAction;
+
+typedef enum {
+    HandSelectOverlap,
+    HandSelectOne,
+    HandSelectAll
+} HandSelect;
+
+typedef struct _HandLocation {
+    Widget	w;
+    Position    x, y;
+    Position	row, col;
+    struct _HandCard *card;
+    XtPointer	private;
+    Boolean     dragging;
+} HandLocation;
+
 typedef struct _HandInput {
-    Widget	    w;
-    Position	    row, col;
-    XEvent	    event;
-    XtPointer	    private;
+    HandLocation    current;
+    HandLocation    start;
+    HandAction	    action;
     String	    *params;
     Cardinal	    *num_params;
 } HandInputRec, *HandInputPtr;
 
 void
 HandRectangleForPos (Widget gw, int row, int col, XRectangle *r);
+
+typedef struct _HandBasePos {
+    Widget      widget;
+    int         x, y;
+} HandBasePosRec, *HandBasePosPtr;
 
 XtPointer
 HandAddCard (Widget	gw,
@@ -79,6 +106,15 @@ HandRemoveAllCards (Widget gw);
 
 void
 HandUpdateDisplay (Widget gw);
+
+void
+HandSetPreferredSize (Widget gw);
+
+Boolean
+HandCardIsEmpty (Widget gw, XtPointer private);
+
+void
+HandDragInit(Widget parent, WidgetClass class);
 
 #define InsertRow -1
 #define InsertCol -1
@@ -118,10 +154,15 @@ HandUpdateDisplay (Widget gw);
 #define XtCDisplayCallback  "DisplayCallback"
 #define XtNinputCallback  "inputCallback"
 #define XtCInputCallback  "InputCallback"
+#define XtNexpandCallback  "expandCallback"
+#define XtCExpandCallback  "ExpandCallback"
 #define XtNrowInsert	"rowInsert"
 #define XtNcolInsert	"colInsert"
 #define XtCInsert	"Insert"
 #define XtNimmediateUpdate  "immediateUpdate"
 #define XtCImmediateUpdate  "ImmediateUpdate"
+#define XtNselect "select"
+#define XtCSelect "Select"
+#define XtRHandSelect "HandSelect"
 #endif /* _XtHand_h */
 /* DON'T ADD STUFF AFTER THIS #endif */

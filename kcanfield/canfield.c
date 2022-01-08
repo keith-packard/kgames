@@ -42,6 +42,8 @@
 # include	<Xkw/CardsUtil.h>
 # include	<Xkw/Message.h>
 # include	<Xkw/KLabel.h>
+# include	<KCanfield-res.h>
+# include       <Xkw/list.h>
 
 Widget	    toplevel;
 Widget	    frame;
@@ -77,10 +79,6 @@ CardStackRec	foundation[NUM_FOUNDATION];
 CardRec		rawcards[NUM_CARDS];
 
 #define INIT_STOCK  13
-
-CardStackPtr	fromStack;
-CardPtr		fromCard;
-int		dealNumber;
 
 typedef struct _canfieldResources {
     int		animationSpeed;
@@ -135,7 +133,6 @@ FirstDeal (void)
 	CardMove (&deck, deck.last, &tableau[col], False);
 	CardTurn (tableau[col].last, CardFaceUp, False);
     }
-    dealNumber = 0;
 }
 
 static void
@@ -193,6 +190,8 @@ ResetTalon (void)
 	CardMove (&talon, talon.last, &deck, True);
 	CardTurn (deck.last, CardFaceDown, True);
     }
+    CardNextHistory ();
+    DisplayStacks ();
 }
 
 static void
@@ -202,13 +201,17 @@ Deal (void)
 
     for (deal = 0; deal < DEAL_COUNT; deal++)
     {
-	if (!deck.last)
-	{
-	    Message (message, "No more cards in the deck.");
-	    return;
+	if (!deck.last) {
+            if (!deal)
+                Message (message, "No more cards in the deck.");
+	    break;
 	}
 	CardMove (&deck, deck.last, &talon, True);
 	CardTurn (talon.last, CardFaceUp, True);
+    }
+    if (deal) {
+        CardNextHistory ();
+        DisplayStacks ();
     }
 }
 
@@ -219,8 +222,6 @@ NewGame (void)
     CardsRemoveAllCards (talonWidget);
     CardsRemoveAllCards (tableauWidget);
     CardsRemoveAllCards (foundationWidget);
-    fromStack = 0;
-    fromCard = 0;
     InitStacks ();
     GenerateCards ();
     CardShuffle (&deck, False);
@@ -237,11 +238,13 @@ Undo (void)
     DisplayStacks ();
 }
 
+#define MAX_SCORE       260
+
 static void
 Score (void)
 {
-    Message (message, "Current position scores %d out of 260.",
-	     ComputeScore ());
+    Message (message, "Current position scores %d out of %d.",
+	     ComputeScore (), MAX_SCORE);
 }
 
 static void
@@ -255,8 +258,7 @@ CanfieldCardIsInOrder (CardPtr a, CardPtr b)
 {
     return a->face == b->face &&
 	(a->card.rank + 1 == b->card.rank ||
-	 (a->card.rank == CardsKing && b->card.rank == CardsAce)) &&
-	b->card.rank != baseRank;
+	 (a->card.rank == CardsKing && b->card.rank == CardsAce));
 }
 
 static Boolean
@@ -291,7 +293,7 @@ CanfieldCardInSuitOrder (CardPtr card)
 static CardPtr
 CanfieldCardInAlternatingSuitOrder (CardPtr card)
 {
-    while (card->next && CanfieldCardIsInAlternatingSuitOrder (card->next, card))
+    while (card->next && CanfieldCardIsInAlternatingSuitOrder (card->next, card) && card->next->isUp)
 	card = card->next;
     return card;
 }
@@ -299,7 +301,7 @@ CanfieldCardInAlternatingSuitOrder (CardPtr card)
 static CardPtr
 CanfieldCardInReverseAlternatingSuitOrder (CardPtr card)
 {
-    while (card->prev && CanfieldCardIsInAlternatingSuitOrder (card, card->prev))
+    while (card->prev && CanfieldCardIsInAlternatingSuitOrder (card, card->prev) && card->prev->isUp)
 	card = card->prev;
     return card;
 }
@@ -331,6 +333,8 @@ FindFoundationPlay (CardStackPtr from_stack, CardPtr *from_cardp)
     CardStackPtr    to_stack;
     CardPtr	    from_card;
 
+    if (from_stack->widget == foundationWidget)
+        return NULL;
     if (*from_cardp)
 	from_card = *from_cardp;
     else if (from_stack->last)
@@ -493,6 +497,17 @@ Play (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 	}
     }
     CardMove (from_stack, from_card, to_stack, True);
+    if (from_stack->widget == tableauWidget && !from_stack->last) {
+        if (stock.last)
+            CardMove(&stock, stock.last, from_stack, True);
+    }
+    CheckStackTop (from_stack);
+    CardNextHistory ();
+    DisplayStacks ();
+    if (ComputeScore() == MAX_SCORE)
+        Message(message, "We have a winner!");
+    else
+        Message(message, "");
 }
 
 static Boolean
@@ -599,6 +614,7 @@ FoundationAll (void)
     Boolean	    done = False;
 
     Message (message, "");
+    CardSetAnimate(True);
     do {
 	to_stack = 0;
 	FindOne (FindFoundationPlay);
@@ -606,9 +622,6 @@ FoundationAll (void)
 	{
 	    Play (from_stack, from_card, to_stack);
 	    done = True;
-	    CheckStackTop (from_stack);
-	    CardNextHistory ();
-	    DisplayStacks ();
 	}
     } while (to_stack);
     if (!done)
@@ -644,101 +657,71 @@ Expand (CardStackPtr stack)
 }
 
 /* Callbacks to user interface functions */
-
-static void
-TableauCallback (Widget w, XtPointer closure, XtPointer data)
+static CardStackPtr
+WidgetToStack(Widget w, int col)
 {
-    CardsInputPtr    input = (CardsInputPtr) data;
-    CardStackPtr    stack = NULL;
-    CardPtr	    card;
-    String	    type;
-
-    (void) closure;
-    Message (message, "");
+    if (w == stockWidget)
+        return &stock;
+    if (w == talonWidget) {
+        if (col == 0)
+            return &deck;
+        else
+            return &talon;
+    }
     if (w == tableauWidget)
-	stack = &tableau[input->col];
-    else if (w == talonWidget)
-    {
-	if (input->col == 0)
-	    stack = &deck;
-	else
-	    stack = &talon;
-    }
-    else if (w == foundationWidget)
-	stack = &foundation[input->col];
-    else if (w == stockWidget)
-	stack = &stock;
-    for (card = stack->last; card; card = card->prev)
-	if (card->isUp && card->row == input->row)
-	    break;
-    if (*input->num_params) {
-	type = *input->params;
-	if (!strcmp (type, "talon_source"))
-	{
-	    fromStack = stack;
-	    fromCard = stack->last;
-	}
-	else if (!strcmp (type, "tableau_source"))
-	{
-	    fromStack = stack;
-	    fromCard = 0;
-	    if (!fromStack->last)
-		Message (message, "Selected tableau is empty.");
-	}
-	else if (!strcmp (type, "card_source"))
-	{
-	    if (!card)
-		Message (message, "No card selected.");
-	    else
-	    {
-		fromStack = stack;
-		fromCard = card;
-	    }
-	}
-	else if (!strcmp (type, "dest"))
-	{
-	    if (fromStack)
-	    {
-		Play (fromStack, fromCard, stack);
-		CheckStackTop (fromStack);
-		fromStack = NULL;
-		CardNextHistory ();
-		DisplayStacks ();
-	    }
-	}
-	else if (!strcmp (type, "expand"))
-	{
-	    Expand (stack);
-	}
-    }
+	return &tableau[col];
+    if (w == foundationWidget)
+	return &foundation[col];
+    return NULL;
 }
 
 static void
-TalonCallback (Widget w, XtPointer closure, XtPointer data)
+InputCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    CardsInputPtr    input = (CardsInputPtr) data;
-    CardStackPtr    stack;
+    HandInputPtr    input = (HandInputPtr) data;
+    CardStackPtr    stack = NULL;
+    CardStackPtr    startStack = NULL;
 
     (void) closure;
     Message (message, "");
-    if (input->col == 0)
-	stack = &deck;
-    else
-	stack = &talon;
-    if (input->col == 0 && *input->num_params &&
-	!strcmp (*input->params, "talon_source"))
-    {
-	if (!stack->last)
-	    ResetTalon ();
-	else
-	    Deal ();
+    stack = WidgetToStack(w, input->current.col);
+    startStack = WidgetToStack(input->start.w, input->start.col);
+
+    if (!startStack || !stack)
+	return;
+
+    switch (input->action) {
+    case HandActionStart:
+        break;
+    case HandActionClick:
+        CardSetAnimate(True);
+        if (stack == &deck) {
+            if (!stack->last)
+                ResetTalon ();
+            else
+                Deal ();
+        } else
+            Play (stack, NULL, stack);
+        break;
+    case HandActionDrag:
+        CardSetAnimate(False);
+        if (startStack == &deck) {
+            if (stack == &talon)
+                Deal ();
+        } else if (startStack == &talon && stack == &deck) {
+            if (!stack->last)
+                ResetTalon();
+        } else {
+            CardPtr     card = CardFromHandCard(input->start.private);
+            Play (startStack, card, stack);
+        }
+        break;
+    case HandActionExpand:
+        Expand(stack);
+        break;
+    case HandActionUnexpand:
+        break;
     }
-    else
-    {
-	TableauCallback (w, closure, data);
-    }
-    CardNextHistory ();
-    DisplayStacks ();
 }
 
 static void
@@ -947,16 +930,8 @@ main (int argc, char **argv)
 {
     Atom wm_delete_window;
 
-#ifdef APPDEFAULTS
-    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
-#endif
-
-    toplevel = XtInitialize (argv[0], "KCanfield", options, XtNumber(options),
-			     &argc, argv);
-
-    Arg	args[1];
-    XtSetArg(args[0], XtNinput, True);
-    XtSetValues(toplevel, args, ONE);
+    toplevel = XkwInitialize ("KCanfield", options, XtNumber(options),
+			      &argc, argv, True, defaultResources);
 
     XtGetApplicationResources (toplevel, (XtPointer)&canfieldResources, resources,
 			       XtNumber (resources), NULL, 0);
@@ -994,13 +969,13 @@ main (int argc, char **argv)
 					    menuBar, NULL, ZERO);
     logo = XtCreateManagedWidget ("logo", klabelWidgetClass, frame, NULL, ZERO);
     talonWidget = XtCreateManagedWidget ("talon", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (talonWidget, XtNinputCallback, TalonCallback, NULL);
+    XtAddCallback (talonWidget, XtNinputCallback, InputCallback, NULL);
     foundationWidget = XtCreateManagedWidget ("foundation", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (foundationWidget, XtNinputCallback, TableauCallback, NULL);
+    XtAddCallback (foundationWidget, XtNinputCallback, InputCallback, NULL);
     tableauWidget = XtCreateManagedWidget ("tableau", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (tableauWidget, XtNinputCallback, TableauCallback, NULL);
+    XtAddCallback (tableauWidget, XtNinputCallback, InputCallback, NULL);
     stockWidget = XtCreateManagedWidget ("stock", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (stockWidget, XtNinputCallback, TableauCallback, NULL);
+    XtAddCallback (stockWidget, XtNinputCallback, InputCallback, NULL);
     message = XtCreateManagedWidget ("message", klabelWidgetClass, frame, NULL, 0);
     srandom (getpid () ^ time ((long *) 0));
     NewGame ();
@@ -1009,6 +984,7 @@ main (int argc, char **argv)
 				   False);
     (void) XSetWMProtocols (XtDisplay(toplevel), XtWindow(toplevel),
                             &wm_delete_window, 1);
+    XkwSetCardIcon(toplevel);
 
     XtMainLoop ();
 }

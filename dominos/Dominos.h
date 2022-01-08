@@ -17,7 +17,7 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NCD.
  * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * Author:  Keith Packard, Network Computing Devices
@@ -25,7 +25,7 @@
 
 #ifndef _XtDominos_h
 #define _XtDominos_h
-#include "dominos.h"
+#include "domino.h"
 #include <Xkw/Xkw.h>
 
 /* define exposed functions */
@@ -33,13 +33,18 @@
 void
 DominosSetDominos(Widget, DominoPtr *);
 
+DominoPtr
+DominosXYToDomino (Widget gw,
+		   int x,
+		   int y,
+		   int *distp,
+		   Direction *dirp);
+
 typedef struct _DominosRec *DominosWidget;
 typedef struct _DominosClassRec *DominosWidgetClass;
 
 extern WidgetClass  dominosWidgetClass;
 
-#define XtNroundDominos "roundDominos"
-#define XtCRoundDominos "RoundDominos"
 #define XtNfaceColor	"faceColor"
 #define XtCFaceColor	"FaceColor"
 #define XtNpipsColor	"pipsColor"
@@ -49,8 +54,15 @@ extern WidgetClass  dominosWidgetClass;
 #define XtNinputCallback  "inputCallback"
 #define XtCInputCallback  "InputCallback"
 
+typedef enum {
+    DominosActionStart,
+    DominosActionDrag,
+    DominosActionStop,
+} DominosAction;
+
 typedef struct _DominosInput {
     Widget	    w;
+    DominosAction   action;
     DominoPtr	    domino;
     Direction	    direction;
     int		    distance;

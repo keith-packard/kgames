@@ -259,6 +259,8 @@ Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
     (void) args;
     (void) count;
 
+    CardDragInit(XtParent(gnew));
+
     new->hand.force_erase = True;
 
     setSizeVars (req, new);
@@ -429,6 +431,18 @@ DisplayCallback (Widget gw, XtPointer closure, XtPointer data)
     }
 }
 
+static Boolean
+CardsCardIsEmpty(Widget gw, XtPointer private)
+{
+    CardsCardRec *card = private;
+
+    if (!card)
+        return TRUE;
+    if (card->suit == CardsEmpty || card->suit == CardsNone)
+        return TRUE;
+    return FALSE;
+}
+
 CardsClassRec	cardsClassRec = {
   { /* core fields */
     /* superclass		*/	(WidgetClass) SuperClass,
@@ -459,17 +473,20 @@ CardsClassRec	cardsClassRec = {
     /* accept_focus		*/	NULL,
     /* version			*/	XtVersion,
     /* callback_private		*/	NULL,
-    /* tm_table			*/	NULL,
+    /* tm_table			*/	XtInheritTranslations,
     /* query_geometry		*/	XtInheritQueryGeometry,
     /* display_accelerator	*/	XtInheritDisplayAccelerator,
     /* extension		*/	NULL
   },
   { /* simple fields */
     /* change_sensitive		*/	XtInheritChangeSensitive,
-    /* extension		*/	NULL
+  },
+  {
+    /* ksimple fields */
+    /* empty			*/	0
   },
   { /* hand fields */
-    /* ignore                   */	0
+      .card_is_empty = CardsCardIsEmpty,
   },
   { /* cards fields */
     /* ignore			*/	0

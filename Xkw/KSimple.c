@@ -22,7 +22,7 @@
 
 #include <Xkw/KSimpleP.h>
 
-#define superclass	(&simpleClassRec)
+#define SuperClass	(&simpleClassRec)
 
 static void
 KSimpleClassInitialize(void)
@@ -31,26 +31,24 @@ KSimpleClassInitialize(void)
 }
 
 static void
-KSimpleRealize (Widget gw,
-		XtValueMask *value_mask,
-		XSetWindowAttributes *attributes)
+KSimpleInitialize(Widget request, Widget cnew,
+		  ArgList args, Cardinal *num_args)
 {
-    KSimpleWidget w = (KSimpleWidget) gw;
+    KSimpleWidget w = (KSimpleWidget) cnew;
 
-    (*superclass->core_class.realize)(gw, value_mask, attributes);
-    w->ksimple.surface = XkwGetSurface(gw);
+    w->ksimple.surface = NULL;
+    w->ksimple.surface_width = 0;
+    w->ksimple.surface_height = 0;
 }
 
 static void
-KSimpleResize(Widget gw)
+KSimpleRealize(Widget w, Mask *valueMask, XSetWindowAttributes *attributes)
 {
-    KSimpleWidget w = (KSimpleWidget) gw;
-
-    if (!XtIsRealized(gw))
-	return;
-
-    cairo_surface_destroy(w->ksimple.surface);
-    w->ksimple.surface = XkwGetSurface(gw);
+    *valueMask &= ~(CWBackPixel);
+    *valueMask |= (CWBackPixmap);
+    attributes->background_pixmap = None;
+    (*ksimpleWidgetClass->core_class.superclass->core_class.realize)
+	(w, valueMask, attributes);
 }
 
 static void
@@ -58,7 +56,21 @@ KSimpleDestroy(Widget gw)
 {
     KSimpleWidget w = (KSimpleWidget) gw;
 
-    cairo_surface_destroy(w->ksimple.surface);
+    if (w->ksimple.surface) {
+	cairo_surface_destroy(w->ksimple.surface);
+	w->ksimple.surface = NULL;
+    }
+}
+
+static void
+KSimpleRedisplay(Widget gw, XEvent *event, Region region)
+{
+    KSimpleWidget w = (KSimpleWidget) gw;
+    cairo_t *cr = XkwGetCairo(gw);
+
+    XkwSetSource(cr, &w->ksimple.background);
+    cairo_paint(cr);
+    cairo_destroy(cr);
 }
 
 static Boolean
@@ -84,19 +96,21 @@ static XtResource resources[] = {
       offset (foreground), XtRString, XtDefaultForeground },
     { XtNdpi, XtCDpi, XtRDpi, sizeof(double),
       offset (dpi), XtRString, "" },
+    {XtNwantForward, XtCWantForward, XtRBoolean, sizeof(Boolean),
+     offset(want_forward), XtRImmediate, (XtPointer) True},
 };
 #undef offset
 
 KSimpleClassRec ksimpleClassRec = {
   /* core */
   {
-    (WidgetClass)&simpleClassRec,	/* superclass */
+    (WidgetClass)SuperClass,		/* superclass */
     "KSimple",				/* class_name */
     sizeof(KSimpleRec),			/* widget_size */
     KSimpleClassInitialize,		/* class_initialize */
     NULL,				/* class_part_initialize */
     False,				/* class_inited */
-    NULL,				/* initialize */
+    KSimpleInitialize,			/* initialize */
     NULL,				/* initialize_hook */
     KSimpleRealize,			/* realize */
     NULL,				/* actions */
@@ -109,8 +123,8 @@ KSimpleClassRec ksimpleClassRec = {
     True,				/* compress_enterleave */
     False,				/* visible_interest */
     KSimpleDestroy,			/* destroy */
-    KSimpleResize,			/* resize */
-    NULL,				/* expose */
+    NULL,				/* resize */
+    KSimpleRedisplay,			/* expose */
     KSimpleSetValues,			/* set_values */
     NULL,				/* set_values_hook */
     XtInheritSetValuesAlmost,		/* set_values_almost */

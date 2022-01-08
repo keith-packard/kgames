@@ -3,7 +3,7 @@
  *	user interface
  */
 
-# include	"reversi.h"
+# include	"revers.h"
 # include	<stdio.h>
 # include	<signal.h>
 

@@ -21,7 +21,7 @@
 #
 project('kgames', 'c',
 	license : 'MIT',
-	version: '1.0',
+	version: '2.1',
 	default_options: ['bindir=games', 'datadir=share/X11'])
 
 c_compiler = meson.get_compiler('c')
@@ -52,6 +52,7 @@ app_defaults = datadir / 'app-defaults'
 add_global_arguments('-D', 'APPDEFAULTS="' + prefix / app_defaults + '"', language: 'c')
 
 inc_dirs = ['.']
+
 
 inc = include_directories(inc_dirs)
 

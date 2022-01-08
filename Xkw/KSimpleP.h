@@ -48,9 +48,12 @@ typedef struct {
     XRenderColor	background;
     XRenderColor	foreground;
     double		dpi;
+    Boolean             want_forward;       /* does this widget want event forwarding */
 
     /* private */
     cairo_surface_t	*surface;
+    Dimension		surface_width;
+    Dimension		surface_height;
 } KSimplePart;
 
 typedef struct _KSimpleRec {

@@ -42,6 +42,7 @@
 # include	<X11/Xutil.h>
 # include	<Xkw/CardsUtil.h>
 # include	<Xkw/Message.h>
+# include	"KTowers-res.h"
 
 Widget	    toplevel;
 Widget	    frame;
@@ -197,11 +198,13 @@ Undo (void)
     DisplayStacks ();
 }
 
+#define MAX_SCORE 340
+
 static void
 Score (void)
 {
-    Message (message, "Current position scores %d out of 340.",
-	     ComputeScore ());
+    Message (message, "Current position scores %d out of %d.",
+	     ComputeScore (), MAX_SCORE);
 }
 
 static void
@@ -379,6 +382,8 @@ Play (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 	}
     }
     CardMove (from_stack, from_card, to_stack, True);
+    if (ComputeScore() == MAX_SCORE)
+        Message(message, "We have a winner!");
 }
 
 static void
@@ -504,53 +509,54 @@ Expand (CardStackPtr stack)
 
 /* Callbacks to user interface functions */
 
-static void
-StackCallback (Widget w, XtPointer closure, XtPointer data)
+static CardStackPtr
+WidgetToStack(Widget w, int col)
 {
-    CardsInputPtr    input = (CardsInputPtr) data;
-    CardStackPtr    stack;
-    CardPtr	    card;
-    String	    type;
+    if (w == stacks)
+	return &stackStacks[col];
+    else if (w == suits)
+	return &suitStacks[col];
+    else if (w == piles)
+	return &pileStacks[col];
+    return NULL;
+}
+
+static void
+InputCallback (Widget w, XtPointer closure, XtPointer data)
+{
+    HandInputPtr    input = (HandInputPtr) data;
+    CardStackPtr    stack = NULL;
+    CardStackPtr    startStack = NULL;
+    CardPtr	    card = NULL;
 
     (void) closure;
     Message (message, "");
-    if (w == stacks)
-	stack = &stackStacks[input->col];
-    else if (w == suits)
-	stack = &suitStacks[input->col];
-    else if (w == piles)
-	stack = &pileStacks[input->col];
-    else
+    stack = WidgetToStack(w, input->current.col);
+    startStack = WidgetToStack(input->start.w, input->start.col);
+
+    if (!startStack || !stack)
 	return;
-    for (card = stack->last; card; card = card->prev)
-	if (card->isUp && card->row == input->row)
-	    break;
-    if (*input->num_params) {
-	type = *input->params;
-	if (!strcmp (type, "source"))
-	{
-	    if (!stack->last)
-		Message (message, "Selected stack is empty.");
-	    else
-	    {
-		fromStack = stack;
-		fromCard = 0;
-	    }
-	}
-	else if (!strcmp (type, "dest"))
-	{
-	    if (fromStack)
-	    {
-		Play (fromStack, fromCard, stack);
-		fromStack = NULL;
-		CardNextHistory ();
-		DisplayStacks ();
-	    }
-	}
-	else if (!strcmp (type, "expand"))
-	{
-	    Expand (stack);
-	}
+
+    CardSetAnimate(True);
+    switch (input->action) {
+    case HandActionStart:
+        break;
+    case HandActionDrag:
+        if (startStack == stack)
+            break;
+        CardSetAnimate(False);
+        /* fall through */
+    case HandActionClick:
+        card = startStack->last;
+        Play (startStack, card, stack);
+        CardNextHistory ();
+        DisplayStacks ();
+        break;
+    case HandActionExpand:
+        Expand (stack);
+        break;
+    case HandActionUnexpand:
+        break;
     }
 }
 
@@ -758,16 +764,8 @@ main (int argc, char **argv)
 {
     Atom wm_delete_window;
 
-#ifdef APPDEFAULTS
-    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
-#endif
-
-    toplevel = XtInitialize (argv[0], "KTowers", options, XtNumber(options),
-			     &argc, argv);
-
-    Arg	args[1];
-    XtSetArg(args[0], XtNinput, True);
-    XtSetValues(toplevel, args, ONE);
+    toplevel = XkwInitialize ("KTowers", options, XtNumber(options),
+			      &argc, argv, True, defaultResources);
 
     XtGetApplicationResources (toplevel, (XtPointer)&ktowersResources, resources,
 			       XtNumber (resources), NULL, 0);
@@ -802,11 +800,11 @@ main (int argc, char **argv)
 				   menuBar, NULL, ZERO);
     XtAddCallback(pileAll, XtNcallback, PileAllCallback, NULL);
     suits = XtCreateManagedWidget ("suits", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (suits, XtNinputCallback, StackCallback, NULL);
+    XtAddCallback (suits, XtNinputCallback, InputCallback, NULL);
     piles = XtCreateManagedWidget ("piles", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (piles, XtNinputCallback, StackCallback, NULL);
+    XtAddCallback (piles, XtNinputCallback, InputCallback, NULL);
     stacks = XtCreateManagedWidget ("stacks", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (stacks, XtNinputCallback, StackCallback, NULL);
+    XtAddCallback (stacks, XtNinputCallback, InputCallback, NULL);
     message = XtCreateManagedWidget ("message", klabelWidgetClass, frame, NULL, 0);
     srandom (getpid () ^ time ((long *) 0));
     NewGame ();
@@ -815,6 +813,8 @@ main (int argc, char **argv)
 				   False);
     (void) XSetWMProtocols (XtDisplay(toplevel), XtWindow(toplevel),
                             &wm_delete_window, 1);
+
+    XkwSetCardIcon(toplevel);
 
     XtMainLoop ();
 }

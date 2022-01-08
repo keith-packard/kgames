@@ -1,12 +1,15 @@
 *Background: #fffff0
 *menuBar.Background: #337744
-*score0.Foreground: white
-*score1.Foreground: white
+*score0.Foreground: #fffff0
+*score1.Foreground: #fffff0
 *score0.Background: #337744
 *score1.Background: #337744
 *Dominos.Background: #337744
 *frame.Background: #337744
 *panner.Foreground: #fffff0
+*yesOrNoDialog.Background: #337744
+*yesOrNoLabel.Background: #337744
+*yesOrNoLabel.Foreground: #fffff0
 
 *allowShellResize: True
 *message.justify: left
@@ -44,55 +47,31 @@
 *board.height: 500
 *player_scrollbar.orientation: horizontal
 
-*player.translations: #override \
-	<Btn1Down>:	select(source)\n\
-	<Btn1Up>:	select(dest)
-	<Btn2Down>:	select(source)\n\
-	<Btn2Up>:	select(dest)
-	<Btn3Down>:	select(source)\n\
-	<Btn3Up>:	select(dest)\n\
-	<Btn4Down>:	zoomin()\n\
-	<Btn5Down>:	zoomout()
-
-*board.translations: #override \
-	<Btn1Down>:	select(source)\n\
-	<Btn1Up>:	select(dest)
-	<Btn2Down>:	select(source)\n\
-	<Btn2Up>:	select(dest)
-	<Btn3Down>:	select(source)\n\
-	<Btn3Up>:	select(dest)\n\
-	<Btn4Down>:	zoomin()\n\
-	<Btn5Down>:	zoomout()
+*Scrollbar.Foreground: gray
+*scroll_h.orientation: horizontal
+*scroll_v.orientation: vertical
 
 *frame.layout: vertical {\
-	-1 \
 	horizontal { -1 menuBar < +inff -100% * > -1 } \
-	-1 \
 	horizontal { \
-		-1 \
-		computerCount < -100% * > \
-		-1 \
 		message < +inff -100% * > \
-		-1 \
+		computerCount < -100% * > \
 	} \
-	-1 \
 	horizontal { \
-		-1 \
-		vertical { panner 0 < +inf > } \
-		-1 \
-		vertical { \
-			-1 \
-			player_scrollbar < +inf -inf * > \
-			0 < +1 > \
-			player_porthole < +inf -inf * > \
-			-1 \
-		} \
-		-1 \
+		porthole < +inf -inf * +inf -inf > \
+		scroll_v < * +inff > \
 	} \
-	porthole < +inf -inf * +inf -inf > \
+	horizontal { \
+		scroll_h < +inff * > \
+		vertical { \
+			width scroll_v, 0 \
+			corner < +inff -inff * +inff -inff > \
+		}\
+	} \
+	player_porthole < +inf -inf * > \
+	player_scrollbar < +inf -inf * > \
 }
 
-*panner.resize: False
 *fileMenuButton.leftBitmap: menu12
 *fileMenuButton.menuName: fileMenu
 *fileMenuButton.label: File
@@ -124,7 +103,7 @@
 	<Key>d:		dominosDraw()\n\
 	<Key>?:		dominosHint()\n\
 	<Key>+:         dominosZoomIn()\n\
-	<Key>-:         dominosZoomOut()\n\
+	<Key>-:         dominosZoomOut()
 
 *yesOrNoShell.allowShellResize: true
 *yesOrNoLabel.borderWidth: 0
@@ -136,7 +115,11 @@
 *yesOrNoDialog.layout: vertical {\
 	Spacing = (50 % of height yesOrNoLabel) \
 	$Spacing < +inf -inf > \
-	yesOrNoLabel \
+	horizontal { \
+		$Spacing < -inf > \
+		yesOrNoLabel \
+		$Spacing < -inf > \
+	} \
 	$Spacing < +inf -inf > \
 	horizontal { \
 		$Spacing < -inf > \

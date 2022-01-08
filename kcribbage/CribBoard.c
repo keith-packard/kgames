@@ -29,33 +29,101 @@
 static XtResource resources[] = {
 #define offset(field) XtOffsetOf(CribBoardRec, cribBoard.field)
     /* {name, class, type, size, offset, default_type, default_addr}, */
-    { XtNpegColor, XtCForeground, XtRRenderColor, sizeof (XRenderColor),
-      offset (pegColor), XtRString, XtDefaultForeground },
+    { XtNpeg1Color, XtCForeground, XtRRenderColor, sizeof (XRenderColor),
+      offset (pegColor[0]), XtRString, XtDefaultForeground },
+    { XtNpeg2Color, XtCForeground, XtRRenderColor, sizeof (XRenderColor),
+      offset (pegColor[1]), XtRString, XtDefaultForeground },
     { XtNholeColor, XtCForeground, XtRRenderColor, sizeof (XRenderColor),
       offset (holeColor), XtRString, XtDefaultForeground },
-    { XtNpegSize, XtCPegSize, XtRInt, sizeof (int),
-      offset (pegSize), XtRImmediate, (XtPointer) 7 },
-    { XtNholeSize, XtCHoleSize, XtRInt, sizeof (int),
-      offset (holeSize), XtRImmediate, (XtPointer) 5 },
-    { XtNnumPegs, XtCNumPegs, XtRInt, sizeof (int),
-      offset (numPegs), XtRImmediate, (XtPointer) 2 },
-    { XtNgroupSpace, XtCGroupSpace, XtRInt, sizeof (int),
-      offset (groupSpace), XtRImmediate, (XtPointer) 4 },
-    { XtNrowSpace, XtCRowSpace, XtRInt, sizeof (int),
-      offset (rowSpace), XtRImmediate, (XtPointer) 15 },
     { XtNnumCols, XtCNumCols, XtRInt, sizeof (int),
       offset (numCols), XtRImmediate, (XtPointer) 30 },
     { XtNnumRows, XtCNumRows, XtRInt, sizeof (int),
-      offset (numRows), XtRImmediate, (XtPointer) 4 },
+      offset (numRows), XtRImmediate, (XtPointer) 8 },
 #undef offset
 };
+
+#define PEG_SIZE	4.0
+#define PEG_LENGTH	8.0
+#define HOLE_SIZE	3.0
+#define GROUP_SPACE	4.0
+#define PEG_SPACE	10.0
+#define TRACK_WIDTH     10.0
+#define BORDER_WIDTH    30.0
+#define BORDER_HEIGHT   10.0
+
+static inline double
+scaleSize(CribBoardWidget w, double size)
+{
+    return w->ksimple.dpi * size / 72.0;
+}
+
+static inline double
+pegSize(CribBoardWidget w)
+{
+    return scaleSize(w, PEG_SIZE);
+}
+
+static inline double
+pegLength(CribBoardWidget w)
+{
+    return scaleSize(w, PEG_LENGTH);
+}
+
+static inline double
+holeSize(CribBoardWidget w)
+{
+    return scaleSize(w, HOLE_SIZE);
+}
+
+static inline double
+trackWidth(CribBoardWidget w)
+{
+    return scaleSize(w, TRACK_WIDTH);
+}
+
+static inline double
+groupSpace(CribBoardWidget w)
+{
+    return scaleSize(w, GROUP_SPACE);
+}
+
+static inline double
+pegSpace(CribBoardWidget w)
+{
+    return scaleSize(w, PEG_SPACE);
+}
+
+static inline double
+RowPos(CribBoardWidget w, int row)
+{
+    return (row + 0.5) * pegSpace(w) + (row >> 1) * groupSpace(w);
+}
+
+static inline double
+ColPos(CribBoardWidget w, int col)
+{
+    int	group = col / 5;
+
+    return (col + 0.5) * (pegSpace(w)) + group * groupSpace(w);
+}
+
+static inline double
+borderWidth(CribBoardWidget w)
+{
+    return scaleSize(w, BORDER_WIDTH);
+}
+
+static inline double
+borderHeight(CribBoardWidget w)
+{
+    return scaleSize(w, BORDER_HEIGHT);
+}
 
 static void
 getSize (CribBoardWidget w, Dimension *widthp, Dimension *heightp)
 {
-    *widthp = (w->cribBoard.numCols / 5 - 1) * w->cribBoard.groupSpace +
-	      (w->cribBoard.numCols * w->cribBoard.pegSize * 2);
-    *heightp = w->cribBoard.numRows * (w->cribBoard.pegSize + w->cribBoard.rowSpace);
+    *widthp = ColPos(w, w->cribBoard.numCols - 1) + pegSize(w) + borderWidth(w) * 2;
+    *heightp = RowPos(w, w->cribBoard.numRows - 1) + pegSize(w) + borderHeight(w) * 2;
 }
 
 static void
@@ -69,26 +137,21 @@ Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 {
     CribBoardWidget	req = (CribBoardWidget) greq,
 			new = (CribBoardWidget) gnew;
-    int			i;
+    int			p, i;
 
+    (void) req;
     (void) args;
     (void) count;
     getSize (new, &new->core.width, &new->core.height);
-    new->cribBoard.pegs = Some (int, req->cribBoard.numPegs);
-    for (i = 0; i < req->cribBoard.numPegs; i++)
-	new->cribBoard.pegs[i] = CribBoardUnset;
+    for (p = 0; p < NUM_PLAYER; p++)
+        for (i = 0; i < NUM_PEG; i++)
+            new->cribBoard.pegs[p][i] = CribBoardUnset;
 }
 
 static void
 Destroy (Widget gw)
 {
-    CribBoardWidget    w = (CribBoardWidget) gw;
-
-    Dispose (w->cribBoard.pegs);
 }
-
-#define RowPos(w, row)	((row + 1.0) * ((w)->cribBoard.holeSize + (w)->cribBoard.rowSpace))
-#define ColPos(w, col)	(((col) / 5.0) * (w)->cribBoard.groupSpace + (col+ 1) * (w)->cribBoard.pegSize * 2)
 
 /*
  * The peg is drawn as a trapezoid topped by a filled arc
@@ -98,16 +161,11 @@ Destroy (Widget gw)
 #define COS	    0.5
 #define SIN	    0.866025403784439
 
-#define PEG_SIZE    ((w)->cribBoard.pegSize)
-#define HOLE_SIZE   ((w)->cribBoard.holeSize)
+#define PEG_RAD	    (pegSize(w))
+#define HOLE_RAD    (holeSize(w))
 
-#define PEG_RAD	    (PEG_SIZE / 2.0)
-#define HOLE_RAD    (HOLE_SIZE / 2.0)
-
-#define PEG_LENGTH  PEG_RAD * 2
-
-#define CIRCLE_X    -COS * PEG_LENGTH
-#define CIRCLE_Y    -SIN * PEG_LENGTH
+#define CIRCLE_X    -COS * pegLength(w)
+#define CIRCLE_Y    -SIN * pegLength(w)
 
 #define POLY_X0	    SIN * HOLE_RAD
 #define POLY_Y0	    -COS * HOLE_RAD
@@ -123,48 +181,92 @@ Destroy (Widget gw)
 
 
 static void
-drawPeg (CribBoardWidget w, cairo_t *cr, int value)
+drawPeg (CribBoardWidget w, cairo_t *cr, int player, int value)
 {
-    int	    row, col;
+    int	        row, col;
+    int         subrow;
     double	x, y;
 
     if (value == CribBoardUnset)
 	return;
-    row = value / w->cribBoard.numCols;
+
+    if (value >= w->cribBoard.numCols * (w->cribBoard.numRows/NUM_PLAYER))
+        return;
+
+    if (value < 0)
+        return;
+
+    row = (value / w->cribBoard.numCols);
     col = value % w->cribBoard.numCols;
-    if (row & 1)
+    if (row & 1) {
+        subrow = (NUM_PLAYER - 1) - player;
 	col = (w->cribBoard.numCols - 1) - col;
+    } else {
+        subrow = player;
+    }
+    row = row * NUM_PLAYER + subrow;
     x = ColPos (w, col);
     y = RowPos (w, row);
     cairo_save(cr);
-    XkwSetSource(cr, &w->cribBoard.pegColor);
+    XkwSetSource(cr, &w->cribBoard.pegColor[player]);
     cairo_translate(cr, x, y);
     cairo_move_to(cr, POLY_X0, POLY_Y0);
     cairo_line_to(cr, POLY_X1, POLY_Y1);
     cairo_line_to(cr, POLY_X2, POLY_Y2);
     cairo_line_to(cr, POLY_X3, POLY_Y3);
-    cairo_fill(cr);
-    cairo_arc(cr, CIRCLE_X, CIRCLE_Y, PEG_SIZE, 0, 2 * M_PI);
+    cairo_arc(cr, CIRCLE_X, CIRCLE_Y, pegSize(w), 0, 2 * M_PI);
+    cairo_arc(cr, 0, 0, holeSize(w), 0, 2 * M_PI);
     cairo_fill(cr);
     cairo_restore(cr);
 }
 
 static void
-drawHole (CribBoardWidget w, cairo_t *cr, int value)
+drawHole (CribBoardWidget w, cairo_t *cr, int row, int col)
 {
-    int	    row, col;
-    int	    x;
-    int	    y;
+    double  x;
+    double  y;
 
-    row = value / w->cribBoard.numCols;
-    col = value % w->cribBoard.numCols;
     x = ColPos (w, col);
     y = RowPos (w, row);
     cairo_save(cr);
     XkwSetSource(cr, &w->cribBoard.holeColor);
     cairo_translate(cr, x, y);
-    cairo_arc(cr, 0, 0, HOLE_SIZE, 0, 2 * M_PI);
+    cairo_arc(cr, 0, 0, holeSize(w), 0, 2 * M_PI);
     cairo_fill(cr);
+    cairo_restore(cr);
+}
+
+static void
+drawTrack (CribBoardWidget w, cairo_t *cr, int player)
+{
+    int row;
+
+    cairo_save(cr);
+    XkwSetSourceInterp(cr, &w->cribBoard.pegColor[player], &w->ksimple.background);
+    cairo_set_line_width(cr, trackWidth(w));
+    cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
+
+    for (row = 0; row < w->cribBoard.numRows; row += (2 * NUM_PLAYER)) {
+        double left_x = ColPos (w, 0) - pegSize(w);
+        double right_x = ColPos (w, w->cribBoard.numCols - 1) + pegSize(w);
+        double top_y = RowPos (w, row + player);
+        double bottom_y = RowPos (w, row + (2 * NUM_PLAYER - player - 1));
+        double next_top_y = RowPos (w, row + (2 * NUM_PLAYER) + player);
+
+        if (row == 0)
+            cairo_move_to(cr, left_x, top_y);
+
+        cairo_line_to(cr, right_x, top_y);
+        cairo_arc(cr, right_x, (top_y + bottom_y) / 2, (bottom_y - top_y) / 2, -M_PI/2.0, M_PI/2.0);
+
+        if (row < w->cribBoard.numRows - (2 * NUM_PLAYER)) {
+            cairo_line_to(cr, left_x, bottom_y);
+
+            cairo_arc_negative(cr, left_x, (bottom_y + next_top_y) / 2, (next_top_y - bottom_y) / 2, -M_PI/2.0, M_PI/2.0);
+        } else
+            cairo_line_to(cr, left_x, bottom_y);
+    }
+    cairo_stroke(cr);
     cairo_restore(cr);
 }
 
@@ -172,14 +274,37 @@ static void
 Redisplay (Widget gw, XEvent *event, Region region)
 {
     CribBoardWidget w = (CribBoardWidget) gw;
-    int		    v;
+    int		    v, p, r, c;
     cairo_t	    *cr = XkwDrawBegin(gw, region);
+    Dimension	    natural_width, natural_height;
+
+    getSize(w, &natural_width, &natural_height);
+
+    /* scale to fit area */
+    double width_ratio = (double) XtWidth(w) / (double) natural_width;
+    double height_ratio = (double) XtHeight(w) / (double) natural_height;
+
+    if (width_ratio > height_ratio)
+	width_ratio = height_ratio;
+
+    double bw = borderWidth(w);
+    double bh = borderHeight(w);
+
+    cairo_save(cr);
+    cairo_scale(cr, width_ratio, width_ratio);
+    cairo_translate(cr, bw, bh);
 
     (void) event;
-    for (v = 0; v < w->cribBoard.numRows * w->cribBoard.numCols; v++)
-	drawHole (w, cr, v);
-    for (v = 0; v < w->cribBoard.numPegs; v++)
-	drawPeg (w, cr, w->cribBoard.pegs[v]);
+    for (p = 0; p < NUM_PLAYER; p++)
+        drawTrack (w, cr, p);
+    for (r = 0; r < w->cribBoard.numRows; r++) {
+        for (c = 0; c < w->cribBoard.numCols; c++)
+            drawHole (w, cr, r, c);
+    }
+    for (p = 0; p < NUM_PLAYER; p++)
+        for (v = 0; v < NUM_PEG; v++)
+            drawPeg (w, cr, p, w->cribBoard.pegs[p][v]);
+    cairo_restore(cr);
     XkwDrawEnd(gw, region, cr);
 }
 
@@ -190,21 +315,16 @@ SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 		    req = (CribBoardWidget) greq,
 		    new = (CribBoardWidget) gnew;
     Boolean	    redraw = FALSE;
-    Dimension	    width, height;
+    int             p;
 
     (void) args;
     (void) count;
-    if (!XkwColorEqual(&req->cribBoard.pegColor, &cur->cribBoard.pegColor))
-	redraw = TRUE;
+    (void) new;
+    for (p = 0; p < NUM_PLAYER; p++)
+        if (!XkwColorEqual(&req->cribBoard.pegColor[p], &cur->cribBoard.pegColor[p]))
+            redraw = TRUE;
     if (!XkwColorEqual(&req->cribBoard.holeColor, &cur->cribBoard.holeColor))
 	redraw = TRUE;
-    if (req->cribBoard.groupSpace != cur->cribBoard.groupSpace ||
-	req->cribBoard.rowSpace != cur->cribBoard.rowSpace)
-    {
-	getSize (new, &width, &height);
-	XtMakeResizeRequest (gnew, width, height, &width, &height);
-	redraw = TRUE;
-    }
     return redraw;
 }
 
@@ -259,13 +379,13 @@ CribBoardClassRec cribBoardClassRec = {
 WidgetClass cribBoardWidgetClass = (WidgetClass)&cribBoardClassRec;
 
 void
-XkwCribBoardSetPeg (Widget gw, int i, int v)
+XkwCribBoardSetPeg (Widget gw, int p, int i, int v)
 {
     CribBoardWidget w = (CribBoardWidget) gw;
 
-    if (0 <= i && i < w->cribBoard.numPegs && w->cribBoard.pegs[i] != v)
+    if (0 <= i && i < NUM_PEG && 0 <= p && p <= NUM_PLAYER && w->cribBoard.pegs[p][i] != v)
     {
-	w->cribBoard.pegs[i] = v;
+	w->cribBoard.pegs[p][i] = v;
 	Redisplay(gw, NULL, NULL);
     }
 }

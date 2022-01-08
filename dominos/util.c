@@ -23,7 +23,7 @@
  * Author:  Keith Packard, Network Computing Devices
  */
 
-#include "dominos.h"
+#include "domino.h"
 
 DominoPtr
 MakeDomino(Pips a, Pips b)
@@ -31,6 +31,7 @@ MakeDomino(Pips a, Pips b)
     DominoPtr	domino;
 
     domino = New(DominoRec);
+    domino->hide = FALSE;
     domino->pips[0] = a;
     domino->pips[1] = b;
     domino->peer[North] = 0;
@@ -48,8 +49,6 @@ InitDominos (Pips max)
     DominoPtr	dominos, d, *prev;
 
     prev = &dominos;
-    *prev = d = MakeDomino(0, 0);
-    prev = &d->peer[LinkPeer];
     for (r = 0; r <= max; r++)
 	for (c = r; c <= max; c++)
 	{

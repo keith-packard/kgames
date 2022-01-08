@@ -19,29 +19,11 @@
 *stacks.overlap: vertical
 *stacks.immediate_update: false
 
-*deck.translations: #override \
-	<BtnDown>:	select()
-
-*stacks.translations: #override \
-	Shift<BtnDown>:	select(noop)\n\
-	Shift<BtnUp>:	select(expand)\n\
-	:<Key>1:	select(stack_source 0) select(dest 0)\n\
-	:<Key>2:	select(stack_source 1) select(dest 1)\n\
-	:<Key>3:	select(stack_source 2) select(dest 2)\n\
-	:<Key>4:	select(stack_source 3) select(dest 3)\n\
-	:<Key>5:	select(stack_source 4) select(dest 4)\n\
-	:<Key>6:	select(stack_source 5) select(dest 5)\n\
-	:<Key>7:	select(stack_source 6) select(dest 6)\n\
-	:<Key>8:	select(stack_source 7) select(dest 7)\n\
-	:<Key>9:	select(stack_source 8) select(dest 8)\n\
-	:<Key>0:	select(stack_source 9) select(dest 9)\n\
+*frame.translations: #override \
 	<Key>u:		spiderUndo()\n\
 	<Key>n:		spiderNewGame()\n\
 	<Key>s:		spiderScore()\n\
-	<Key>?:		spiderFindAMove()\n\
-	:<Btn1Down>:	select(stack_source)\n\
-	:<Btn2Down>:	select(card_source)\n\
-	:<BtnUp>:	select(dest)
+	<Key>?:		spiderFindAMove()
 
 *message.justify: left
 *message.label: Keith's Spider, Version 1.0

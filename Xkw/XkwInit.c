@@ -21,18 +21,22 @@
  */
 
 #include <Xkw/Xkw.h>
-#include <X11/IntrinsicP.h>
+#include <X11/IntrinsicI.h>
+#include <X11/StringDefs.h>
 #include <X11/CoreP.h>
+#include <X11/ShellP.h>
 #include <Xkw/KSimpleP.h>
 #include <Xkw/KSimpleMenuP.h>
 #include <cairo/cairo-ft.h>
 #include <cairo/cairo-xlib.h>
 #include <X11/Xft/Xft.h>
 #include <X11/Xregion.h>
+#include <math.h>
 
 const char _XtRRenderColor[] = "RenderColor";
 const char _XtRXkwFont[] = "XkwFont";
 const char _XtRDpi[] = "Dpi";
+const char _XtRDouble[] = "Double";
 
 const char _XtNdpi[] = "dpi";
 const char _XtCDpi[] = "Dpi";
@@ -162,7 +166,7 @@ XkwCvtStringToDpi(Display *dpy,
 		  XrmValue *fromVal, XrmValue *toVal,
 		  XtPointer *converter_data)
 {
-    double	dpi = 0.0;
+    double	dpi;
 
     if (!xkw_str_to_double((char *) fromVal->addr, &dpi)) {
 	if (!xkw_str_to_double(XGetDefault(dpy, "Xft", "dpi"), &dpi)) {
@@ -175,6 +179,19 @@ XkwCvtStringToDpi(Display *dpy,
     }
 
     donestr (double, dpi, XtRDpi);
+}
+
+static Boolean
+XkwCvtStringToDouble(Display *dpy,
+		     XrmValue *args, Cardinal *num_args,
+		     XrmValue *fromVal, XrmValue *toVal,
+		     XtPointer *converter_data)
+{
+    double	d = NAN;
+
+    (void) xkw_str_to_double((char *) fromVal->addr, &d);
+
+    donestr (double, d, XtRDouble);
 }
 
 cairo_surface_t *
@@ -237,6 +254,53 @@ XkwDrawRect(Widget gw, Region region)
     return ret;
 }
 
+static cairo_surface_t *
+get_widget_surface(Widget gw, Boolean *temp, XRenderColor **fg, XRenderColor **bg)
+{
+    if (XtIsSubclass(gw, ksimpleWidgetClass)) {
+	KSimpleWidget 	w = (KSimpleWidget) gw;
+	if (w->ksimple.surface &&
+	    (w->ksimple.surface_width != gw->core.width ||
+	     w->ksimple.surface_height != gw->core.height)) {
+	    cairo_surface_destroy(w->ksimple.surface);
+	    w->ksimple.surface = NULL;
+	}
+	if (!w->ksimple.surface) {
+	    w->ksimple.surface = XkwGetSurface(gw);
+	    w->ksimple.surface_width = gw->core.width;
+	    w->ksimple.surface_height = gw->core.height;
+	}
+	if (fg)
+	    *fg = &w->ksimple.foreground;
+	if (bg)
+	    *bg = &w->ksimple.background;
+	*temp = False;
+	return w->ksimple.surface;
+    } else if (XtIsSubclass(gw, ksimpleMenuWidgetClass)) {
+	KSimpleMenuWidget w = (KSimpleMenuWidget) gw;
+	if (w->ksimple_menu.surface &&
+	    (w->ksimple_menu.surface_width != gw->core.width ||
+	     w->ksimple_menu.surface_height != gw->core.height)) {
+	    cairo_surface_destroy(w->ksimple_menu.surface);
+	    w->ksimple_menu.surface = NULL;
+	}
+	if (!w->ksimple_menu.surface) {
+	    w->ksimple_menu.surface = XkwGetSurface(gw);
+	    w->ksimple_menu.surface_width = gw->core.width;
+	    w->ksimple_menu.surface_height = gw->core.height;
+	}
+	if (fg)
+	    *fg = &w->ksimple_menu.foreground;
+	if (bg)
+	    *bg = &w->ksimple_menu.background;
+	*temp = False;
+	return w->ksimple_menu.surface;
+    } else {
+	*temp = True;
+	return XkwGetSurface(gw);
+    }
+}
+
 cairo_t *
 XkwDrawBegin(Widget gw, Region region)
 {
@@ -245,25 +309,10 @@ XkwDrawBegin(Widget gw, Region region)
     while (!XtIsWidget(greal))
 	greal = XtParent(greal);
 
-    Boolean		surface_created = False;
-    cairo_surface_t	*surface = NULL;
-    XRenderColor	*bg = NULL;
     XRenderColor	*fg = NULL;
-
-    if (XtIsSubclass(greal, ksimpleWidgetClass)) {
-	KSimpleWidget 	real = (KSimpleWidget) greal;
-	surface = real->ksimple.surface;
-	fg = &real->ksimple.foreground;
-	bg = &real->ksimple.background;
-    } else if (XtIsSubclass(greal, ksimpleMenuWidgetClass)) {
-	KSimpleMenuWidget real = (KSimpleMenuWidget) greal;
-	surface = real->ksimple_menu.surface;
-	fg = &real->ksimple_menu.foreground;
-	bg = &real->ksimple_menu.background;
-    } else {
-	surface = XkwGetSurface(greal);
-	surface_created = True;
-    }
+    XRenderColor	*bg = NULL;
+    Boolean		surface_created = False;
+    cairo_surface_t	*surface = get_widget_surface(greal, &surface_created, &fg, &bg);
 
     XRectangle rect = XkwDrawRect(gw, region);
 
@@ -296,18 +345,7 @@ XkwDrawEnd(Widget gw, Region region, cairo_t *cr)
 	greal = XtParent(greal);
 
     Boolean		surface_created = False;
-    cairo_surface_t	*surface = NULL;
-
-    if (XtIsSubclass(greal, ksimpleWidgetClass)) {
-	KSimpleWidget 	real = (KSimpleWidget) greal;
-	surface = real->ksimple.surface;
-    } else if (XtIsSubclass(greal, ksimpleMenuWidgetClass)) {
-	KSimpleMenuWidget real = (KSimpleMenuWidget) greal;
-	surface = real->ksimple_menu.surface;
-    } else {
-	surface = XkwGetSurface(greal);
-	surface_created = True;
-    }
+    cairo_surface_t	*surface = get_widget_surface(greal, &surface_created, NULL, NULL);
 
     cairo_t 		*dest = cairo_create(surface);
 
@@ -378,8 +416,41 @@ XkwInitializeWidgetSet(void)
 			   XkwCvtStringToDpi,
 			   NULL, 0,
 			   XtCacheByDisplay, NULL);
+	XtSetTypeConverter(XtRString, XtRDouble,
+			   XkwCvtStringToDouble,
+			   NULL, 0,
+			   XtCacheAll, NULL);
 	XtAddConverter(XtRString, XtRJustify, XmuCvtStringToJustify, NULL, 0);
 	XtSetTypeConverter(XtRJustify, XtRString, XmuCvtJustifyToString,
 			   NULL, 0, XtCacheNone, NULL);
+	XtAddConverter(XtRString, XtROrientation, XmuCvtStringToOrientation,
+		       NULL, 0);
     }
+}
+
+Widget
+XkwInitialize(const char *class,
+	      XrmOptionDescRec *options,
+	      Cardinal num_options,
+	      int *argc,
+	      _XtString *argv,
+	      Boolean input,
+	      char const * const *fallback_resources)
+{
+    XtAppContext app_con;
+    Widget toplevel;
+
+    Arg args[1];
+    Cardinal num_args = 0;
+    if (input) {
+	XtSetArg(args[0], XtNinput, True);
+	num_args = 1;
+    }
+
+    toplevel = XtAppInitialize (&app_con, class, options, num_options,
+				argc, argv, (char **) fallback_resources,
+				args, num_args);
+
+    _XtGetProcessContext()->defaultAppContext = app_con;
+    return toplevel;
 }

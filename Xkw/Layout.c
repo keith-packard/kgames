@@ -49,7 +49,7 @@ static XtResource resources[] = {
     {XtNdebug, XtCBoolean, XtRBoolean, sizeof(Boolean),
 	offset(debug), XtRImmediate, (XtPointer) FALSE},
     {XtNresize, XtCResize, XtRBoolean, sizeof(Boolean),
-	offset(resize), XtRImmediate, (XtPointer) TRUE},
+	offset(resize), XtRImmediate, (XtPointer) FALSE},
 };
 
 #undef offset
@@ -68,6 +68,9 @@ LayoutLayout (LayoutWidget l, Bool attemptResize);
 
 static void
 LayoutGetNaturalSize (LayoutWidget l, Dimension *widthp, Dimension *heightp);
+
+static Boolean
+ChildInLayout (LayoutWidget l, Widget child);
 
 /************************************************************
  *
@@ -135,6 +138,21 @@ GeometryManager(Widget child,
     Bool	    changed, bwChanged;
 
     (void) reply;
+    if (!ChildInLayout(w, child)) {
+	/* copy values from request to child */
+	if (request->request_mode & CWX)
+	    child->core.x = request->x;
+	if (request->request_mode & CWY)
+	    child->core.y = request->y;
+	if (request->request_mode & CWWidth)
+	    child->core.width = request->width;
+	if (request->request_mode & CWHeight)
+	    child->core.height = request->height;
+	if (request->request_mode & CWBorderWidth)
+	    child->core.border_width = request->border_width;
+	return XtGeometryYes;
+    }
+
     bw = p->naturalBw;
     changed = FALSE;
     bwChanged = FALSE;
@@ -158,6 +176,10 @@ GeometryManager(Widget child,
 	p->naturalSize[LayoutVertical] = request->height + bw * 2;
 	changed = TRUE;
     }
+    /*
+     * Allow arbitrary restacking by just doing it here; the layout
+     * process doesn't need to know about it
+     */
     if (request->request_mode & CWStackMode)
     {
 	XWindowChanges	ch;
@@ -172,12 +194,7 @@ GeometryManager(Widget child,
 			  &ch);
     }
     if (changed)
-    {
-	p->inLayout = False;
 	LayoutLayout (w, TRUE);
-	if (!p->inLayout)
-	    return XtGeometryYes;
-    }
     return XtGeometryDone;
 }
 
@@ -198,7 +215,6 @@ GetDesiredSize (Widget child)
 
     XtQueryGeometry (child, (XtWidgetGeometry *) NULL, &desired);
     p = SubInfo (child);
-    p->inLayout = False;
     p->naturalBw = desired.border_width;
     p->naturalSize[LayoutHorizontal] = desired.width + desired.border_width * 2;
     p->naturalSize[LayoutVertical] = desired.height + desired.border_width * 2;
@@ -243,53 +259,50 @@ SetValues(Widget gold, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 } /* SetValues */
 
 static XtGeometryResult
-QueryGeometry (Widget gw, XtWidgetGeometry *request, XtWidgetGeometry *prefered_return)
+QueryGeometry (Widget gw, XtWidgetGeometry *intended, XtWidgetGeometry *preferred)
 {
     LayoutWidget	w = (LayoutWidget) gw;
     XtGeometryResult	result;
-    XtWidgetGeometry	prefered_size;
 
-    if (request && !(request->request_mode & (CWWidth|CWHeight)))
+    if (intended && !(intended->request_mode & (CWWidth|CWHeight)))
 	return XtGeometryYes;
-    LayoutGetNaturalSize (w, &prefered_size.width, &prefered_size.height);
-    prefered_return->request_mode = 0;
+    LayoutGetNaturalSize (w, &preferred->width, &preferred->height);
+    preferred->request_mode = 0;
+
+    printf("Layout %s query geometry mode %x intended %d x %d preferred %d x %d\n",
+	   w->core.name,
+	   intended->request_mode & (CWWidth|CWHeight),
+	   intended->width, intended->height,
+	   preferred->width, preferred->height);
+
+    /* Check to see if the intended change matches our preferred
+     * geometry
+     */
     result = XtGeometryYes;
-    if (!request) {
-	prefered_return->width = prefered_size.width;
-	prefered_return->height= prefered_size.height;
-	if (prefered_size.width != w->core.width) {
-	    prefered_return->request_mode |= CWWidth;
-	    result = XtGeometryAlmost;
+    if ((intended->request_mode & CWWidth) &&
+	intended->width != preferred->width)
+    {
+	preferred->request_mode |= CWWidth;
+	result = XtGeometryAlmost;
+    }
+    if ((intended->request_mode & CWHeight) &&
+	intended->height != preferred->height)
+    {
+	preferred->request_mode |= CWHeight;
+	result = XtGeometryAlmost;
+    }
+
+    /* Check to see if the intended geometry matches the current
+     * geometry
+     */
+    if (result == XtGeometryAlmost) {
+	if (((intended->request_mode & CWWidth) == 0 ||
+	     intended->width == w->core.width) &&
+	    ((intended->request_mode & CWHeight) == 0 ||
+	     intended->height == w->core.height))
+	{
+	    result = XtGeometryNo;
 	}
-	if (prefered_size.height != w->core.height) {
-	    prefered_return->request_mode |= CWHeight;
-	    result = XtGeometryAlmost;
-	}
-    } else {
-    	if (request->request_mode & CWWidth) {
-	    if (prefered_size.width > request->width)
-	    {
-	    	if (prefered_size.width == w->core.width)
-		    result = XtGeometryNo;
-	    	else if (result != XtGeometryNo) {
-		    result = XtGeometryAlmost;
-		    prefered_return->request_mode |= CWWidth;
-		    prefered_return->width = prefered_size.width;
-	    	}
-	    }
-    	}
-    	if (request->request_mode & CWHeight) {
-	    if (prefered_size.height > request->height)
-	    {
-	    	if (prefered_size.height == w->core.height)
-		    result = XtGeometryNo;
-	    	else if (result != XtGeometryNo) {
-		    result = XtGeometryAlmost;
-		    prefered_return->request_mode |= CWHeight;
-		    prefered_return->height = prefered_size.height;
-	    	}
-	    }
-    	}
     }
     return result;
 }
@@ -504,6 +517,35 @@ DisposeExpr (ExprPtr expr)
 	glue.order = 0; \
 }
 
+static Boolean
+ChildInBox(LayoutWidget l, BoxPtr box, Widget child)
+{
+    while (box) {
+	switch (box->type) {
+	case WidgetBox:
+	    if (child == QuarkToWidget(l, box->u.widget.quark))
+		return True;
+	    break;
+	case GlueBox:
+	    break;
+	case BoxBox:
+	    if (ChildInBox(l, box->u.box.firstChild, child))
+		return True;
+	    break;
+	case VariableBox:
+	    break;
+	}
+	box = box->nextSibling;
+    }
+    return False;
+}
+
+static Boolean
+ChildInLayout(LayoutWidget l, Widget child)
+{
+    return ChildInBox(l, l->layout.layout, child);
+}
+
 #define DoStretch(l, box, dir) \
     CheckGlue (l, box, box->params.stretch[dir], (double) box->natural[dir]);
 
@@ -531,7 +573,6 @@ ComputeNaturalSizes (LayoutWidget l, BoxPtr box, LayoutDirection dir)
 	else
 	{
 	    info = SubInfo (w);
-	    info->inLayout = True;
 	    box->natural[LayoutHorizontal] = info->naturalSize[LayoutHorizontal];
 	    box->natural[LayoutVertical] = info->naturalSize[LayoutVertical];
 	}
@@ -969,14 +1010,20 @@ LayoutLayout (LayoutWidget l, Bool attemptResize)
 	prefered_width = l->layout.prefered_width;
     if (prefered_height == 0)
 	prefered_height = l->layout.prefered_height;
-    if (attemptResize && l->layout.resize &&
+    if (attemptResize && (!XtIsRealized((Widget) l) || l->layout.resize) &&
 	(l->layout.prefered_width != prefered_width ||
 	 l->layout.prefered_height != prefered_height))
     {
+	printf("Layout %s request resize to %d x %d\n",
+	       l->core.name,
+	       l->layout.prefered_width,
+	       l->layout.prefered_height);
 	(void) XtMakeResizeRequest ((Widget) l,
 				    l->layout.prefered_width,
 				    l->layout.prefered_height,
 				    NULL, NULL);
+	printf("\tresult %d x %d\n",
+	       l->core.width, l->core.height);
     }
     box->size[LayoutHorizontal] = l->core.width;
     box->size[LayoutVertical] = l->core.height;
@@ -1063,4 +1110,3 @@ LayoutClassRec layoutClassRec = {
 };
 
 WidgetClass layoutWidgetClass = (WidgetClass) &layoutClassRec;
-

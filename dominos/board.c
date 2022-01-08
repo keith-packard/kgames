@@ -23,7 +23,7 @@
  * Author:  Keith Packard, Network Computing Devices
  */
 
-#include "dominos.h"
+#include "domino.h"
 
 #define DOMINO_MAJOR_WIDTH  17
 #define DOMINO_MINOR_WIDTH  9

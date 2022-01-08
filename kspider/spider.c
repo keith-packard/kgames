@@ -42,6 +42,7 @@
 # include	<X11/Xutil.h>
 # include	<Xkw/CardsUtil.h>
 # include	<Xkw/Message.h>
+# include	"KSpider-res.h"
 
 Widget	    toplevel;
 Widget	    frame;
@@ -543,71 +544,89 @@ Expand (CardStackPtr stack)
 
 /* Callbacks to user interface functions */
 
-static void
-DeckCallback (Widget w, XtPointer closure, XtPointer data)
+static CardStackPtr
+WidgetToStack(Widget w, int col)
 {
-    (void) w;
-    (void) closure;
-    (void) data;
-    Message (message, "");
-    Deal ();
-    CardNextHistory ();
-    DisplayStacks ();
+    if (w == stacks)
+	return &stackStacks[col];
+    if (w == piles)
+	return &pileStacks[col];
+    if (w == deck)
+	return &deckStack;
+    return NULL;
 }
 
 static void
-StackCallback (Widget w, XtPointer closure, XtPointer data)
+InputCallback (Widget w, XtPointer closure, XtPointer data)
 {
-    CardsInputPtr    input = (CardsInputPtr) data;
-    CardStackPtr    stack;
-    CardPtr	    card;
-    String	    type;
+    HandInputPtr    input = (HandInputPtr) data;
+    CardStackPtr    stack = NULL;
+    CardStackPtr    startStack = NULL;
+    CardPtr	    card = NULL;
 
-    (void) w;
     (void) closure;
     Message (message, "");
-    stack = &stackStacks[input->col];
-    for (card = stack->last; card; card = card->prev)
-	if (card->isUp && card->row == input->row)
-	    break;
-    if (*input->num_params) {
-	type = *input->params;
-	if (!strcmp (type, "stack_source"))
-	{
-	    if (!stack->last)
-		Message (message, "Selected stack is empty.");
-	    else
-	    {
-		fromStack = stack;
-		if (fromStack->last)
-		    fromCard = CardInReverseSuitOrder (fromStack->last);
-	    }
+    stack = WidgetToStack(w, input->current.col);
+    startStack = WidgetToStack(input->start.w, input->start.col);
+
+    if (!startStack || !stack)
+	return;
+
+    switch (input->action) {
+    case HandActionStart:
+        break;
+    case HandActionClick:
+        CardSetAnimate(True);
+	if (stack == &deckStack) {
+            Deal ();
+            CardNextHistory ();
+            DisplayStacks ();
 	}
-	if (!strcmp (type, "card_source"))
-	{
-	    if (!card)
-		Message (message, "No card selected.");
-	    else
-	    {
-		fromStack = stack;
-		fromCard = card;
-	    }
+	else if (stack == &deckStack) {
 	}
-	else if (!strcmp (type, "dest"))
-	{
-	    if (fromCard)
-	    {
-		Play (fromStack, fromCard, stack);
-		CheckStackTop (fromStack);
-		fromCard = NULL;
-		CardNextHistory ();
-		DisplayStacks ();
-	    }
+	else if (startStack && stack && startStack->last)
+        {
+            card = stack->last;
+            if (w == stacks)
+                card = CardInReverseSuitOrder(card);
+
+            if (!card)
+                Message(message, "No card selected.");
+            else {
+                Play (stack, card, stack);
+                CheckStackTop (stack);
+                CardNextHistory ();
+                DisplayStacks ();
+            }
 	}
-	else if (!strcmp (type, "expand"))
-	{
-	    Expand (stack);
+        break;
+    case HandActionDrag:
+        CardSetAnimate(False);
+	if (startStack == &deckStack || stack == &deckStack)
+            break;
+	if (startStack->last)
+        {
+            CardPtr     card = CardFromHandCard(input->start.private);
+
+            if (!card)
+                Message(message, "No card selected.");
+            else if (input->start.w == piles) {
+                Message(message, "Can't move cards back from pile.");
+            }
+            else
+            {
+                Play (startStack, card, stack);
+                CheckStackTop (startStack);
+                CardNextHistory ();
+                DisplayStacks ();
+            }
 	}
+        break;
+    case HandActionExpand:
+        Expand (stack);
+        break;
+    case HandActionUnexpand:
+        break;
     }
 }
 
@@ -798,16 +817,8 @@ main (int argc, char **argv)
 {
     Atom wm_delete_window;
 
-#ifdef APPDEFAULTS
-    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
-#endif
-
-    toplevel = XtInitialize (argv[0], "KSpider", options, XtNumber(options),
-			     &argc, argv);
-
-    Arg	args[1];
-    XtSetArg(args[0], XtNinput, True);
-    XtSetValues(toplevel, args, ONE);
+    toplevel = XkwInitialize ("KSpider", options, XtNumber(options),
+			      &argc, argv, True, defaultResources);
 
     XtGetApplicationResources (toplevel, (XtPointer)&spiderResources, resources,
 			       XtNumber (resources), NULL, 0);
@@ -839,10 +850,10 @@ main (int argc, char **argv)
 				   menuBar, NULL, ZERO);
     XtAddCallback(score, XtNcallback, ScoreCallback, NULL);
     deck = XtCreateManagedWidget ("deck", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (deck, XtNinputCallback, DeckCallback, NULL);
+    XtAddCallback (deck, XtNinputCallback, InputCallback, NULL);
     piles = XtCreateManagedWidget ("piles", cardsWidgetClass, frame, NULL, 0);
     stacks = XtCreateManagedWidget ("stacks", cardsWidgetClass, frame, NULL, 0);
-    XtAddCallback (stacks, XtNinputCallback, StackCallback, NULL);
+    XtAddCallback (stacks, XtNinputCallback, InputCallback, NULL);
     message = XtCreateManagedWidget ("message", klabelWidgetClass, frame, NULL, 0);
     srandom (getpid () ^ time ((long *) 0));
     NewGame ();
@@ -851,6 +862,8 @@ main (int argc, char **argv)
 				   False);
     (void) XSetWMProtocols (XtDisplay(toplevel), XtWindow(toplevel),
                             &wm_delete_window, 1);
+
+    XkwSetCardIcon(toplevel);
 
     XtMainLoop ();
 }

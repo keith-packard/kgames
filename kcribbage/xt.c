@@ -47,6 +47,7 @@
 # include	<Xkw/Message.h>
 # include	"CribBoard.h"
 # include	<X11/Xutil.h>
+# include	"Cribbage-res.h"
 
 static Widget	    toplevel;
 static Widget	    menuBar;
@@ -57,9 +58,11 @@ static Widget	    computer;
 static Widget	    message;
 static Widget	    player;
 static Widget	    table;
+static Widget       deckWidget;
 static Widget	    playcrib;
-static Widget	    playScore;
-static Widget	    compScore;
+static Widget	    playName;
+static Widget	    compName;
+static Widget	    scoreWidget;
 static Widget	    compcrib;
 static Widget	    tableScore;
 
@@ -84,6 +87,7 @@ static CribbageCardRec	playerCards[NUM_CARDS];
 static CribbageCardRec	tableCards[NUM_CARDS];
 static CribbageCardRec	playcribCards[NUM_CARDS];
 static CribbageCardRec	compcribCards[NUM_CARDS];
+static CribbageCardRec  deckCards[1];
 
 #define SCORE_WIDTH	41
 #define SCORE_HEIGHT	9
@@ -126,14 +130,24 @@ static int	selectedCard;
 static Boolean	cardSelected;
 
 static void
-PlayerCallback (Widget w, XtPointer closure, XtPointer data)
+InputCallback (Widget w, XtPointer closure, XtPointer data)
 {
+    HandInputPtr    input = (HandInputPtr) data;
+
     (void) w;
     (void) closure;
-    CardsInputPtr   input = (CardsInputPtr) data;
 
-    selectedCard = input->row;
-    cardSelected = True;
+    switch (input->action) {
+    case HandActionDrag:
+        if (input->start.w == input->current.w)
+            break;
+    case HandActionClick:
+        selectedCard = input->start.col;
+        cardSelected = True;
+        break;
+    default:
+        break;
+    }
 }
 
 struct menuEntry {
@@ -191,15 +205,8 @@ XrmOptionDescRec options[] = {
 void
 UIInit (int argc, char **argv)
 {
-#ifdef APPDEFAULTS
-    setenv("XAPPLRESDIR", APPDEFAULTS, 1);
-#endif
-
-    toplevel = XtInitialize (argv[0], "Cribbage", options, XtNumber(options), &argc, argv);
-
-    Arg	args[1];
-    XtSetArg(args[0], XtNinput, True);
-    XtSetValues(toplevel, args, 1);
+    toplevel = XkwInitialize ("Cribbage", options, XtNumber(options),
+			      &argc, argv, True, defaultResources);
 
     XtGetApplicationResources (toplevel, (XtPointer)&cribbageResources, resources,
 			       XtNumber (resources), NULL, 0);
@@ -217,16 +224,23 @@ UIInit (int argc, char **argv)
     fileMenu = CreateMenu (fileMenuButton, "fileMenu",
 			   fileMenuEntries, XtNumber (fileMenuEntries));
     player = XtCreateManagedWidget ("player", cardsWidgetClass, layout, NULL, 0);
-    XtAddCallback (player, XtNinputCallback, PlayerCallback, NULL);
+    XtAddCallback (player, XtNinputCallback, InputCallback, NULL);
     computer = XtCreateManagedWidget ("computer", cardsWidgetClass, layout, NULL, 0);
+    XtAddCallback (computer, XtNinputCallback, InputCallback, NULL);
     table = XtCreateManagedWidget ("table", cardsWidgetClass, layout, NULL, 0);
+    XtAddCallback (table, XtNinputCallback, InputCallback, NULL);
     tableScore = XtCreateManagedWidget ("tableScore", klabelWidgetClass, layout, NULL, 0);
-    playScore = XtCreateManagedWidget ("playscore", cribBoardWidgetClass, layout, NULL, 0);
-    compScore = XtCreateManagedWidget ("compscore", cribBoardWidgetClass, layout, NULL, 0);
+    playName = XtCreateManagedWidget ("playname", klabelWidgetClass, layout, NULL, 0);
+    scoreWidget = XtCreateManagedWidget ("score", cribBoardWidgetClass, layout, NULL, 0);
+    compName = XtCreateManagedWidget ("compname", klabelWidgetClass, layout, NULL, 0);
     playcrib = XtCreateManagedWidget ("playcrib", cardsWidgetClass, layout, NULL, 0);
+    XtAddCallback (playcrib, XtNinputCallback, InputCallback, NULL);
     compcrib = XtCreateManagedWidget ("compcrib", cardsWidgetClass, layout, NULL, 0);
+    XtAddCallback (compcrib, XtNinputCallback, InputCallback, NULL);
+    deckWidget = XtCreateManagedWidget ("deck", cardsWidgetClass, layout, NULL, 0);
     message = XtCreateManagedWidget ("message", padWidgetClass, layout, NULL, 0);
     XtRealizeWidget (toplevel);
+    XkwSetCardIcon(toplevel);
 }
 
 void
@@ -248,22 +262,24 @@ static int compPegs[2];
 static int playPegs[2];
 
 static void
-resetPegs (Widget w, int *pegs)
+resetPegs (Widget w, int who, int *pegs)
 {
     int	    i;
 
     for (i = 0; i < 2; i++)
     {
 	pegs[i] = CribBoardUnset;
-	XkwCribBoardSetPeg (w, i, CribBoardUnset);
+	XkwCribBoardSetPeg (w, who, i, CribBoardUnset);
     }
 }
 
 void
 UIInitBoard (void)
 {
-    resetPegs (compScore, compPegs);
-    resetPegs (playScore, playPegs);
+    resetPegs (scoreWidget, PLAYER, playPegs);
+    resetPegs (scoreWidget, COMPUTER, compPegs);
+    Message(compName, "My score");
+    Message(playName, "Your score");
 }
 
 void
@@ -287,6 +303,7 @@ UIRefresh (void)
     HandUpdateDisplay (table);
     HandUpdateDisplay (playcrib);
     HandUpdateDisplay (compcrib);
+    HandUpdateDisplay (deckWidget);
 }
 
 void
@@ -379,12 +396,8 @@ updateCards (Widget w, CARD *h, int n, CribbageCardPtr cards, BOOLEAN blank)
     {
 	if (h[i].rank == EMPTY)
 	{
-	    if (cards[i].private)
-	    {
-		CardsRemoveCard (w, cards[i].private);
-		cards[i].private = 0;
-		cards[i].card.suit = CardsNone;
-	    }
+            suit = CardsEmpty;
+            rank = CardsAce;
 	}
 	else
 	{
@@ -398,16 +411,16 @@ updateCards (Widget w, CARD *h, int n, CribbageCardPtr cards, BOOLEAN blank)
 		suit = CardsSuitMap[h[i].suit];
 		rank = CardsRankMap[h[i].rank];
 	    }
-	    if (cards[i].card.suit != suit || cards[i].card.rank != rank)
-	    {
-		cards[i].card.suit = suit;
-		cards[i].card.rank = rank;
-		if (cards[i].private)
-		    CardsReplaceCard (w, cards[i].private, &cards[i].card);
-		else
-		    cards[i].private = CardsAddCard (w, &cards[i].card, i, i);
-	    }
-	}
+        }
+        if (cards[i].card.suit != suit || cards[i].card.rank != rank)
+        {
+            cards[i].card.suit = suit;
+            cards[i].card.rank = rank;
+            if (cards[i].private)
+                CardsReplaceCard (w, cards[i].private, &cards[i].card);
+            else
+                cards[i].private = CardsAddCard (w, &cards[i].card, 0, i);
+        }
     }
     for (; i < NUM_CARDS; i++) {
 	if (cards[i].private)
@@ -422,7 +435,22 @@ updateCards (Widget w, CARD *h, int n, CribbageCardPtr cards, BOOLEAN blank)
 void
 UIPrintHand (CARD *h, int n, int who, BOOLEAN blank)
 {
-    updateCards (widget (who), h, n, Cards(who), blank);
+    Widget              w;
+    CribbageCardPtr     cards;
+
+    if (h == crib) {
+        if (who == COMPUTER) {
+            w = compcrib;
+            cards = compcribCards;
+        } else {
+            w = playcrib;
+            cards = playcribCards;
+        }
+    } else {
+        w = widget(who);
+        cards = Cards(who);
+    }
+    updateCards (w, h, n, cards, blank);
 }
 
 void
@@ -446,8 +474,9 @@ UIPrintCrib (int who, CARD *card, BOOLEAN blank)
 	ocards = compcribCards;
     }
 
-    updateCards (w, card, 1, cards, blank);
-    updateCards (ow, NULL, 0, ocards, blank);
+    updateCards (w, crib, 4, cards, TRUE);
+    updateCards (ow, NULL, 0, ocards, TRUE);
+    updateCards (deckWidget, card, 1, deckCards, blank);
 }
 
 void
@@ -460,19 +489,22 @@ UITableScore (int score, int n)
 void
 UIPrintPeg (int score, BOOLEAN on, int who)
 {
-    Widget	w;
+    Widget      l;
     int		*pegs;
     int		i;
+    const char  *label;
 
     if (who == COMPUTER)
     {
-	w = compScore;
+        l = compName;
 	pegs = compPegs;
+        label = "My";
     }
     else
     {
-	w = playScore;
+        l = playName;
 	pegs = playPegs;
+        label = "Your";
     }
 
     if (score <= 0)
@@ -494,7 +526,8 @@ UIPrintPeg (int score, BOOLEAN on, int who)
 	    i = 1;
     }
     pegs[i] = score;
-    XkwCribBoardSetPeg (w, i, score - 1);
+    XkwCribBoardSetPeg (scoreWidget, who, i, score - 1);
+    Message(l, "%s score: %d", label, score);
 }
 
 static int  msgLine, msgCol;
@@ -526,13 +559,11 @@ int
 UIReadChar (void)
 {
     int	    c;
-    XEvent  event;
 
     ShowCursor ();
     UIRefresh ();
     while (text_in == text_out) {
-	XtNextEvent (&event);
-	XtDispatchEvent (&event);
+	XtProcessEvent (XtIMAll);
     }
     c = textbuf[text_out++];
     if (text_out == text_in)
@@ -651,15 +682,13 @@ UIClearMsg (void)
 int
 UIGetPlayerCard (CARD *hand, int n, char *prompt)
 {
-    XEvent  event;
     for (;;) {
 	msg (prompt);
 	UIRefresh ();
 	cardSelected = False;
 	while (!cardSelected)
 	{
-	    XtNextEvent (&event);
-	    XtDispatchEvent (&event);
+            XtProcessEvent(XtIMAll);
 	}
 	if (0 <= selectedCard && selectedCard < n)
 	{
@@ -668,5 +697,23 @@ UIGetPlayerCard (CARD *hand, int n, char *prompt)
 	    return selectedCard;
 	}
 	msg ("Sorry, I missed that");
+    }
+}
+
+static BOOLEAN timer_done;
+
+static void
+timer_proc(XtPointer client_data, XtIntervalId *id)
+{
+    timer_done = TRUE;
+}
+
+void
+UIPause(void)
+{
+    timer_done = FALSE;
+    XtAddTimeOut(1000, timer_proc, NULL);
+    while (!timer_done) {
+        XtProcessEvent(XtIMAll);
     }
 }

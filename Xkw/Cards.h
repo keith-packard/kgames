@@ -97,6 +97,12 @@ typedef struct _CardsClassRec *CardsWidgetClass;
 
 extern WidgetClass  cardsWidgetClass;
 
+static inline void
+CardDragInit(Widget parent)
+{
+    HandDragInit(parent, cardsWidgetClass);
+}
+
 #define XtNcardWidth "cardWidth"
 #define XtCCardWidth "CardWidth"
 #define XtNback "back"

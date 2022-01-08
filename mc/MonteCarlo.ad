@@ -31,15 +31,6 @@
 *cards.immediateUpdate: False
 *cards.rowMajor: True
 
-*deck.translations: #override \
-	<BtnDown>:	select()
-
-*cards.translations: #override \
-	<Btn1Down>:	select(source)\n\
-	<Btn2Down>:	select(clear)\n\
-	<Btn3Down>:	select(hint)\n\
-	<Btn3Up>:	select(unhint)
-	
 *message.justify: left
 *message.label: Monte Carlo, Version 0.9
 *cards.borderWidth: 0
@@ -96,16 +87,12 @@
 
 *hint.label: Hint
 
-*deal.label: Deal
-
 *score.label: Score
 
 *Command.shapeStyle: oval
 
 *frame.translations: #override \
-	<Key>d:		montecarloDeal()\n\
 	<Key>u:		montecarloUndo()\n\
 	<Key>n:		montecarloNewGame()\n\
 	<Key>s:		montecarloScore()\n\
 	<Key>?:		montecarloBestMove()
-

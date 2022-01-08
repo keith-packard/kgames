@@ -38,6 +38,8 @@ extern const char _XtRXkwFont[];
 #define XtRXkwFont ((char *)_XtRXkwFont)
 extern const char _XtRDpi[];
 #define XtRDpi ((char *)_XtRDpi)
+extern const char _XtRDouble[];
+#define XtRDouble ((char *)_XtRDouble)
 
 extern const char _XtNdpi[];
 #define XtNdpi ((char *)_XtNdpi)
@@ -53,6 +55,14 @@ typedef struct {
 	cairo_font_face_t	*font_face;
 	double			size;
 } XkwFont;
+
+typedef struct {
+    int	*x;
+    int *y;
+    int *x_root;
+    int *y_root;
+    Window *window;
+} XkwEventCoordPointers;
 
 #ifndef XtX
 #define XtX(w)            (((RectObj)w)->rectangle.x)
@@ -94,6 +104,15 @@ XkwColorEqual(XRenderColor *a, XRenderColor *b)
     return memcmp(a, b, sizeof (XRenderColor)) == 0;
 }
 
+Widget
+XkwInitialize(const char *class,
+	      XrmOptionDescRec *options,
+	      Cardinal num_options,
+	      int *argc,
+	      _XtString *argv,
+	      Boolean input,
+	      char const * const *fallback_resources);
+
 void
 XkwInitializeWidgetSet(void);
 
@@ -116,6 +135,9 @@ XkwDialogAddButton(Widget dialog, _Xconst char* name, XtCallbackProc function,
 RsvgHandle *
 XkwRsvgCreate(const char *str);
 
+void
+XkwRsvgDestroy(RsvgHandle *handle);
+
 double
 XkwRsvgAspect(RsvgHandle *rsvg);
 
@@ -133,6 +155,30 @@ XkwDrawRoundedRect(cairo_t *cr, double width, double height, double radius);
 
 void
 XkwDrawOval(cairo_t *cr, double width, double height);
+
+void
+XkwTranslateCoordsPosition(Widget to, Widget from, Position *x, Position *y);
+
+void
+XkwTranslateCoordsInt(Widget to, Widget from, int *x, int *y);
+
+void
+XkwGetEventCoordPointers(XEvent *e, XkwEventCoordPointers *cp);
+
+void
+XkwTranslateEvent(Widget to, Widget from, XEvent *e);
+
+Bool
+XkwGetEventCoords(XEvent *e, Position *x, Position *y);
+
+Bool
+XkwForwardEvent(Widget to, Widget from, XEvent *e);
+
+void
+XkwSetIcon(Widget toplevel, const char *svg);
+
+void
+XkwSetCardIcon(Widget toplevel);
 
 _XFUNCPROTOEND
 

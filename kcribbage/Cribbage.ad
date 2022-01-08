@@ -7,8 +7,8 @@
 *tableScore.Foreground: #fffff0
 *table.Background: #337744
 *table.Foreground: #fffff0
-*playscore.pegColor: red
-*compscore.pegColor: blue
+*score.peg1Color: #ff1010
+*score.peg2Color: #1010ff
 
 *borderWidth: 0
 *SimpleMenu.borderWidth: 1
@@ -17,18 +17,16 @@
 	<Key>:	cribbageKey()
 
 *Cards.immediateUpdate: False
+*Cards.select: one
 *message.numRows: 10
 *message.numCols: 48
-*player.numRows: 6
+*player.numRows: 1
 *player.numCols: 6
-*player.overlap: both
-*player.borderWidth: 0
-*player.translations: #override \
-	<BtnDown>:	select()
-*computer.numRows: 6
+*player.overlap: neither
+
+*computer.numRows: 1
 *computer.numCols: 6
-*computer.overlap: both
-*computer.borderWidth: 0
+*computer.overlap: neither
 
 *tableScore.borderWidth: 0
 *tableScore.label:
@@ -38,13 +36,24 @@
 *table.borderWidth: 0
 *table.overlap: both
 
+*playname.label: Your score
+*playname.Foreground: #ff0000
+*playname.justify: left
+*compname.label: My score
+*compname.Foreground: #0000ff
+*compname.justify: left
+
 *playcrib.numRows: 1
-*playcrib.numCols: 1
-*playcrib.borderWidth: 0
+*playcrib.numCols: 6
+*playcrib.overlap: neither
 
 *compcrib.numRows: 1
-*compcrib.numCols: 1
-*compcrib.borderWidth: 0
+*compcrib.numCols: 6
+*compcrib.overlap: neither
+
+*deck.numRows: 1
+*deck.numCols: 1
+*deck.overlap: neither
 
 *fileMenuButton.leftBitmap: menu12
 *fileMenuButton.menuName: fileMenu
@@ -68,29 +77,29 @@
 *layout.layout: vertical { \
 	-1 \
 	horizontal { \
-		menuBar < +inf -inf * > \
-	} \
-	horizontal { \
 		vertical { \
 			horizontal { \
-				player < -50% * -50% > \
+				menuBar < +inf -inf * > \
+			} \
+			computer < -50% * -50% > \
+			compcrib < -50% * -50% > \
+			horizontal { \
 				vertical { \
 					tableScore < +inf -inf * > \
-					table < -50% * -50% > \
+					table < +inf -50% * -50% > \
 				} \
-				computer < -50% * -50% > \
+				vertical { \
+					height tableScore < >\
+					deck < -50% * -50% > \
+				} \
 			} \
-			horizontal { \
-				0 < +inf > \
-				playcrib \
-				0 < +inf > \
-				compcrib \
-				0 < +inf > \
-			} \
+			playcrib < -50% * -50% > \
+			player < -50% * -50% > \
 		} \
 		vertical { \
-			playscore \
-			compscore \
+			playname < +inf * -100% >\
+			score < +1 -1 * +1 -1 >\
+			compname < +inf * -100% >\
 			message < * +inf -inf > \
 		} \
 		-1 \

@@ -64,26 +64,17 @@ static XtResource resources[] = {
 #undef offset
 };
 
-static int
-NumberLength (int n)
+double
+scale_points(ThermoWidget w, double points)
 {
-    int	l;
-    if (n < 0)
-	return NumberLength (-n) + 1;
-    l = 1;
-    while (n >= 10)
-    {
-	n /= 10;
-	l++;
-    }
-    return l;
+    return points * w->ksimple.dpi / 72.0;
 }
 
 static void
 init_cairo(ThermoWidget w, cairo_t *cr)
 {
     cairo_set_font_face(cr, w->thermo.font.font_face);
-    cairo_set_font_size(cr, w->thermo.font.size * w->ksimple.dpi / 72.0);
+    cairo_set_font_size(cr, scale_points(w, w->thermo.font.size));
 }
 
 static cairo_t *
@@ -172,28 +163,32 @@ NiceValue (int num, int den)
 static void
 setDefaults (ThermoWidget req, ThermoWidget new)
 {
-    int	minTextLen, maxTextLen;
+    double max_text_width;
+    char label[30];
 
-    minTextLen = NumberLength (req->thermo.minimum);
-    maxTextLen = NumberLength (req->thermo.maximum);
-    if (minTextLen > maxTextLen)
-	maxTextLen = minTextLen;
     cairo_t *cr = get_cairo(new);
+    sprintf(label, "%d", req->thermo.minimum);
     cairo_text_extents_t text_extents;
-    cairo_text_extents(cr, "0", &text_extents);
+    cairo_text_extents(cr, label, &text_extents);
+    max_text_width = text_extents.width;
+    sprintf(label, "%d", req->thermo.maximum);
+    cairo_text_extents(cr, label, &text_extents);
+    if (text_extents.width > max_text_width)
+	max_text_width = text_extents.width;
+
     cairo_font_extents_t font_extents;
     cairo_font_extents(cr, &font_extents);
 
-    new->thermo.textWidth = text_extents.width * maxTextLen;
+    new->thermo.textWidth = max_text_width;
     if (req->thermo.reqThickness == ThermoUnspecified)
-	new->thermo.thickness = (font_extents.height) * 2;
+	new->thermo.thickness = font_extents.height;
     else
 	new->thermo.thickness = req->thermo.reqThickness;
     if (req->thermo.reqMinorStart == ThermoUnspecified)
 	new->thermo.minorStart = req->thermo.minimum;
     else
 	new->thermo.minorStart = req->thermo.reqMinorStart;
-    if (req->thermo.majorStart == ThermoUnspecified)
+    if (req->thermo.reqMajorStart == ThermoUnspecified)
 	new->thermo.majorStart = req->thermo.minimum;
     else
 	new->thermo.majorStart = req->thermo.reqMajorStart;
@@ -209,21 +204,21 @@ setDefaults (ThermoWidget req, ThermoWidget new)
 	if (new->thermo.vertical)
 	    new->thermo.startPad = 0;
 	else
-	    new->thermo.startPad = new->thermo.textWidth / 2 + 1;
+	    new->thermo.startPad = new->thermo.textWidth / 2.0;
     }
     if (req->thermo.reqEndPad == ThermoUnspecified)
     {
 	if (new->thermo.vertical)
-	    new->thermo.endPad = font_extents.height + 2;
+	    new->thermo.endPad = font_extents.height + 2.0;
 	else
-	    new->thermo.endPad = new->thermo.textWidth / 2 + 1;
+	    new->thermo.endPad = new->thermo.textWidth / 2.0;
     }
     if (req->thermo.reqMajorTickLen == ThermoUnspecified)
-	new->thermo.majorTickLen =  font_extents.height;
+	new->thermo.majorTickLen = font_extents.height / 2.0;
     else
 	new->thermo.majorTickLen = req->thermo.reqMajorTickLen;
     if (req->thermo.reqMinorTickLen == ThermoUnspecified)
-	new->thermo.minorTickLen =  req->thermo.majorTickLen / 2;
+	new->thermo.minorTickLen = new->thermo.majorTickLen / 2.0;
     else
 	new->thermo.minorTickLen = req->thermo.reqMinorTickLen;
 }
@@ -260,7 +255,7 @@ drawMercury (ThermoWidget	w,
 	     int		old,
 	     int		new)
 {
-    int	    x, y, other, width, height;
+    double	    x, y, other, width, height;
 
     if (w->thermo.vertical)
     {
@@ -299,22 +294,22 @@ static void
 drawTick (ThermoWidget	w,
 	  cairo_t	*cr,
 	  int		v,
-	  int		len)
+	  double	len)
 {
-    int	    x, y, width, height;
+    double	x, y, width, height;
 
     if (w->thermo.vertical) {
 	x = w->core.width - w->thermo.thickness - len;
 	width = len;
-	height = 1;
-	y = VerticalPos (w, v);
+	height = len / 10.0;
+	y = VerticalPos (w, v) - height / 2.0;
     }
     else
     {
 	y = w->core.height - w->thermo.thickness - len;
 	height = len;
-	width = 1;
-	x = HorizontalPos (w, v);
+	width = len / 10.0;
+	x = HorizontalPos (w, v) - width / 2.0;
     }
     XkwSetSource(cr, &w->thermo.tickColor);
     cairo_rectangle(cr, x, y, width, height);
@@ -327,8 +322,8 @@ drawValue (ThermoWidget	w,
 	   int		v)
 {
     char    label[30];
-    int	    width;
-    int	    x, y;
+    double  width;
+    double  x, y;
     cairo_text_extents_t text_extents;
 
     sprintf (label, "%d", v);
@@ -340,8 +335,8 @@ drawValue (ThermoWidget	w,
     }
     else
     {
-	y = w->core.height - w->thermo.thickness - w->thermo.majorTickLen;
-	x = HorizontalPos (w, v) - width / 2;
+	y = w->core.height - w->thermo.thickness - w->thermo.majorTickLen - 2;
+	x = HorizontalPos (w, v) - width / 2.0 - text_extents.x_bearing;
     }
     cairo_move_to(cr, x, y);
     cairo_show_text(cr, label);
