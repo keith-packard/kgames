@@ -22,7 +22,7 @@
 project('kgames', 'c',
 	license : 'MIT',
 	version: '2.1',
-	default_options: ['bindir=games', 'datadir=share/X11'])
+	default_options: ['bindir=games', 'datadir=share'])
 
 c_compiler = meson.get_compiler('c')
 
@@ -46,10 +46,11 @@ x_libs = [lib_xft, lib_cairo_ft, lib_rsvg2, lib_cairo, lib_fontconfig,
 
 prefix = get_option('prefix')
 datadir = get_option('datadir')
+bindir = get_option('bindir')
 
-app_defaults = datadir / 'app-defaults'
+svg_icon_dir = datadir / 'icons/hicolor/scalable/apps'
 
-add_global_arguments('-D', 'APPDEFAULTS="' + prefix / app_defaults + '"', language: 'c')
+desktop_dir = datadir / 'applications'
 
 inc_dirs = ['.']
 

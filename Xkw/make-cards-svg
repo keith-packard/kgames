@@ -23,7 +23,7 @@ esac
 	done
     done
     
-    file="$dir"/cards/game.svg
+    file="$dir"/cards/kgames.svg
     echo "const char svg_card_game[]" =
     sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/^/    "/' -e 's/$/\\n"/' "$file"
     echo "    ;";
