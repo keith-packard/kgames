@@ -5,7 +5,7 @@ Maintainer: Keith Packard <keithp@keithp.com>
 Build-Depends: debhelper-compat (= 13), libcairo2-dev, libxft-dev,
 	librsvg2-dev,
 	libxaw7-dev, meson, ninja-build, bison, flex, libncurses-dev
-Standards-Version: 4.5.1
+Standards-Version: 4.6.0.1
 Homepage: https://keithp.com
 Vcs-Browser: https://salsa.debian.org/debian/kgames
 Vcs-Git: https://salsa.debian.org/debian/kgames.git
@@ -13,7 +13,7 @@ Rules-Requires-Root: no
 
 Package: kgames
 Architecture: any
-Replaces: xmille
+Provides: xmille
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Venerable selection of Xaw-based games
  These are a selection of various games that use the Xaw toolkit. They

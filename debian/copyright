@@ -64,8 +64,8 @@ Files: Xkw/Animate.c
  dominos/board.c
  dominos/computer.c
  dominos/connect.c
- dominos/dominos.c
- dominos/dominos.h
+ dominos/domino.c
+ dominos/domino.h
  dominos/file.c
  dominos/find.c
  dominos/game.c
