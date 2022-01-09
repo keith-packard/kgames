@@ -86,9 +86,15 @@ static char defaultTranslations[] =
     "<Btn4Up>:\n"
     "<Btn5Down>: zoomin()\n"
     "<Btn5Up>:\n"
-    "<BtnDown>: start()\n"
-    "<BtnMotion>: drag()\n"
-    "<BtnUp>: stop()";
+    "<Btn1Down>: start()\n"
+    "<Btn1Motion>: drag()\n"
+    "<Btn1Up>: stop()\n"
+    "<Btn2Down>: start()\n"
+    "<Btn2Motion>: drag()\n"
+    "<Btn2Up>: stop()\n"
+    "<Btn3Down>: start()\n"
+    "<Btn3Motion>: drag()\n"
+    "<Btn3Up>: stop()";
 
 #define SuperClass  ((KSimpleWidgetClass)&ksimpleClassRec)
 
