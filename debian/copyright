@@ -58,18 +58,18 @@ Files: Xkw/Animate.c
  Xkw/PadP.h
  Xkw/SuitCards.c
  Xkw/SuitCards.h
- dominos/Dominos.c
- dominos/Dominos.h
- dominos/DominosP.h
- dominos/board.c
- dominos/computer.c
- dominos/connect.c
- dominos/domino.c
- dominos/domino.h
- dominos/file.c
- dominos/find.c
- dominos/game.c
- dominos/util.c
+ kdominos/Dominos.c
+ kdominos/Dominos.h
+ kdominos/DominosP.h
+ kdominos/board.c
+ kdominos/computer.c
+ kdominos/connect.c
+ kdominos/domino.c
+ kdominos/domino.h
+ kdominos/file.c
+ kdominos/find.c
+ kdominos/game.c
+ kdominos/util.c
  kaces/aces.c
  kcanfield/canfield.c
  kklondike/klondike.c
@@ -78,15 +78,15 @@ Files: Xkw/Animate.c
  ktabby/tabby.c
  kthieves/thieves.c
  ktowers/ktowers.c
- mc/mc.c
- slyfox/slyfox.c
+ kmcarlo/mc.c
+ kslyfox/slyfox.c
 Copyright: 1992 Network Computing Devices
 License: MIT-1
 
 Files: Xkw/Animate.h
  Xkw/Message.h
  Xkw/meson.build
- dominos/meson.build
+ kdominos/meson.build
  kaces/meson.build
  kcanfield/meson.build
  kcribbage/meson.build
@@ -97,12 +97,12 @@ Files: Xkw/Animate.h
  ktabby/meson.build
  kthieves/meson.build
  ktowers/meson.build
- mc/meson.build
+ kmcarlo/meson.build
  meson.build
- reversi/game.c
- reversi/meson.build
- reversi/xreversi.c
- slyfox/meson.build
+ xreversi/game.c
+ xreversi/meson.build
+ xreversi/xreversi.c
+ kslyfox/meson.build
  xmille/cards/meson.build
  xmille/meson.build
 Copyright: 2020 Keith Packard
@@ -130,9 +130,9 @@ Files: Xkw/Pad.h
 Copyright: 1987, 1988 Massachusetts Institute of Technology
 License: MIT-3
 
-Files: reversi/Reversi.c
- reversi/Reversi.h
- reversi/ReversiP.h
+Files: xreversi/Reversi.c
+ xreversi/Reversi.h
+ xreversi/ReversiP.h
 Copyright: 1987, 1988 Digital Equipment Corporation, Maynard, Massachusetts, and the Massachusetts Institute of Technology, Cambridge, Massachusetts. 
 License: MIT-4
 
