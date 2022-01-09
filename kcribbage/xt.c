@@ -185,7 +185,7 @@ XtResource resources[] = {
     { "animationSpeed", "AnimationSpeed", XtRInt, sizeof (int),
      offset(animationSpeed), XtRImmediate, (XtPointer) 500},
     { "explain", "Explain", XtRBoolean, sizeof (Boolean),
-     offset(explain), XtRImmediate, (XtPointer) False},
+     offset(explain), XtRImmediate, (XtPointer) True},
     { "quiet", "Quiet", XtRBoolean, sizeof (Boolean),
      offset(quiet), XtRImmediate, (XtPointer) False},
     { "random", "Random", XtRBoolean, sizeof (Boolean),
@@ -196,10 +196,11 @@ XrmOptionDescRec options[] = {
     { "-smallCards",	"*Cards.smallCards",	XrmoptionNoArg, "True", },
     { "-squareCards",	"*Cards.roundCards",	XrmoptionNoArg, "False", },
     { "-noanimate",	".animationSpeed",	XrmoptionNoArg, "0", },
-    { "-animationSpeed",	".animationSpeed",	XrmoptionSepArg, NULL, },
-    { "-explain",		".explain",		XrmoptionNoArg,	 "True", },
+    { "-animationSpeed",".animationSpeed",	XrmoptionSepArg, NULL, },
+    { "-explain",	".explain",		XrmoptionNoArg,	 "True", },
+    { "-noexplain",	".explain",		XrmoptionNoArg,	 "False", },
     { "-quiet",		".quiet",		XrmoptionNoArg,	 "True", },
-    { "-random",		".random",		XrmoptionNoArg,	 "True", },
+    { "-random",	".random",		XrmoptionNoArg,	 "True", },
 };
 
 void
@@ -311,7 +312,7 @@ UIWait (void)
 {
     XEvent  event;
 
-    UIMessage ("--More--", FALSE);
+    UIMessage ("--More--", TRUE);
     UIRefresh ();
     for (;;)
     {

@@ -116,9 +116,13 @@ comphand(CARD *h, char *s)
 {
 	register int		j;
 
-	j = scorehand(h, turnover, CINHAND, strcmp(s, "crib") == 0, FALSE);
+	j = scorehand(h, turnover, CINHAND, strcmp(s, "crib") == 0, explain);
 	UIPrintHand (h, CINHAND, COMPUTER, FALSE);
-	msg("My %s scores %d", s, (j == 0 ? 19 : j));
+	msg("My %s scores %d%s%s%s",
+            s, (j == 0 ? 19 : j),
+            explain ? " (" : "",
+            explain ? expl : "",
+            explain ? ")" : "");
 	return chkscr(&cscore, j);
 }
 
@@ -265,4 +269,3 @@ makeknown( CARD *h, int n )
 	    known[ knownum++ ] = h[i];
 	}
 }
-
