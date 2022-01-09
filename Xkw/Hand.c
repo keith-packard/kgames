@@ -937,11 +937,14 @@ HandRemoveCard (Widget gw, XtPointer card)
     HandWidget	    w = (HandWidget) gw;
     CardPtr	    c, sib;
     int		    row, col;
+    Bool            found = FALSE;
 
     xkw_foreach(c, &w->hand.cards, list)
-	if (c == (CardPtr) card)
+	if (c == (CardPtr) card) {
+            found = TRUE;
 	    break;
-    if (!c)
+        }
+    if (!found)
 	return;
     if (w->hand.row_insert)
     {
@@ -970,11 +973,14 @@ HandReplaceCard (Widget gw, XtPointer card, XtPointer private, int offset)
 {
     HandWidget	    w = (HandWidget) gw;
     CardPtr c;
+    Bool found = FALSE;
 
     xkw_foreach(c, &w->hand.cards, list)
-	if (c == (CardPtr) card)
+	if (c == (CardPtr) card) {
+            found = TRUE;
 	    break;
-    if (!c)
+        }
+    if (!found)
 	return;
     c->private = private;
     c->offset = offset;
@@ -1000,11 +1006,14 @@ HandRectangleForCard (Widget gw, XtPointer card, XRectangle *r)
 {
     HandWidget	    w = (HandWidget) gw;
     CardPtr	c;
+    Bool found = FALSE;
 
     xkw_foreach(c, &w->hand.cards, list)
-	if (c == (CardPtr) card)
+	if (c == (CardPtr) card) {
+            found = TRUE;
 	    break;
-    if (!c)
+        }
+    if (!found)
     {
 	r->x = 0;
 	r->y = 0;
