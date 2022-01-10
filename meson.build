@@ -111,3 +111,5 @@ subdir('kthieves')
 subdir('ktowers')
 subdir('xmille')
 subdir('xreversi')
+
+meson.add_install_script('update-menus.sh')
