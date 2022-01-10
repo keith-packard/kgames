@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=KMCarlo
+GenericName=Solitaire Game
+Comment=Play Monte Carlo solitaire
+Keywords=game;card;solitaire;patience
+Exec=@BINDIR@/kmcarlo
+Icon=@ICONDIR@/kgames.svg
+StartupNotify=false
+Terminal=false
+Type=Application
+Categories=Game;CardGame

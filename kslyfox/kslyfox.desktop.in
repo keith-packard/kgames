@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=KSlyfox
+GenericName=Solitaire Game
+Comment=Play Slyfox Solitaire
+Keywords=game;card;solitaire;patience
+Exec=@BINDIR@/kslyfox
+Icon=@ICONDIR@/kgames.svg
+StartupNotify=false
+Terminal=false
+Type=Application
+Categories=Game;CardGame

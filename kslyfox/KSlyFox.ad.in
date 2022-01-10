@@ -37,7 +37,7 @@
 *row4.overlap: vertical
 
 *message.justify: left
-*message.label: Sly Fox, Version 0.9
+*message.label: Sly Fox, Version @KGAMES_VERSION@
 
 *menuBar.layout: vertical { \
 	5 < -5 >\

@@ -47,6 +47,8 @@
 # include	"domino.h"
 # include	"Dominos-res.h"
 # include	<stdio.h>
+# include       "dominos-svg.h"
+# include       "kgames.h"
 
 Widget	    toplevel;
 Widget	    frame;
@@ -1275,7 +1277,7 @@ main (int argc, char **argv)
     restored = Restore();
 
     MessageStart();
-    MessageAppend("Keith's Dominos, Version 1.0.");
+    MessageAppend("Keith's Dominos, Version " KGAMES_VERSION_STRING);
     if (restored)
 	MessageAppend(" (Resuming existing game)");
     MessageEnd(message);
@@ -1292,6 +1294,8 @@ main (int argc, char **argv)
 				   False);
     (void) XSetWMProtocols (XtDisplay(toplevel), XtWindow(toplevel),
                             &wm_delete_window, 1);
+
+    XkwSetIcon(toplevel, svg_dominos);
 
     XtMainLoop ();
     return 0;

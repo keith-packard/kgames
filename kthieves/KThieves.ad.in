@@ -5,28 +5,22 @@
 *borderWidth: 0
 *SimpleMenu.borderWidth: 1
 
-*deck.numCols: 1
-*deck.numRows: 1
+*draw.numCols: 15
+*draw.colsHint: true
+*draw.overlap: horizontal
 
-*piles.numCols: 8
-*piles.numRows: 1
+*piles.numCols: 2
+*piles.numRows: 4
 
 *Cards.immediateUpdate: False
 
 *stacks.numCols: 10
-*stacks.numRows: 7
+*stacks.numRows: 10
 *stacks.rowsHint: True
 *stacks.overlap: vertical
-*stacks.immediate_update: false
-
-*frame.translations: #override \
-	<Key>u:		spiderUndo()\n\
-	<Key>n:		spiderNewGame()\n\
-	<Key>s:		spiderScore()\n\
-	<Key>?:		spiderFindAMove()
 
 *message.justify: left
-*message.label: Keith's Spider, Version 1.0
+*message.label: Keith's Forty Thieves, Version @KGAMES_VERSION@
 *menuBar.layout: vertical { \
 	5 < -5 >\
 	horizontal { \
@@ -49,13 +43,28 @@
 	10 < -inf > \
 	horizontal { \
 		10 < -inf > \
-		deck < -75% * -90% > \
-		10 < +inf -inf > \
-		piles < -100% * -90% > \
+		vertical { \
+			stacks < -50% * +inf -50% > \
+			10 < -inf > \
+			horizontal { \
+				vertical { \
+					10 < +inf -inf > \
+					draw < +inf -100% * -90% > \
+				} \
+				10 < -inf > \
+				vertical { \
+					deckCount < +inf -inf * > \
+					deck < -75% * -90% > \
+				} \
+			} \
+		} \
+		10 < -inf > \
+		vertical { \
+			piles < -50% * -50% > \
+			0 < +inf > \
+		} \
 		10 < -inf > \
 	} \
-	10 < -inf > \
-	stacks < -50% * +inf -50% > \
 	message < +inff -100% * > \
 }
 
@@ -79,7 +88,7 @@
 *Command.shapeStyle: oval
 
 *frame.translations: #override \
-	<Key>u:		spiderUndo()\n\
-	<Key>n:		spiderNewGame()\n\
-	<Key>s:		spiderScore()\n\
-	<Key>?:		spiderFindAMove()
+	<Key>u:		thievesUndo()\n\
+	<Key>n:		thievesNewGame()\n\
+	<Key>s:		thievesScore()\n\
+	<Key>?:		thievesFindAMove()

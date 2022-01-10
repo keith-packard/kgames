@@ -2,34 +2,25 @@
 *menuBar.Background: #337744
 *Cards.Background: #337744
 *frame.Background: #337744
-*logo.Background: #337744
-*logo.Foreground: #fffff0
-*baseRank.Background:  #337744
-*baseRank.Foreground: #fffff0
-
 *borderWidth: 0
 *SimpleMenu.borderWidth: 1
 
+*deck.numCols: 2
+*deck.numRows: 1
+
+*piles.numCols: 4
+*piles.numRows: 1
+
 *Cards.immediateUpdate: False
 
-*talon.numCols: 2
-*talon.numRows: 1
-
-*foundation.numCols: 4
-*foundation.numRows: 1
-
-*stock.numCols: 1
-*stock.numRows: 1
-
-*tableau.numCols: 4
-*tableau.numRows: 7
-*tableau.rowsHint: True
-*tableau.overlap: vertical
+*stacks.numCols: 7
+*stacks.numRows: 7
+*stacks.rowsHint: True
+*stacks.overlap: vertical
+*stacks.immediate_update: false
 
 *message.justify: left
-*message.label: Keith's Canfield, Version 1.0
-*logo.label: Canfield
-*logo.font: sans-36
+*message.label: Keith's Klondike, Version @KGAMES_VERSION@
 *menuBar.layout: vertical { \
 	5 < -5 >\
 	horizontal { \
@@ -45,53 +36,27 @@
 		score \
 		5 < -5 > \
 		pileAll \
-		5 <+inf -inf> \
-		baseRank \
-		5 < -5 > \
+		0 <+inf -inf> \
 	} \
 	5 < -5 > \
 }
 *frame.layout: vertical {\
-	-1 \
 	horizontal {\
-		-1 \
 		menuBar < +inff -100% * >\
-		-1 \
 	} \
 	10 < -inf > \
 	horizontal { \
-		0 < +inf -inf > \
-		vertical { \
-			0 < +inf -inf > \
-			logo \
-			0 < +inf -inf > \
-		} \
-		0 < +inf -inf > \
-		foundation < -100% * -90% > \
 		10 < -inf > \
-	} \
-	10 < -inf > \
-	horizontal {\
-		10 < -inf > \
-		vertical { \
-			horizontal { \
-				stock < -75% * -90% > \
-				0 < +inf > \
-			} \
-			10 < -inf > \
-			talon < -75% * -90% > \
-			10 < +inf -inf > \
-		} \
+		deck < -75% * -90% > \
 		10 < +inf -inf > \
-		tableau < -50% * +inf -50% > \
+		piles < -100% * -90% > \
 		10 < -inf > \
 	} \
+	10 < -inf > \
+	stacks < -50% * +inf -50% > \
 	horizontal { \
-		-1 \
 		message < +inff -100% * > \
-		-1 \
 	} \
-	-1 \
 }
 
 *fileMenuButton.leftBitmap: menu12
@@ -116,7 +81,7 @@
 *Command.shapeStyle: oval
 
 *frame.translations: #override \
-	<Key>u:		canfieldUndo()\n\
-	<Key>n:		canfieldNewGame()\n\
-	<Key>s:		canfieldScore()\n\
-	<Key>?:		canfieldFindAMove()
+	<Key>u:		klondikeUndo()\n\
+	<Key>n:		klondikeNewGame()\n\
+	<Key>s:		klondikeScore()\n\
+	<Key>?:		klondikeFindAMove()

@@ -20,7 +20,12 @@
 # OF THIS SOFTWARE.
 #
 
-res_files = res_gen.process('KAces.ad')
+ad_file = configure_file(input: 'KAces.ad.in',
+			 output: '@BASENAME@',
+			 configuration: conf_data,
+			 install: false)
+
+res_files = res_gen.process(ad_file)
 
 executable('kaces',
 	   'aces.c', res_files,
@@ -29,3 +34,8 @@ executable('kaces',
 	   link_with: [lib_xkw],
 	   install: true)
 install_man('kaces.6')
+
+configure_file(input: 'kaces.desktop.in',
+	       output: '@BASENAME@',
+	       configuration: conf_data,
+	       install_dir : desktop_dir)

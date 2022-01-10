@@ -1,0 +1,26 @@
+#!/bin/bash
+dir=`dirname $0`
+
+case $# in
+    2)
+    ;;
+    *)
+	echo "usage: $0 kdominos-svg.c kdominos-svg.h"
+	exit 1
+	;;
+esac
+
+(
+    echo '#include "'"$2"'"'
+    
+    file="$dir"/kdominos.svg
+    echo "const char svg_dominos[]" =
+    sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/^/    "/' -e 's/$/\\n"/' "$file"
+    echo "    ;";
+
+    echo ""
+) > "$1"
+
+(
+    echo "extern const char svg_dominos[];"
+) > "$2"

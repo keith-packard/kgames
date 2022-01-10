@@ -19,52 +19,70 @@
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 #
-ad_file = configure_file(input: 'Mille.ad.in',
+ad_file = configure_file(input: 'Reversi.ad.in',
                          output: '@BASENAME@',
                          configuration: conf_data,
                          install: false)
 
 res_files = res_gen.process(ad_file)
 
-srcs_xmille = [
-  'animate.c',
-  'comp.c',
-  'drawcard.c',
-  'end.c',
-  'extern.c',
-  'init.c',
-  'mille.c',
-  'misc.c',
+srcs_reversi = [
+  'corners.c',
+  'count.c',
+  'fini.c',
+  'game.c',
+  'hasmove.c',
+  'minmax.c',
   'move.c',
-  'print.c',
-  'roll.c',
-  'save.c',
-  'types.c',
-  'uiXt.c',
-  'varpush.c',
-  'MilleCards.c',
+  'Reversi.c',
+  'transform.c',
+  'xreversi.c',
 ]
 
-subdir('cards')
+genedge = executable('genedge',
+		     'genedge.c',
+		     install: false)
 
-make_cards_svg = find_program('make-cards-svg')
+bison_gen = generator(bison,
+		      output : ['@BASENAME@.c', '@BASENAME@.h'],
+		      arguments : [ '-o', '@OUTPUT0@', '--defines=@OUTPUT1@', '-p', 'LayYY', '@INPUT@'])
+			  
+makeedge_files = bison_gen.process('makeedge.y')
 
-cards_files = custom_target('xmille-svg-cards',
-			    depend_files : cards_xmille + ['card-names'],
-			    output : ['cards-svg.c', 'cards-svg.h'],
-			    command : [make_cards_svg, '@OUTPUT0@', '@OUTPUT1@'])
+makeedge = executable('makeedge',
+		      makeedge_files,
+		      install: false)
 
-executable('xmille',
-	   srcs_xmille, cards_files, res_files,
+edges_in = custom_target('edges.in',
+			 output : ['edges.in'],
+			 capture: true,
+			 command : [genedge])
+
+edges_c = custom_target('edges.c',
+			input : edges_in,
+			output : 'edges.c',
+			capture: true,
+			command : [makeedge, '@INPUT@'])
+
+make_xreversi_svg = find_program('make-xreversi-svg')
+
+icon_files = custom_target('xreversi-icon',
+			   depend_files : 'xreversi.svg',
+			   output : ['xreversi-svg.c', 'xreversi-svg.h'],
+			   command : [make_xreversi_svg, '@OUTPUT0@', '@OUTPUT1@'])
+
+executable('xreversi',
+	   srcs_reversi, edges_c, res_files, icon_files,
 	   include_directories: inc,
-	   dependencies: x_libs,
+	   dependencies: [x_libs],
 	   link_with: [lib_xkw],
 	   install: true)
-install_man('xmille.6')
 
-install_data('cards/Icon.svg', rename : 'xmille.svg', install_dir : svg_icon_dir)
+install_man('xreversi.6')
 
-configure_file(input: 'xmille.desktop.in',
+install_data('xreversi.svg', install_dir : svg_icon_dir)
+
+configure_file(input: 'xreversi.desktop.in',
 	       output: '@BASENAME@',
 	       configuration: conf_data,
 	       install_dir : desktop_dir)

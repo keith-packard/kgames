@@ -48,6 +48,8 @@ cards_files = custom_target('svg-cards',
 			    output : ['cards-svg.c', 'cards-svg.h'],
 			    command : [make_cards_svg, '@OUTPUT0@', '@OUTPUT1@'])
 
+install_data('cards/kgames.svg', rename : 'kgames.svg', install_dir : svg_icon_dir) 
+
 srcs_xkw = [
   'Animate.c',
   'Cards.c',

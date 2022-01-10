@@ -19,51 +19,21 @@
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 #
-res_files = res_gen.process('Reversi.ad')
+ad_file = configure_file(input: 'MonteCarlo.ad.in',
+                         output: '@BASENAME@',
+                         configuration: conf_data,
+                         install: false)
 
-srcs_reversi = [
-  'corners.c',
-  'count.c',
-  'fini.c',
-  'game.c',
-  'hasmove.c',
-  'minmax.c',
-  'move.c',
-  'Reversi.c',
-  'transform.c',
-  'xreversi.c',
-]
+res_files = res_gen.process(ad_file)
 
-genedge = executable('genedge',
-		     'genedge.c',
-		     install: false)
-
-bison_gen = generator(bison,
-		      output : ['@BASENAME@.c', '@BASENAME@.h'],
-		      arguments : [ '-o', '@OUTPUT0@', '--defines=@OUTPUT1@', '-p', 'LayYY', '@INPUT@'])
-			  
-makeedge_files = bison_gen.process('makeedge.y')
-
-makeedge = executable('makeedge',
-		      makeedge_files,
-		      install: false)
-
-edges_in = custom_target('edges.in',
-			 output : ['edges.in'],
-			 capture: true,
-			 command : [genedge])
-
-edges_c = custom_target('edges.c',
-			input : edges_in,
-			output : 'edges.c',
-			capture: true,
-			command : [makeedge, '@INPUT@'])
-
-executable('xreversi',
-	   srcs_reversi, edges_c, res_files,
+executable('kmcarlo',
+	   'mc.c', res_files,
 	   include_directories: inc,
-	   dependencies: [x_libs],
+	   dependencies: x_libs,
 	   link_with: [lib_xkw],
 	   install: true)
-
-install_man('xreversi.6')
+install_man('kmcarlo.6')
+configure_file(input: 'kmcarlo.desktop.in',
+	       output: '@BASENAME@',
+	       configuration: conf_data,
+	       install_dir : desktop_dir)
