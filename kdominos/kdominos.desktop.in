@@ -8,4 +8,4 @@ Icon=@ICONDIR@/kdominos.svg
 StartupNotify=false
 Terminal=false
 Type=Application
-Categories=Game;CardGame
+Categories=Game;CardGame;Kgames
