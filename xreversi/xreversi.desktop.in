@@ -8,4 +8,4 @@ Icon=@ICONDIR@/xreversi.svg
 StartupNotify=false
 Terminal=false
 Type=Application
-Categories=Game;BoardGame
+Categories=Game;BoardGame;Kgames

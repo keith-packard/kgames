@@ -89,7 +89,10 @@ CardsRankName (CardsRank r)
 static char *
 MessageCard (char *s, CardsCardPtr c)
 {
-    sprintf (s, "%s of %ss", CardsRankName (c->rank), CardsSuitName (c->suit));
+    if (c->suit > CardsSpade || c->rank > CardsKing)
+        sprintf (s, "empty stack");
+    else
+        sprintf (s, "%s of %ss", CardsRankName (c->rank), CardsSuitName (c->suit));
     return s + strlen(s);
 }
 

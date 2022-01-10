@@ -1,0 +1,4 @@
+option('user-menu', type: 'boolean', value: true,
+       description: 'Install menu file only for current user')
+option('menudir', type: 'string',
+       description: 'Install directory for menu file')

@@ -52,6 +52,20 @@ svg_icon_dir = datadir / 'icons/hicolor/scalable/apps'
 
 desktop_dir = datadir / 'applications'
 
+menudir = get_option('menudir')
+if menudir == ''
+  if get_option('user-menu')
+    fs = import('fs')
+    xdg_config_dir = fs.expanduser('~/.config')
+    message('user-menu config_dir is ' + xdg_config_dir)
+  else
+    xdg_config_dir= sysconfdir / 'xdg'
+  endif
+  menudir = xdg_config_dir / 'menus/applications-merged'
+endif
+
+message('menudir is ' + menudir)
+
 conf_data = configuration_data()
 conf_data.set('KGAMES_VERSION', meson.project_version(),
 	      description: 'KGames version in unquoted string form.')
@@ -60,6 +74,7 @@ conf_data.set('KGAMES_VERSION_STRING',
 	      description: 'KGames version in quoted string form.')
 conf_data.set('BINDIR', prefix / bindir)
 conf_data.set('ICONDIR', prefix / svg_icon_dir)
+conf_data.set('MENUDIR', menudir)
 
 inc_dirs = ['.']
 
@@ -68,6 +83,18 @@ inc = include_directories(inc_dirs)
 configure_file(output : 'kgames.h',
 	       configuration: conf_data,
 	       install: false)
+
+configure_file(input: 'kgames.directory.in',
+	       output: '@BASENAME@',
+	       configuration: conf_data,
+	       install_dir : datadir / 'desktop-directories'
+	       )
+
+configure_file(input: 'kgames.menu.in',
+	       output: '@BASENAME@',
+	       configuration: conf_data,
+	       install_dir : menudir
+	       )
 
 subdir('Xkw')
 subdir('kaces')
@@ -84,3 +111,5 @@ subdir('kthieves')
 subdir('ktowers')
 subdir('xmille')
 subdir('xreversi')
+
+meson.add_install_script('update-menus.sh')
