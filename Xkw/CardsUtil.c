@@ -560,6 +560,7 @@ CardShuffle (CardStackPtr stack, Boolean remember)
 	    shuf[0]->prev = 0;
 	shuf++;
     }
+    Dispose (shuffle);
 }
 
 static void
@@ -590,6 +591,8 @@ CardInitHistory (void)
     for (h = history; h; h = p)
     {
 	p = h->prev;
+        if (h->type == HistoryShuffle)
+            Dispose (h->u.shuffle.cards);
 	Dispose (h);
     }
     history = 0;
