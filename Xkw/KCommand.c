@@ -348,6 +348,7 @@ PaintKCommandWidget(Widget w, XEvent *event, Region region, Bool change)
 				XtHeight(cbw) - cbw->kcommand.highlight_thickness);
 		cairo_fill(cr);
 	    }
+            cairo_destroy(cr);
 	}
     }
 
