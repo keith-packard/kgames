@@ -447,6 +447,9 @@ ThermoClassRec thermoClassRec = {
   /* simple */
   {
     XtInheritChangeSensitive,		/* change_sensitive */
+#ifndef OLDXAW
+    NULL,                               /* extension */
+#endif
   },
   {
     /* ksimple fields */

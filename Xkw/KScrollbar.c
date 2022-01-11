@@ -87,6 +87,9 @@ Initialize(Widget request, Widget cnew,
 {
     KScrollbarWidget w = (KScrollbarWidget) cnew;
 
+    (void) request;
+    (void) args;
+    (void) num_args;
     if (XtWidth(w) == 0)
 	XtWidth(w) = PreferredSize(w);
     if (XtHeight(w) == 0)
@@ -102,6 +105,8 @@ Redisplay(Widget gw, XEvent *event, Region region)
     double thick = Thickness(w);
     double pos = w->kscrollbar.position * Avail(w) + Pad(w);
     cairo_t *cr = XkwDrawBegin(gw, region);
+
+    (void) event;
     if (w->kscrollbar.orientation == XtorientHorizontal) {
 	double width = Length(w);
 	double x = pos;
@@ -225,6 +230,8 @@ Start(Widget gw, XEvent *event, String *params, Cardinal *num_params)
     int coord = Coord(w, event);
     int class = ClassifyCoord(w, coord);
 
+    (void) params;
+    (void) num_params;
     w->kscrollbar.dragging = False;
     if (class < 0)
 	Notify(w, XkwScrollbarPageUp);
@@ -241,6 +248,8 @@ Drag(Widget gw, XEvent *event, String *params, Cardinal *num_params)
 {
     KScrollbarWidget w = (KScrollbarWidget) gw;
 
+    (void) params;
+    (void) num_params;
     if (w->kscrollbar.dragging) {
 	double coord = CoordToPosition(w, Coord(w, event)) - w->kscrollbar.start_pos;
 	if (coord < 0)
@@ -256,6 +265,9 @@ Stop(Widget gw, XEvent *event, String *params, Cardinal *num_params)
 {
     KScrollbarWidget w = (KScrollbarWidget) gw;
 
+    (void) event;
+    (void) params;
+    (void) num_params;
     w->kscrollbar.dragging = False;
 }
 
@@ -341,6 +353,9 @@ KScrollbarClassRec kscrollbarClassRec = {
   /* simple */
   {
     XtInheritChangeSensitive,		/* change_sensitive */
+#ifndef OLDXAW
+    NULL,                               /* extension */
+#endif
   },
   {
     /* ksimple fields */

@@ -22,7 +22,7 @@
 project('kgames', 'c',
 	license : 'MIT',
 	version: '2.1',
-	default_options: ['bindir=games', 'datadir=share'])
+	default_options: ['bindir=games', 'datadir=share', 'warning_level=3'])
 
 c_compiler = meson.get_compiler('c')
 
@@ -79,6 +79,15 @@ conf_data.set('MENUDIR', menudir)
 inc_dirs = ['.']
 
 inc = include_directories(inc_dirs)
+
+c_warnings = ['-Werror=implicit-function-declaration',
+	      '-Werror=vla',
+	      '-Warray-bounds',
+	      '-Wold-style-definition',
+	      '-Wno-overlength-strings',
+	     ]
+
+add_project_arguments(c_compiler.get_supported_arguments(c_warnings), language : 'c')
 
 configure_file(output : 'kgames.h',
 	       configuration: conf_data,

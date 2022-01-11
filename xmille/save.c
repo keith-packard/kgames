@@ -92,7 +92,7 @@ save(void)
 	}
 	Error (buf);
 	time(tp);			/* get current time		*/
-	rv = varpush(outf, (int(*)(int, void *, size_t))write);
+	rv = varpush(outf, (ssize_t(*)(int, void *, size_t))write);
 	close(outf);
 	if (rv == FALSE)
 		unlink(buf);
@@ -121,7 +121,7 @@ rest_f(const char *file)
 		warn("%s", file);
 		exit(1);
 	}
-	varpush(inf, (int (*)(int, void *, size_t))read);
+	varpush(inf, (ssize_t (*)(int, void *, size_t))read);
 	close(inf);
 	strcpy(buf, ctime(&sbuf.st_mtime));
 	for (sp = buf; *sp != '\n'; sp++)

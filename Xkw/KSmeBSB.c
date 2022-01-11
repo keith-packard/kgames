@@ -228,6 +228,9 @@ XkwKSmeBSBInitialize(Widget request, Widget cnew,
 {
     KSmeBSBObject entry = (KSmeBSBObject)cnew;
 
+    (void) request;
+    (void) args;
+    (void) num_args;
     if (entry->ksme_bsb.label == NULL)
 	entry->ksme_bsb.label = XtName(cnew);
     else
@@ -307,6 +310,7 @@ XkwKSmeBSBRedisplay(Widget w, XEvent *event, Region region)
 
     cairo_t *cr = draw_begin(entry, region);
 
+    (void) event;
     if (XtIsSensitive(w) && XtIsSensitive(XtParent(w))) {
 	if (w == XkwKSimpleMenuGetActiveEntry(XtParent(w))) {
 	    XkwSetSource(cr, &entry->ksme_bsb.foreground);
@@ -371,6 +375,9 @@ XkwKSmeBSBSetValues(Widget current, Widget request, Widget cnew,
     KSmeBSBObject old_entry = (KSmeBSBObject)current;
     Boolean ret_val = False;
 
+    (void) request;
+    (void) args;
+    (void) num_args;
     if (old_entry->ksme_bsb.label != entry->ksme_bsb.label) {
 	if (old_entry->ksme_bsb.label != XtName(cnew))
 	    XtFree((char *)old_entry->ksme_bsb.label);
@@ -531,6 +538,7 @@ DrawBitmaps(Widget w, cairo_t *cr)
 	entry->ksme_bsb.right_bitmap == None)
 	return;
 
+    (void) cr;
 #if 0
     int x_loc, y_loc;
     /*

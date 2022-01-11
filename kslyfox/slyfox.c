@@ -530,8 +530,7 @@ Quit (void)
 }
 
 CardStackPtr
-FindFinishPlay(from_card)
-    CardPtr     from_card;
+FindFinishPlay(CardPtr from_card)
 {
     int         i;
     CardStackPtr to_stack;
@@ -776,6 +775,7 @@ StackCallback (Widget w, XtPointer closure, XtPointer data)
     CardPtr     card;
     int         to_type;
 
+    (void) closure;
     stack = WidgetToStack(w, input->current.row, input->current.col);
     startStack = WidgetToStack(input->start.w, input->start.row, input->start.col);
 

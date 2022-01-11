@@ -43,7 +43,7 @@ XkwIconValue(unsigned long *total_sizep, const char *svg)
         return NULL;
 
     total_size = 0;
-    for (i = 0; i < NUM_SIZES; i++) {
+    for (i = 0; i < (int) NUM_SIZES; i++) {
         total_size += 2;                                /* width/height */
         total_size += icon_sizes[i] * icon_sizes[i];    /* pixels */
     }
@@ -52,7 +52,7 @@ XkwIconValue(unsigned long *total_sizep, const char *svg)
         return NULL;
 
     pixels = value;
-    for (i = 0; i < NUM_SIZES; i++) {
+    for (i = 0; i < (int) NUM_SIZES; i++) {
         Dimension width = icon_sizes[i];
         Dimension height = icon_sizes[i];
         *pixels++ = width;

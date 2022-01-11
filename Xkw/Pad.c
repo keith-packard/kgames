@@ -586,6 +586,9 @@ PadClassRec padClassRec = {
   /* simple */
   {
     XtInheritChangeSensitive,		/* change_sensitive */
+#ifndef OLDXAW
+    NULL,                               /* extension */
+#endif
   },
   /* ksimple */
   {

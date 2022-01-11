@@ -29,16 +29,14 @@ CheckScroll (Widget w)
 }
 
 static void
-append (closure, source, inputid)
-    XtPointer	closure;
-    XtPointer	source;
-    XtInputId	*inputid;
+append (XtPointer closure, int *source, XtInputId *inputid)
 {
     Widget  w = *(Widget *)closure;
     int	    fd = *(int *) source;
     char    buf[1024], c;
     int	    n, count;
 
+    (void) inputid;
     c = XkwPadNormal;
     XkwPadAttributes (w, row, col, &c, 1);
     XkwPadUpdate (w);
@@ -74,7 +72,7 @@ main (int argc, char **argv)
 #endif
 
     toplevel = XtInitialize (argv[0], "PadTest", 0, 0, &argc, argv);
-    
+
     pad = XtCreateManagedWidget ("pad", padWidgetClass, toplevel, NULL, 0);
     XtAddInput (0, (XtPointer) (intptr_t) XtInputReadMask, append, (XtPointer) &pad);
     XtRealizeWidget (toplevel);

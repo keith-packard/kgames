@@ -14,7 +14,7 @@
  * channel file.  func() is either read or write.
  */
 int
-varpush(int file, int (*func)(int, void *, size_t))
+varpush(int file, ssize_t (*func)(int, void *, size_t))
 {
 	int	temp;
 	int	fail = 0;
@@ -32,7 +32,7 @@ varpush(int file, int (*func)(int, void *, size_t))
 	if ((*func)(file,  Deck, sizeof Deck) != sizeof Deck) fail++;
 	if ((*func)(file, &Discard, sizeof Discard) != sizeof Discard) fail++;
 	if ((*func)(file,  Player, sizeof Player) != sizeof Player) fail++;
-	if (func == (int (*)(int, void *, size_t)) read) {
+	if (func == (ssize_t (*)(int, void *, size_t)) read) {
 		if (read(file, &temp, sizeof temp) != sizeof temp) fail++;
 		Topcard = &Deck[temp];
 	}

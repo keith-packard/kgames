@@ -32,19 +32,22 @@
 # include	"CardsUtil.h"
 
 #define DEFAULT_ANIMATION_SPEED	20
-double	animation_speed = DEFAULT_ANIMATION_SPEED;
-
-static Dimension  width, height;
-static Pixel	    xor_value;
+static double	animation_speed = DEFAULT_ANIMATION_SPEED;
 
 static void
-do_animate (Widget widget, int ox, int oy, int dx, int dy);
+do_animate (Widget widget, Pixel xor_value, int ox, int oy, int dx, int dy, Dimension width, Dimension height);
 
 static void
-draw_square (Widget widget, int x1, int y1, int x2, int y2);
+draw_square (Widget widget, GC gc, int x1, int y1, int x2, int y2);
 
 static void
 compute_position (Widget w, int row, int col, Widget animate, int *xp, int *yp);
+
+static GC
+get_gc(Widget widget, Pixel xor_value);
+
+static void
+release_gc(Widget widget, GC gc);
 
 void
 AnimateSetSpeed (int i)
@@ -59,7 +62,8 @@ Animate (Widget srcWidget, int srcRow, int srcCol, Widget dstWidget, int dstRow,
 {
     int	ox, oy, dx, dy;
     Arg	arg[4];
-    Pixel   obverse, black;
+    Pixel   obverse, black, xor_value;
+    Dimension width, height;
 
     if (!animation_speed) return;
     XtSetArg (arg[0], XtNcardWidth, &width);
@@ -70,7 +74,7 @@ Animate (Widget srcWidget, int srcRow, int srcCol, Widget dstWidget, int dstRow,
     xor_value = obverse ^ black;
     compute_position (srcWidget, srcRow, srcCol, XtParent(srcWidget), &ox, &oy);
     compute_position (dstWidget, dstRow, dstCol, XtParent(srcWidget), &dx, &dy);
-    do_animate (XtParent(srcWidget), ox, oy, dx, dy);
+    do_animate (XtParent(srcWidget), xor_value, ox, oy, dx, dy, width, height);
 }
 
 # define abs(x)	((x) < 0 ? -(x) : (x))
@@ -93,9 +97,10 @@ msleep (int ms)
 }
 
 static void
-do_animate (Widget widget, int ox, int oy, int dx, int dy)
+do_animate (Widget widget, Pixel xor_value, int ox, int oy, int dx, int dy, Dimension width, Dimension height)
 {
 	Display	*dpy = XtDisplay (widget);
+        GC gc;
 	double	x, y;
 	double	xc, yc;
 	int	xd, yd;
@@ -118,11 +123,12 @@ do_animate (Widget widget, int ox, int oy, int dx, int dy)
 	yc = speed * ry;
 	xp = yp = -32767;
 	XFlush (dpy);
+        gc = get_gc(widget, xor_value);
 	while (abs(dx - x) > abs (xc) || abs(dy - y) > abs (yc)) {
 		ix = x;
 		iy = y;
 		if (xp == -32767)
-			draw_square (widget, ix, iy, ix + width, iy + height);
+			draw_square (widget, gc, ix, iy, ix + width, iy + height);
 		else {
 			if (xp < ix) {
 				x1 = xp + width;
@@ -157,9 +163,9 @@ do_animate (Widget widget, int ox, int oy, int dx, int dy)
 				y4 = -32767;
 			}
 			if (x1 != -32767 && y1 != -32767)
-				draw_square (widget, x1, y1, x2, y2);
+				draw_square (widget, gc, x1, y1, x2, y2);
 			if (x3 != -32767 && y3 != -32767)
-				draw_square (widget, x3, y3, x4, y4);
+				draw_square (widget, gc, x3, y3, x4, y4);
 			if (ix < xp) {
 				x1 = ix + width;
 				x2 = xp + width;
@@ -193,9 +199,9 @@ do_animate (Widget widget, int ox, int oy, int dx, int dy)
 				y4 = -32767;
 			}
 			if (x1 != -32767 && y1 != -32767)
-				draw_square (widget, x1, y1, x2, y2);
+				draw_square (widget, gc, x1, y1, x2, y2);
 			if (x3 != -32767 && y3 != -32767)
-				draw_square (widget, x3, y3, x4, y4);
+                                draw_square (widget, gc, x3, y3, x4, y4);
 		}
 		xp = ix;
 		yp = iy;
@@ -208,31 +214,32 @@ do_animate (Widget widget, int ox, int oy, int dx, int dy)
 		XFlush (dpy);
 		msleep (10);
 	}
-	draw_square (widget, xp, yp, xp+width, yp+height);
+	draw_square (widget, gc, xp, yp, xp+width, yp+height);
+        release_gc(widget, gc);
 	XFlush (dpy);
 }
 
-static void
-draw_square (Widget widget, int x1, int y1, int x2, int y2)
+static GC
+get_gc(Widget widget, Pixel xor_value)
 {
-    static GC	    gc;
-    static Widget   oldw;
-    static Pixel    oldp;
-    XGCValues	    gcv;
+        XGCValues	    gcv = {
+                .function = GXxor,
+                .foreground = xor_value,
+                .subwindow_mode = IncludeInferiors
+        };
 
-    if (gc && (oldw != widget || oldp != xor_value))
-    {
-	XtReleaseGC (oldw, gc);
-	gc = 0;
-    }
-    if (!gc)
-    {
-	gcv.function = GXxor;
-	gcv.foreground = xor_value;
-	gcv.subwindow_mode = IncludeInferiors;
-	gc = XtGetGC (widget, GCForeground | GCFunction | GCSubwindowMode, &gcv);
-	oldw = widget;
-    }
+        return XtGetGC (widget, GCForeground | GCFunction | GCSubwindowMode, &gcv);
+}
+
+static void
+release_gc(Widget widget, GC gc)
+{
+        XtReleaseGC (widget, gc);
+}
+
+static void
+draw_square (Widget widget, GC gc, int x1, int y1, int x2, int y2)
+{
     XFillRectangle (XtDisplay (widget), XtWindow(widget),
 		    gc, x1, y1, x2-x1, y2-y1);
 }

@@ -216,6 +216,7 @@ Quit (void)
 static Boolean
 IsLegalSuitPlay (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 {
+    (void) from_stack;
     if (from_card->card.rank == CardsAce)
     {
 	if (to_stack->last == NULL)
@@ -248,6 +249,8 @@ FindSuitPlay (CardStackPtr from_stack, CardPtr from_card)
 static Boolean
 IsLegalPilePlay (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 {
+    (void) from_stack;
+    (void) from_card;
     if (to_stack->last == NULL)
 	return True;
     return False;
@@ -273,6 +276,7 @@ IsLegalRegularPlay (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_
 {
     CardPtr to_card;
 
+    (void) from_stack;
     to_card = to_stack->last;
     if (to_card && CardIsInSuitOrder (from_card, to_card))
 	return True;
@@ -297,6 +301,7 @@ FindRegularPlay (CardStackPtr from_stack, CardPtr from_card)
 static Boolean
 IsLegalEmptyPlay (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 {
+    (void) from_stack;
     if (from_card->card.rank == CardsKing && to_stack->last == NULL)
 	return True;
     return False;

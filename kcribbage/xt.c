@@ -141,6 +141,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     case HandActionDrag:
         if (input->start.w == input->current.w)
             break;
+        /* fall through */
     case HandActionClick:
         selectedCard = input->start.col;
         cardSelected = True;
@@ -706,6 +707,8 @@ static BOOLEAN timer_done;
 static void
 timer_proc(XtPointer client_data, XtIntervalId *id)
 {
+    (void) client_data;
+    (void) id;
     timer_done = TRUE;
 }
 

@@ -335,6 +335,7 @@ static Boolean
 IsLegalEmptyPlay (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 {
     (void) from_stack;
+    (void) from_card;
     if (to_stack->last == NULL)
 	return True;
     return False;

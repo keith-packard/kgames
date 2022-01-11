@@ -51,6 +51,8 @@ DisplayCallback (Widget w, XtPointer closure, XtPointer data)
     struct card	    *card;
     cairo_t	    *cr = display->cr;
 
+    (void) w;
+    (void) closure;
     cairo_scale(cr, scale, scale);
     card_no = (int) (intptr_t) display->private;
     if (card_no == -2)
@@ -85,6 +87,7 @@ MilleCardsCardIsEmpty(Widget gw, XtPointer private)
 {
     int card_no = (int) (intptr_t) private;
 
+    (void) gw;
     if (card_no == -2)
         return FALSE;
     return card_no < 0 || NUM_CARDS <= card_no;
@@ -127,6 +130,9 @@ MilleCardsClassRec	milleCardsClassRec = {
   },
   { /* simple fields */
     /* change_sensitive		*/	XtInheritChangeSensitive,
+#ifndef OLDXAW
+    NULL,                               /* extension */
+#endif
   },
   {
     /* ksimple fields */
