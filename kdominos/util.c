@@ -101,6 +101,7 @@ MixDominos (DominoPtr dominos)
 	    d->peer[LinkPeer] = 0;
 	m++;
     }
+    Dispose (mix);
     return dominos;
 }
 
