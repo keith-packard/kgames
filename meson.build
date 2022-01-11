@@ -59,7 +59,7 @@ if menudir == ''
     xdg_config_dir = fs.expanduser('~/.config')
     message('user-menu config_dir is ' + xdg_config_dir)
   else
-    xdg_config_dir= sysconfdir / 'xdg'
+    xdg_config_dir= get_option('sysconfdir') / 'xdg'
   endif
   menudir = xdg_config_dir / 'menus/applications-merged'
 endif
