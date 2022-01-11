@@ -237,6 +237,7 @@ Quit (void)
 static Boolean
 IsLegalPilePlay (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 {
+    (void) from_stack;
     if (to_stack->last)
 	return False;
     if (from_card->card.rank == CardsKing &&
@@ -273,6 +274,7 @@ IsLegalRegularPlay (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_
 {
     CardPtr to_card;
 
+    (void) from_stack;
     to_card = to_stack->last;
     if (to_card && CardIsInRingOrder (from_card, to_card))
 	return True;
@@ -310,6 +312,8 @@ FindRegularPlay (CardStackPtr from_stack, CardPtr *from_cardp)
 static Boolean
 IsLegalTailPlay (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 {
+    (void) from_stack;
+    (void) from_card;
     if (to_stack->last == NULL)
 	return True;
     return False;
@@ -337,6 +341,8 @@ FindTailPlay (CardStackPtr from_stack, CardPtr *from_cardp)
 static Boolean
 IsLegalEmptyPlay (CardStackPtr from_stack, CardPtr from_card, CardStackPtr to_stack)
 {
+    (void) from_stack;
+    (void) from_card;
     if (to_stack->last == NULL)
 	return True;
     return False;

@@ -151,6 +151,7 @@ Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 static void
 Destroy (Widget gw)
 {
+    (void) gw;
 }
 
 /*
@@ -366,6 +367,9 @@ CribBoardClassRec cribBoardClassRec = {
   /* simple */
   {
     XtInheritChangeSensitive,		/* change_sensitive */
+#ifndef OLDXAW
+    NULL,                               /* extension */
+#endif
   },
   /* ksimple */
   {

@@ -362,6 +362,9 @@ ReversiClassRec reversiClassRec = {
 /* simple class */
     /* change_sensitive		*/	XtInheritChangeSensitive,
     /* extension		*/	NULL,
+  /* ksimple */
+  }, {
+      0,
   }, {
 /* reversi class */
       /* foo			*/	0,

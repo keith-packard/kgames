@@ -174,6 +174,9 @@ XkwKSmeInitialize(Widget request, Widget cnew,
 {
     KSmeObject entry = (KSmeObject)cnew;
 
+    (void) request;
+    (void) args;
+    (void) num_args;
     entry->rectangle.border_width = 0;
 }
 
@@ -191,6 +194,7 @@ XkwKSmeInitialize(Widget request, Widget cnew,
 static void
 Highlight(Widget w)
 {
+    (void) w;
 }
 
 /*
@@ -207,6 +211,7 @@ Highlight(Widget w)
 static void
 Unhighlight(Widget w)
 {
+    (void) w;
 }
 
 /*

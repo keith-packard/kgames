@@ -73,6 +73,9 @@ XkwCvtStringToRenderColor(Display *dpy,
     char	    *spec;
     XRenderColor    renderColor;
 
+    (void) args;
+    (void) num_args;
+    (void) converter_data;
     spec = (char *) fromVal->addr;
     if (strcasecmp (spec, XtDefaultForeground) == 0)
     {
@@ -105,6 +108,9 @@ XkwCvtStringToXkwFont(Display *dpy,
     FcResult		result;
     XkwFont	    	xkwFont;
 
+    (void) args;
+    (void) num_args;
+    (void) converter_data;
     if (strncmp(string_name, "fixed", 5) == 0)
 	string_name = "monospace-12";
     if (*string_name == '-') {
@@ -142,6 +148,10 @@ XkwFreeXkwFont(XtAppContext app_context,
 {
     XkwFont	*xkwFont = (XkwFont *) val;
 
+    (void) app_context;
+    (void) args;
+    (void) num_args;
+    (void) converter_data;
     cairo_font_face_destroy(xkwFont->font_face);
 }
 
@@ -168,6 +178,9 @@ XkwCvtStringToDpi(Display *dpy,
 {
     double	dpi;
 
+    (void) args;
+    (void) num_args;
+    (void) converter_data;
     if (!xkw_str_to_double((char *) fromVal->addr, &dpi)) {
 	if (!xkw_str_to_double(XGetDefault(dpy, "Xft", "dpi"), &dpi)) {
 	    int screen = DefaultScreen (dpy);
@@ -189,6 +202,9 @@ XkwCvtStringToDouble(Display *dpy,
 {
     double	d = NAN;
 
+    (void) args;
+    (void) num_args;
+    (void) converter_data;
     (void) xkw_str_to_double((char *) fromVal->addr, &d);
 
     donestr (double, d, XtRDouble);

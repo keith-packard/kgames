@@ -65,6 +65,9 @@ Initialize(Widget request, Widget cnew,
 {
     KToggleWidget w = (KToggleWidget) cnew;
 
+    (void) request;
+    (void) args;
+    (void) num_args;
     w->ktoggle.radio_prev = NULL;
     w->ktoggle.radio_next = NULL;
 
@@ -84,6 +87,11 @@ static Boolean
 SetValues(Widget current, Widget request, Widget cnew,
 	  ArgList args, Cardinal *num_args)
 {
+    (void) current;
+    (void) request;
+    (void) cnew;
+    (void) args;
+    (void) num_args;
     return False;
 }
 
@@ -112,6 +120,8 @@ ToggleSet(Widget gw, XEvent *event, String *params, Cardinal *num_params)
     KToggleWidget w = (KToggleWidget) gw;
     KToggleWidgetClass cclass = (KToggleWidgetClass)w->core.widget_class;
 
+    (void) params;
+    (void) num_params;
     TurnOffRadioSiblings(gw);
     cclass->kcommand_class.set(gw, event, NULL, NULL);
 }
@@ -226,6 +236,9 @@ KToggleClassRec ktoggleClassRec = {
   /* simple */
   {
     XtInheritChangeSensitive,		/* change_sensitive */
+#ifndef OLDXAW
+    NULL,                               /* extension */
+#endif
   },
   /* ksimple */
   {

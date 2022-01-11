@@ -229,12 +229,15 @@ mustpick:
 	  case C_200:
 		if (pp->nummiles[C_200] == 2)
 			return "only two 200's per hand";
+                /* FALLTHROUGH */
 	  case C_100:	case C_75:
 		if (pp->speed == C_LIMIT)
 			return "limit of 50";
+                /* FALLTHROUGH */
 	  case C_50:
 		if (pp->mileage + Value[card] > End)
 			return sprint("puts you over %d", End);
+                /* FALLTHROUGH */
 	  case C_25:
 		if (!pp->can_go)
 			return "cannot move now";

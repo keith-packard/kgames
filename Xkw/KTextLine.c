@@ -90,6 +90,10 @@ Initialize(Widget request, Widget cnew,
 {
     KTextLineWidget w = (KTextLineWidget) cnew;
 
+    (void) request;
+    (void) args;
+    (void) num_args;
+
     if (w->ktext_line.string == NULL)
 	w->ktext_line.string = "";
     w->ktext_line.string = XtNewString(w->ktext_line.string);
@@ -133,6 +137,7 @@ Redisplay(Widget gw, XEvent *event, Region region)
     KTextLineWidget w = (KTextLineWidget) gw;
     cairo_t *cr = draw_begin(w, region);
 
+    (void) event;
     cairo_font_extents_t font_extents;
     cairo_font_extents(cr, &font_extents);
 
@@ -160,6 +165,8 @@ SetValues(Widget gcur, Widget greq, Widget gnew,
     KTextLineWidget new = (KTextLineWidget)gnew;
     Boolean redisplay = False;
 
+    (void) args;
+    (void) num_args;
     if (new->ktext_line.string != cur->ktext_line.string) {
 	XtFree(cur->ktext_line.string);
 	if (!new->ktext_line.string)
@@ -220,7 +227,10 @@ MoveForwardChar(Widget gw, XEvent *ev, String *args, Cardinal *num)
 {
     KTextLineWidget w = (KTextLineWidget) gw;
 
-    if (w->ktext_line.cursor < strlen(w->ktext_line.string)) {
+    (void) ev;
+    (void) args;
+    (void) num;
+    if (w->ktext_line.cursor < (ssize_t) strlen(w->ktext_line.string)) {
 	w->ktext_line.cursor++;
 	Redisplay(gw, NULL, NULL);
     }
@@ -231,6 +241,9 @@ MoveBackwardChar(Widget gw, XEvent *ev, String *args, Cardinal *num)
 {
     KTextLineWidget w = (KTextLineWidget) gw;
 
+    (void) ev;
+    (void) args;
+    (void) num;
     if (w->ktext_line.cursor > 0) {
 	w->ktext_line.cursor--;
 	Redisplay(gw, NULL, NULL);
@@ -242,6 +255,9 @@ DeleteBackwardChar(Widget gw, XEvent *ev, String *args, Cardinal *num)
 {
     KTextLineWidget w = (KTextLineWidget) gw;
 
+    (void) ev;
+    (void) args;
+    (void) num;
     if (w->ktext_line.cursor > 0) {
 	memmove(w->ktext_line.string + w->ktext_line.cursor - 1,
 		w->ktext_line.string + w->ktext_line.cursor,
@@ -256,8 +272,11 @@ static void
 Delete(Widget gw, XEvent *ev, String *args, Cardinal *num)
 {
     KTextLineWidget w = (KTextLineWidget) gw;
-
     int len = strlen(w->ktext_line.string);
+
+    (void) ev;
+    (void) args;
+    (void) num;
     if (len > w->ktext_line.cursor) {
 	memmove(w->ktext_line.string + w->ktext_line.cursor,
 		w->ktext_line.string + w->ktext_line.cursor + 1,
@@ -272,6 +291,9 @@ Accept(Widget gw, XEvent *ev, String *args, Cardinal *num)
 {
     KTextLineWidget w = (KTextLineWidget) gw;
 
+    (void) ev;
+    (void) args;
+    (void) num;
     XtCallCallbackList(gw, w->ktext_line.callbacks, (XtPointer) w->ktext_line.string);
 }
 
@@ -284,6 +306,8 @@ InsertChar(Widget gw, XEvent *ev, String *args, Cardinal *num)
 
     int new = XLookupString((XKeyEvent*)ev, strbuf, sizeof(strbuf), &keysym, NULL);
 
+    (void) args;
+    (void) num;
     if (new == 0)
 	return;
 
@@ -312,6 +336,9 @@ SetCursor(Widget gw, XEvent *ev, String *args, Cardinal *num)
     double padding = pad(&font_extents);
     int i;
     int len = strlen(w->ktext_line.string);
+
+    (void) args;
+    (void) num;
 
     for (i = 0; i < len; i++) {
 	double x = padding + text_width(cr, w->ktext_line.string, i);
@@ -401,6 +428,9 @@ KTextLineClassRec ktextLineClassRec = {
   /* simple */
   {
     XtInheritChangeSensitive,		/* change_sensitive */
+#ifndef OLDXAW
+    NULL,                               /* extension */
+#endif
   },
   {
     /* ksimple fields */

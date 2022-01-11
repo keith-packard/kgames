@@ -313,6 +313,9 @@ static void KPortholeStart(Widget gw, XEvent *event, String *params, Cardinal *n
     KPortholeWidget	w = (KPortholeWidget) gw;
     Widget child = find_child(w);
 
+    (void) params;
+    (void) num_params;
+
     w->kporthole.dragging = GetPosition(event, &w->kporthole.start_x, &w->kporthole.start_y);
     if (child) {
 	w->kporthole.child_start_x = XtX(child);
@@ -324,6 +327,9 @@ static void KPortholeDrag(Widget gw, XEvent *event, String *params, Cardinal *nu
 {
     KPortholeWidget	w = (KPortholeWidget) gw;
     Position		x, y;
+
+    (void) params;
+    (void) num_params;
 
     if (w->kporthole.dragging && GetPosition(event, &x, &y)) {
 	Widget child = find_child(w);
@@ -359,6 +365,10 @@ static void KPortholeDrag(Widget gw, XEvent *event, String *params, Cardinal *nu
 static void KPortholeStop(Widget gw, XEvent *event, String *params, Cardinal *num_params)
 {
     KPortholeWidget	w = (KPortholeWidget) gw;
+
+    (void) event;
+    (void) params;
+    (void) num_params;
 
     w->kporthole.dragging = False;
 }

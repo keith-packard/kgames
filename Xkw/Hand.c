@@ -601,10 +601,18 @@ static void StopAction (Widget gw, XEvent *event, String *params, Cardinal *num_
 
 static void ZoomInAction (Widget gw, XEvent *event, String *params, Cardinal *num_params)
 {
+    (void) gw;
+    (void) event;
+    (void) params;
+    (void) num_params;
 }
 
 static void ZoomOutAction (Widget gw, XEvent *event, String *params, Cardinal *num_params)
 {
+    (void) gw;
+    (void) event;
+    (void) params;
+    (void) num_params;
 }
 
 static void ExpandAction (Widget gw, XEvent *event, String *params, Cardinal *num_params)
@@ -672,6 +680,7 @@ EraseTimer(XtPointer client_data, XtIntervalId *timer)
 {
     Widget gw = (Widget) client_data;
     HandWidget w = (HandWidget) gw;
+    (void) timer;
     w->hand.erase_proc = 0;
     Redisplay(gw, NULL, NULL);
 }
@@ -765,6 +774,7 @@ Redisplay (Widget gw, XEvent *event, Region region)
 {
     HandWidget	    w = (HandWidget) gw;
 
+    (void) event;
     if (!XtIsRealized (gw))
 	return;
 
@@ -1104,6 +1114,8 @@ HandHideCard (Widget gw, CardPtr c)
 static Boolean
 HandDefaultCardIsEmpty (Widget gw, XtPointer private)
 {
+    (void) gw;
+    (void) private;
     return FALSE;
 }
 
@@ -1162,6 +1174,9 @@ HandClassRec handClassRec = {
   /* simple */
   {
     XtInheritChangeSensitive,		/* change_sensitive */
+#ifndef OLDXAW
+    NULL,                               /* extension */
+#endif
   },
   {
     /* ksimple fields */

@@ -729,6 +729,8 @@ PortholeCallback(Widget w, XtPointer closure, XtPointer data)
     Dimension	child_width, child_height;
     Dimension  	parent_width, parent_height;
 
+    (void) w;
+    (void) closure;
     /* child geometry */
     XtSetArg(args[0], XtNx, &child_x);
     XtSetArg(args[1], XtNy, &child_y);

@@ -127,7 +127,10 @@ KMenuButtonClassRec kmenuButtonClassRec = {
   },
   /* simple */
   {
-    XtInheritChangeSensitive		/* change_sensitive	  */
+    XtInheritChangeSensitive,		/* change_sensitive	  */
+#ifndef OLDXAW
+    NULL,                               /* extension */
+#endif
   },
   /* ksimple */
   {
@@ -168,6 +171,10 @@ XkwKMenuButtonInitialize(Widget request, Widget cnew,
 {
     KMenuButtonWidget mbw = (KMenuButtonWidget)cnew;
 
+    (void) request;
+    (void) args;
+    (void) num_args;
+
     if (mbw->menu_button.menu_name != default_menu_name)
 	mbw->menu_button.menu_name = XtNewString(mbw->menu_button.menu_name);
 }
@@ -188,6 +195,10 @@ XkwKMenuButtonSetValues(Widget current, Widget request, Widget cnew,
 {
     KMenuButtonWidget mbw_old = (KMenuButtonWidget)current;
     KMenuButtonWidget mbw_new = (KMenuButtonWidget)cnew;
+
+    (void) request;
+    (void) args;
+    (void) num_args;
 
     if (mbw_old->menu_button.menu_name != mbw_new->menu_button.menu_name) {
 	if (mbw_old->menu_button.menu_name != default_menu_name)
@@ -211,6 +222,9 @@ PopupMenu(Widget w, XEvent *event, String *params, Cardinal *num_params)
     int menu_x, menu_y, menu_width, menu_height, button_height;
     Position button_x, button_y;
 
+    (void) event;
+    (void) params;
+    (void) num_params;
     temp = w;
     while(temp != NULL) {
 	menu = XtNameToWidget(temp, mbw->menu_button.menu_name);

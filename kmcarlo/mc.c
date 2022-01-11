@@ -477,6 +477,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     HandInputPtr    input = (HandInputPtr) data;
     CardStackPtr    stack, startStack;
 
+    (void) w;
     (void) closure;
     stack = WidgetToStack(input->current.w, input->current.row, input->current.col);
     startStack = WidgetToStack(input->start.w, input->start.row, input->start.col);

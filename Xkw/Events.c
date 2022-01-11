@@ -60,7 +60,7 @@ XkwTranslateCoordsInt(Widget to, Widget from, int *x, int *y)
 void
 XkwGetEventCoordPointers(XEvent *e, XkwEventCoordPointers *cp)
 {
-    *cp = (XkwEventCoordPointers) { };
+    *cp = (XkwEventCoordPointers) { 0 };
     switch(e->type) {
     case MotionNotify:
 	cp->x = &e->xmotion.x;

@@ -131,7 +131,7 @@ xkw_list_last(struct xkw_list *head)
     return head->prev;
 }
 
-#define container_of(ptr, type, member) ((type *)((void *) (ptr) - offsetof(type, member)))
+#define container_of(ptr, type, member) ((type *)((char *) (ptr) - offsetof(type, member)))
 
 #define xkw_foreach_startat(pos, start, head, member)           \
     for (struct xkw_list *__tmp = (pos = (start))->member.next; \
