@@ -1,0 +1,98 @@
+*Command.shapeStyle: oval
+*Background: #fffff0
+*menuBar.Background: #337744
+*Cards.Background: #337744
+*frame.Background: #337744
+*borderWidth: 0
+*SimpleMenu.borderWidth: 1
+
+*wasteLabel.Background: #337744
+*wasteLabel.Foreground: #fffff0
+*deckCount.Background: #337744
+*deckCount.Foreground: #fffff0
+
+*cards.numCols: 5
+*cards.numRows: 5
+
+*deck.numCols:	1
+*deck.numRows:	1
+*deck.borderWidth: 0
+*deckCount.borderWidth: 0
+*deckCount.label: 27
+
+*waste.numCols:	1
+*waste.numRows:	1
+*waste.borderWidth: 0
+*wasteLabel.borderWidth: 0
+*wasteLabel.label: Waste
+
+*cards.overlap: none
+*smallCards: false
+*cards.immediateUpdate: False
+*cards.rowMajor: True
+
+*message.justify: left
+*message.label: Keith's Monte Carlo, Version @KGAMES_VERSION@
+*cards.borderWidth: 0
+*menuBar.layout: vertical { \
+	5 < -5 >\
+	horizontal { \
+		5 < -5 > \
+		fileMenuButton \
+		5 < -5 > \
+		deal \
+		5 < -5 > \
+		newGame \
+		5 < -5 > \
+		undo \
+		5 < -5 > \
+		hint \
+		5 < -5 > \
+		score \
+		0 <+inf -inf> \
+	} \
+	5 < -5 > \
+}
+*frame.layout: vertical {\
+	menuBar < +inff -100% * >\
+	10 < -inf > \
+	horizontal { \
+	    10 < -inf > \
+	    cards < +100% -100% * +100% -100% > \
+	    10 < -inf > \
+	    vertical { \
+		deck < -75% * -90% > \
+		deckCount < +inf -inf * > \
+		10 < +inf -inf > \
+		wasteLabel < +inf -inf * > \
+		waste < -75% * -90% > \
+	    } \
+	    10 < -inf > \
+        } \
+	message < +inff -100% * > \
+}
+
+*fileMenuButton.leftBitmap: menu12
+*fileMenuButton.menuName: fileMenu
+*fileMenuButton.label: File
+*fileMenuButton.shapeStyle: oval
+
+*fileMenu.save.label: Save To File
+*fileMenu.restore.label: Restore From File
+*fileMenu.quit.label: Quit
+
+*newGame.label: New Game
+
+*undo.label: Undo
+
+*hint.label: Hint
+
+*score.label: Score
+
+*Command.shapeStyle: oval
+
+*frame.translations: #override \
+	<Key>u:		montecarloUndo()\n\
+	<Key>n:		montecarloNewGame()\n\
+	<Key>s:		montecarloScore()\n\
+	<Key>?:		montecarloBestMove()

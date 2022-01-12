@@ -1,0 +1,18 @@
+<!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+"http://www.freedesktop.org/standards/menu-spec/menu-1.1.dtd">
+<Menu>
+  <Name>Applications</Name>
+  <Menu>
+    <Name>Games</Name>
+    <Exclude>
+      <Category>Kgames</Category>
+    </Exclude>
+    <Menu>
+      <Name>KGames</Name>
+      <Directory>kgames.directory</Directory>
+      <Include>
+	<Category>Kgames</Category>
+      </Include>
+    </Menu>
+  </Menu>
+</Menu>

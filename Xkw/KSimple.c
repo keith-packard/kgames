@@ -36,6 +36,9 @@ KSimpleInitialize(Widget request, Widget cnew,
 {
     KSimpleWidget w = (KSimpleWidget) cnew;
 
+    (void) request;
+    (void) args;
+    (void) num_args;
     w->ksimple.surface = NULL;
     w->ksimple.surface_width = 0;
     w->ksimple.surface_height = 0;
@@ -68,6 +71,8 @@ KSimpleRedisplay(Widget gw, XEvent *event, Region region)
     KSimpleWidget w = (KSimpleWidget) gw;
     cairo_t *cr = XkwGetCairo(gw);
 
+    (void) event;
+    (void) region;
     XkwSetSource(cr, &w->ksimple.background);
     cairo_paint(cr);
     cairo_destroy(cr);
@@ -82,6 +87,8 @@ KSimpleSetValues(Widget gcur, Widget greq, Widget gnew,
     KSimpleWidget new = (KSimpleWidget)gnew;
 
     (void) req;
+    (void) args;
+    (void) num_args;
     if (!XkwColorEqual(&cur->ksimple.foreground, &new->ksimple.foreground) ||
 	!XkwColorEqual(&cur->ksimple.background, &new->ksimple.background))
 	return True;
@@ -140,6 +147,9 @@ KSimpleClassRec ksimpleClassRec = {
   /* simple */
   {
     XtInheritChangeSensitive,		/* change_sensitive */
+#ifndef OLDXAW
+    NULL,                               /* extension */
+#endif
   },
   /* ksimple */
   {

@@ -44,6 +44,7 @@
 # include	<Xkw/CardsUtil.h>
 # include	<Xkw/Message.h>
 # include	"KMontana-res.h"
+# include       "kgames.h"
 
 Widget	    toplevel;
 Widget	    frame;
@@ -405,7 +406,7 @@ NewGame (void)
     FirstDeal ();
     CardInitHistory ();
     DisplayStacks ();
-    Message (message, "Keith's Montana version 1.0");
+    Message (message, "Keith's Montana, Version " KGAMES_VERSION_STRING);
     Message (dealDisplay, "No deals.");
 }
 
@@ -707,7 +708,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     CardStackPtr    stack = NULL;
     CardStackPtr    startStack = NULL;
     int             i;
-    Boolean         hintForward;
+    Boolean         hintForward = True;
     String          type = "";
 
     (void) closure;
@@ -751,6 +752,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
         else
             hintForward = True;
         break;
+    default:
     case HandActionUnexpand:
         i = UNHINT;
         break;

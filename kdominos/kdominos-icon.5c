@@ -1,0 +1,164 @@
+#!/usr/bin/env nickle
+
+autoimport Cairo;
+
+real size = 60;
+real inset = size / 20;
+real radius = size / 10;
+real line_width = size / 25;
+real pip_size = size / 15;
+real pip_off = size / 5;
+real minor_size = size;
+real major_size = size * 2;
+real M_PI = pi;
+
+void
+set_pips_color(cairo_t cr)
+{
+	set_source_rgba(cr, 1, 1, 1, 1);
+}
+
+void
+set_face_color(cairo_t cr)
+{
+	set_source_rgba(cr, 0, 0, 0, 1);
+}
+
+void
+draw_rounded_rect(cairo_t cr, real width, real height, real radius)
+{
+	move_to(cr, radius, 0);
+	/* top */
+	line_to(cr, width - radius, 0);
+	/* top right */
+	arc(cr, width - radius, radius, radius, -M_PI/2, 0);
+	/* right */
+	line_to(cr, width, height - radius);
+	/* bottom right */
+	arc(cr, width - radius, height - radius, radius, 0, M_PI/2);
+	/* bottom */
+	line_to(cr, radius, height);
+	/* bottom left */
+	arc(cr, radius, height - radius, radius, M_PI/2, M_PI);
+	/* left */
+	line_to(cr, 0, radius);
+	/* top left */
+	arc(cr, radius, radius, radius, M_PI, M_PI * 3 / 2);
+}
+
+void
+outline_domino(cairo_t cr, real width, real height)
+{
+	set_pips_color(cr);
+	set_line_width(cr, line_width);
+	move_to(cr, 0, height / 2);
+	line_to(cr, width, height/2);
+	draw_rounded_rect(cr, width, height, radius);
+	stroke(cr);
+}
+
+void
+fill_domino(cairo_t cr)
+{
+	real width = minor_size - inset * 2;
+	real height = major_size - inset * 2;
+
+	save(cr);
+	set_face_color(cr);
+	translate(cr, inset, inset);
+	draw_rounded_rect(cr, width, height, radius);
+	fill(cr);
+	outline_domino(cr, width, height);
+	restore(cr);
+}
+
+void
+draw_pip(cairo_t cr, real x, real y, real radius)
+{
+	arc(cr, x, y, radius, 0, pi * 2);
+	fill(cr);
+}
+
+void
+draw_pips(cairo_t cr, int p, bool flip)
+{
+	real off_x, off_y;
+	real half_x, half_y;
+	real radius = pip_size;
+
+	set_pips_color(cr);
+	off_x = pip_off;
+	off_y = pip_off;
+	half_x = 0;
+	half_y = off_y;
+	if (flip)
+	{
+		half_x = off_x;
+		half_y = 0;
+		off_x = -off_x;
+	}
+
+	if ((p & 1) != 0)
+	{
+		draw_pip(cr, 0, 0, radius);
+		p = p - 1;
+	}
+	switch (p) {
+	case 8:
+		draw_pip (cr, - half_x, - half_y, radius);
+		draw_pip (cr,   half_x,   half_y, radius);
+		/* fall through */
+	case 6:
+		draw_pip (cr, - half_y, - half_x, radius);
+		draw_pip (cr,   half_y,   half_x, radius);
+		/* fall through */
+	case 4:
+		draw_pip (cr,   off_x, - off_y, radius);
+		draw_pip (cr, - off_x,   off_y, radius);
+		/* fall through */
+	case 2:
+		draw_pip (cr, - off_x, - off_y, radius);
+		draw_pip (cr,   off_x,   off_y, radius);
+	}
+}
+
+void
+draw_domino(cairo_t cr, int[2] pips)
+{
+	real off_x, off_y;
+	bool flip = false;
+
+	fill_domino(cr);
+
+	off_x = minor_size / 2;
+	off_y = minor_size / 2;
+
+	save(cr);
+	translate(cr, off_x, off_y);
+	draw_pips(cr, pips[0], flip);
+	restore(cr);
+
+	if (!flip)
+		off_y = major_size / 2 + minor_size / 2;
+	else
+		off_x = major_size / 2 + minor_size / 2;
+
+	save(cr);
+	translate(cr, off_x, off_y);
+	draw_pips(cr, pips[1], flip);
+	restore(cr);
+}
+
+void
+doit()
+{
+	int[2] pips = { 4, 2 };
+	cairo_t cr = new_svg("kdominos.svg", major_size, major_size);
+
+	translate(cr, (major_size - minor_size) / 2, 0);
+	draw_domino(cr, pips);
+	show_page(cr);
+	destroy(cr);
+}
+
+doit();

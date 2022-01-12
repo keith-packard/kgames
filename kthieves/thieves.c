@@ -341,6 +341,7 @@ FindEmptyPlay (CardPtr from_card)
     int		    i;
     CardStackPtr    to_stack;
 
+    (void) from_card;
     for (i = 0; i < numStacks; i++)
     {
 	to_stack = &stackStacks[i];

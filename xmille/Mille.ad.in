@@ -1,0 +1,213 @@
+#
+# Color theme:
+#
+#  Overall background: #337744 (green)
+#  Passive foreground: #fffff0
+#  Active background:  #fffff0
+#  Active foreground:  #000000
+#  Accent colors:      #774433 (brown), #334477 (blue)
+#  
+
+*Foreground: #000000
+*Background: #fffff0
+*message.Background: #fffff0
+*message.Foreground: #000000
+*errors.Background: #fffff0
+*errors.Foreground: #000000
+
+*Layout.Background: #337744
+
+*Label.Foreground: #fffff0
+*Label.Background: #337744
+
+*menuBar.Background: #337744
+
+*MilleCards.Background: #337744
+*MilleCards.internalBorderWidth: 3
+
+*humanHand.Background: #774433
+
+*Thermo.mercuryColor: #334477
+
+*MilleCards.borderWidth: 0
+*Label.borderWidth: 0
+*Layout.borderWidth: 0
+*Thermo.borderWidth: 0
+*score.borderWidth: 0
+*menuBar.borderWidth: 0
+
+*Command.ShapeStyle: oval
+
+*layout.translations: #augment \n\
+	<Key>1:		milleReasonable(1)\n\
+	<Key>2:		milleReasonable(2)\n\
+	<Key>3:		milleReasonable(3)\n\
+	<Key>4:		milleReasonable(4)\n\
+	<Key>5:		milleReasonable(5)\n\
+	<Key>6:		milleReasonable(6)\n\
+	<Key>7:		milleReasonable(7)\n\
+	<Key>u,<Key>1:	millePlay(1)\n\
+	<Key>u,<Key>2:	millePlay(2)\n\
+	<Key>u,<Key>3:	millePlay(3)\n\
+	<Key>u,<Key>4:	millePlay(4)\n\
+	<Key>u,<Key>5:	millePlay(5)\n\
+	<Key>u,<Key>6:	millePlay(6)\n\
+	<Key>u,<Key>7:	millePlay(7)\n\
+	<Key>d,<Key>1:	milleDiscard(1)\n\
+	<Key>d,<Key>2:	milleDiscard(2)\n\
+	<Key>d,<Key>3:	milleDiscard(3)\n\
+	<Key>d,<Key>4:	milleDiscard(4)\n\
+	<Key>d,<Key>5:	milleDiscard(5)\n\
+	<Key>d,<Key>6:	milleDiscard(6)\n\
+	<Key>d,<Key>7:	milleDiscard(7)\n\
+	<Key>o:		milleOrder()\n\
+	<Key>q:		milleQuit()\n\
+	<Key>s:		milleSave()\n\
+	<Key>r:		milleRestore()\n\
+	<Key>Tab:	milleDraw()\n\
+	<Key>p:		milleDraw()
+
+*humanHand.translations: #override \n\
+	<Btn3Up>: stop(discard)
+
+*layout.layout: vertical {\
+MenuBarBorderWidth = 0\
+HumanHandBorderWidth = 0\
+-$MenuBarBorderWidth \
+horizontal { \
+	-$MenuBarBorderWidth menuBar < +inf -100% * > -$MenuBarBorderWidth \
+} \
+horizontal { \
+	vertical { \
+		MinPlayHeight = 20 \
+		MinPlayWidth = 550 \
+		PlayVertShrink = (100% - $MinPlayHeight) \
+		PlayHorzShrink = (100% - $MinPlayWidth) \
+		computerPlay < -$PlayHorzShrink * +1 -$PlayVertShrink > \
+		horizontal { \
+			vertical { \
+				computerMiles < +inf -100% * >\
+				horizontal { \
+					0 < +inf > \
+					vertical { \
+						0 < +inf > \
+						deckCount < +inf -100% * >\
+						deck < -100% * -100% > \
+						0 < +inf > \
+					} \
+					0 < +inf > \
+				} \
+				humanMiles < +inf -100% * > \
+			} \
+			2 < -inf > \
+			vertical { \
+				score < +1 * +inf -1 > \
+				message < +inf -inf * > \
+				errors < +inf -inf * >\
+			} \
+		} \
+		humanPlay < -$PlayHorzShrink * +1 -$PlayVertShrink > \
+		horizontal { \
+			-$HumanHandBorderWidth \
+			humanHand < -$PlayHorzShrink * -$PlayVertShrink > \
+			0 < +inf > \
+		} \
+		-$HumanHandBorderWidth \
+	} \
+	vertical { \
+		computerSafeties < -150% * -100% > \
+		computerSafetyLabel < +inf -inf * > \
+		0 < +inf >\
+		humanSafeties < -150% * -100% > \
+		humanSafetyLabel < +inf -inf * >\
+	} \
+} \
+}
+
+*MenuButton.shapeStyle: oval
+*fileMenuButton.leftBitmap: menu12
+*fileMenuButton.label: File
+*fileMenuButton.menuName: fileMenu
+
+*message.label:
+*errors.label:
+
+*fileMenu.restore.label:	Restore from File
+*fileMenu.save.label:		Save to File
+*fileMenu.quit.label:		Quit
+
+*score*Font: monospace-12
+*score.editType: edit
+*score.resize: both
+*score.translations:
+*score.baseTranslations:
+
+*Thermo.minimum: 0
+*Thermo.maximum: 1000
+*Thermo.minorStep: 25
+*Thermo.majorStep: 100
+*Thermo.vertical: false
+*Thermo.width: 500
+
+*computerPlay.rowsHint: true
+*computerPlay.rows: 7
+
+*computerSafetyLabel.label: Computer Safeties
+
+*humanPlay.rowsHint: true
+*humanPlay.rows: 7
+
+*humanSafetyLabel.label: Player Safeties
+
+*yesOrNoShell.allowShellResize: true
+*yesOrNoOk.label: OK
+*yesOrNoNo.label: No
+
+*yesOrNoDialog.translations: #override\n\
+	<Key>y:		milleYes()\n\
+	<Key>n:		milleNo()
+
+*yesOrNoDialog.layout: vertical {\
+	Spacing = (50 % of height yesOrNoLabel) \
+	$Spacing < +inf -inf > \
+	horizontal { \
+		$Spacing < +inf -inf > \
+		yesOrNoLabel \
+		$Spacing < +inf -inf > \
+	} \
+	$Spacing < +inf -inf > \
+	horizontal { \
+		$Spacing < -inf > \
+		yesOrNoOk \
+		$Spacing < +inf -inf > \
+		yesOrNoNo \
+		$Spacing < -inf > \
+	} \
+	$Spacing < +inf -inf > \
+}
+
+*promptedShell.allowShellResize: true
+*promptedValue*editType: edit
+*promptedOk.label: OK
+*promptedCancel.label: Cancel
+		  
+*promptedDialog.layout: vertical {\
+	Spacing = (20 % of height promptedLabel) \
+	$Spacing < +inf -inf > \
+	promptedLabel \
+	$Spacing < +inf -inf > \
+	horizontal { \
+		$Spacing < -inf > \
+		promptedValue < +inf * +inf > \
+		$Spacing < -inf > \
+	} \
+	$Spacing < +inf -inf > \
+	horizontal { \
+		$Spacing < -inf > \
+		promptedOk \
+		$Spacing < +inf -inf > \
+		promptedCancel \
+		$Spacing < -inf > \
+	} \
+	$Spacing < +inf -inf > \
+}

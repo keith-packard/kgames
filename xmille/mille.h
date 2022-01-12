@@ -389,4 +389,4 @@ FlushInput (void);
 
 /* varpush.c */
 int
-varpush(int file, int (*func)(int, void *, size_t));
+varpush(int file, ssize_t (*func)(int, void *, size_t));

@@ -20,7 +20,12 @@
 # OF THIS SOFTWARE.
 #
 
-res_files = res_gen.process('KCanfield.ad')
+ad_file = configure_file(input: 'KCanfield.ad.in',
+                         output: '@BASENAME@',
+                         configuration: conf_data,
+                         install: false)
+
+res_files = res_gen.process(ad_file)
 
 executable('kcanfield',
 	   'canfield.c', res_files,
@@ -29,3 +34,8 @@ executable('kcanfield',
 	   link_with: [lib_xkw],
 	   install: true)
 install_man('kcanfield.6')
+
+configure_file(input: 'kcanfield.desktop.in',
+	       output: '@BASENAME@',
+	       configuration: conf_data,
+	       install_dir : desktop_dir)

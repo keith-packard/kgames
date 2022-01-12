@@ -1,0 +1,33 @@
+#!/bin/bash
+
+dir=`dirname $0`
+
+case $# in
+    2)
+    ;;
+    *)
+	echo "usage: $0 cards.c cards.h"
+	exit 1
+	;;
+esac
+
+(
+    echo '#include "'"$2"'"'
+    
+    for f in xreversi.svg; do
+	file="$dir"/"$f"
+	name=`basename $f .svg`
+	echo "const char svg_$name[]" =
+	sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/^/    "/' -e 's/$/\\n"/' "$file"
+	echo "    ;";
+	echo ""
+    done
+    echo ""
+) > "$1"
+
+(
+    for f in xreversi.svg; do
+	name=`basename $f .svg`
+	echo "extern const char svg_$name[];"
+    done
+) > "$2"

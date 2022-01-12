@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=KTabby
+GenericName=Solitaire Game
+Comment=Play Tabby Cat solitaire
+Keywords=game;card;solitaire;patience
+Exec=@BINDIR@/ktabby
+Icon=@ICONDIR@/kgames.svg
+StartupNotify=false
+Terminal=false
+Type=Application
+Categories=Game;CardGame;Kgames

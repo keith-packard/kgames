@@ -86,9 +86,15 @@ static char defaultTranslations[] =
     "<Btn4Up>:\n"
     "<Btn5Down>: zoomin()\n"
     "<Btn5Up>:\n"
-    "<BtnDown>: start()\n"
-    "<BtnMotion>: drag()\n"
-    "<BtnUp>: stop()";
+    "<Btn1Down>: start()\n"
+    "<Btn1Motion>: drag()\n"
+    "<Btn1Up>: stop()\n"
+    "<Btn2Down>: start()\n"
+    "<Btn2Motion>: drag()\n"
+    "<Btn2Up>: stop()\n"
+    "<Btn3Down>: start()\n"
+    "<Btn3Motion>: drag()\n"
+    "<Btn3Up>: stop()";
 
 #define SuperClass  ((KSimpleWidgetClass)&ksimpleClassRec)
 
@@ -550,6 +556,7 @@ DoInputCallback(Widget gw, Action action,
         XkwTranslateCoordsPosition(start_location.w, gw, &w_x, &w_y);
         dx = w_x - start_location.x;
         dy = w_y - start_location.y;
+        hand_action = HandActionStart;
 
         if (dx * dx + dy * dy >= motion_min)
             start_location.dragging = TRUE;
@@ -595,10 +602,18 @@ static void StopAction (Widget gw, XEvent *event, String *params, Cardinal *num_
 
 static void ZoomInAction (Widget gw, XEvent *event, String *params, Cardinal *num_params)
 {
+    (void) gw;
+    (void) event;
+    (void) params;
+    (void) num_params;
 }
 
 static void ZoomOutAction (Widget gw, XEvent *event, String *params, Cardinal *num_params)
 {
+    (void) gw;
+    (void) event;
+    (void) params;
+    (void) num_params;
 }
 
 static void ExpandAction (Widget gw, XEvent *event, String *params, Cardinal *num_params)
@@ -666,6 +681,7 @@ EraseTimer(XtPointer client_data, XtIntervalId *timer)
 {
     Widget gw = (Widget) client_data;
     HandWidget w = (HandWidget) gw;
+    (void) timer;
     w->hand.erase_proc = 0;
     Redisplay(gw, NULL, NULL);
 }
@@ -759,6 +775,7 @@ Redisplay (Widget gw, XEvent *event, Region region)
 {
     HandWidget	    w = (HandWidget) gw;
 
+    (void) event;
     if (!XtIsRealized (gw))
 	return;
 
@@ -937,11 +954,14 @@ HandRemoveCard (Widget gw, XtPointer card)
     HandWidget	    w = (HandWidget) gw;
     CardPtr	    c, sib;
     int		    row, col;
+    Bool            found = FALSE;
 
     xkw_foreach(c, &w->hand.cards, list)
-	if (c == (CardPtr) card)
+	if (c == (CardPtr) card) {
+            found = TRUE;
 	    break;
-    if (!c)
+        }
+    if (!found)
 	return;
     if (w->hand.row_insert)
     {
@@ -970,11 +990,14 @@ HandReplaceCard (Widget gw, XtPointer card, XtPointer private, int offset)
 {
     HandWidget	    w = (HandWidget) gw;
     CardPtr c;
+    Bool found = FALSE;
 
     xkw_foreach(c, &w->hand.cards, list)
-	if (c == (CardPtr) card)
+	if (c == (CardPtr) card) {
+            found = TRUE;
 	    break;
-    if (!c)
+        }
+    if (!found)
 	return;
     c->private = private;
     c->offset = offset;
@@ -1000,11 +1023,14 @@ HandRectangleForCard (Widget gw, XtPointer card, XRectangle *r)
 {
     HandWidget	    w = (HandWidget) gw;
     CardPtr	c;
+    Bool found = FALSE;
 
     xkw_foreach(c, &w->hand.cards, list)
-	if (c == (CardPtr) card)
+	if (c == (CardPtr) card) {
+            found = TRUE;
 	    break;
-    if (!c)
+        }
+    if (!found)
     {
 	r->x = 0;
 	r->y = 0;
@@ -1089,6 +1115,8 @@ HandHideCard (Widget gw, CardPtr c)
 static Boolean
 HandDefaultCardIsEmpty (Widget gw, XtPointer private)
 {
+    (void) gw;
+    (void) private;
     return FALSE;
 }
 
@@ -1147,6 +1175,9 @@ HandClassRec handClassRec = {
   /* simple */
   {
     XtInheritChangeSensitive,		/* change_sensitive */
+#ifndef OLDXAW
+    NULL,                               /* extension */
+#endif
   },
   {
     /* ksimple fields */

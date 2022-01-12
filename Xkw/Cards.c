@@ -216,20 +216,14 @@ ClassInitialize(void)
 #define CardOffset(w,card)  ((card)->suit > CardsSpade ? (w)->cards.offset_other : XkwHandDefaultOffset)
 
 XtPointer
-CardsAddCard (gw, card, row, col)
-    Widget	    gw;
-    CardsCardPtr    card;
-    int		    row, col;
+CardsAddCard (Widget gw, CardsCardPtr card, int row, int col)
 {
     CardsWidget	w = (CardsWidget) gw;
     return HandAddCard (gw, (XtPointer) card, row, col, CardOffset(w,card));
 }
 
 void
-CardsReplaceCard (gw, data, card)
-    Widget	    gw;
-    XtPointer	    data;
-    CardsCardPtr    card;
+CardsReplaceCard (Widget gw, XtPointer data, CardsCardPtr card)
 {
     CardsWidget	w = (CardsWidget) gw;
     HandReplaceCard (gw, data, (XtPointer) card, CardOffset(w,card));
@@ -278,7 +272,7 @@ Initialize (Widget greq, Widget gnew, Arg *args, Cardinal *count)
 	GetSize (dpy, back, &width, &height);
     } else {
 	back = XCreatePixmapFromBitmapData (dpy, RootWindow (dpy, screen),
-					    playing_card_bits, playing_card_width, playing_card_height,
+					    (char *) playing_card_bits, playing_card_width, playing_card_height,
 					    new->cards.inverse_color, new->cards.obverse_color,
 					    DefaultDepth(dpy, screen));
 	width = playing_card_width;
@@ -338,6 +332,7 @@ make_card_maps(CardsWidget w)
 {
     int	i;
 
+    (void) w;
     if (any_svg && !made_svg)
     {
 	made_svg = True;
@@ -408,6 +403,7 @@ DisplayCallback (Widget gw, XtPointer closure, XtPointer data)
 
     cairo_matrix_t back_matrix;
 
+    (void) closure;
     switch (card->suit) {
     case CardsEmpty:
 	XkwSetSource(cr, &w->ksimple.background);
@@ -436,6 +432,7 @@ CardsCardIsEmpty(Widget gw, XtPointer private)
 {
     CardsCardRec *card = private;
 
+    (void) gw;
     if (!card)
         return TRUE;
     if (card->suit == CardsEmpty || card->suit == CardsNone)
@@ -480,6 +477,9 @@ CardsClassRec	cardsClassRec = {
   },
   { /* simple fields */
     /* change_sensitive		*/	XtInheritChangeSensitive,
+#ifndef OLDXAW
+    NULL,                               /* extension */
+#endif
   },
   {
     /* ksimple fields */

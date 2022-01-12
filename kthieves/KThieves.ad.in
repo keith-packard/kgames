@@ -1,0 +1,94 @@
+*Background: #fffff0
+*menuBar.Background: #337744
+*Cards.Background: #337744
+*frame.Background: #337744
+*borderWidth: 0
+*SimpleMenu.borderWidth: 1
+
+*draw.numCols: 15
+*draw.colsHint: true
+*draw.overlap: horizontal
+
+*piles.numCols: 2
+*piles.numRows: 4
+
+*Cards.immediateUpdate: False
+
+*stacks.numCols: 10
+*stacks.numRows: 10
+*stacks.rowsHint: True
+*stacks.overlap: vertical
+
+*message.justify: left
+*message.label: Keith's Forty Thieves, Version @KGAMES_VERSION@
+*menuBar.layout: vertical { \
+	5 < -5 >\
+	horizontal { \
+		5 < -5 > \
+		fileMenuButton \
+		5 < -5 > \
+		newGame \
+		5 < -5 > \
+		undo \
+		5 < -5 > \
+		hint \
+		5 < -5 > \
+		score \
+		0 <+inf -inf> \
+	} \
+	5 < -5 > \
+}
+*frame.layout: vertical {\
+	menuBar < +inff -100% * >\
+	10 < -inf > \
+	horizontal { \
+		10 < -inf > \
+		vertical { \
+			stacks < -50% * +inf -50% > \
+			10 < -inf > \
+			horizontal { \
+				vertical { \
+					10 < +inf -inf > \
+					draw < +inf -100% * -90% > \
+				} \
+				10 < -inf > \
+				vertical { \
+					deckCount < +inf -inf * > \
+					deck < -75% * -90% > \
+				} \
+			} \
+		} \
+		10 < -inf > \
+		vertical { \
+			piles < -50% * -50% > \
+			0 < +inf > \
+		} \
+		10 < -inf > \
+	} \
+	message < +inff -100% * > \
+}
+
+*fileMenuButton.leftBitmap: menu12
+*fileMenuButton.menuName: fileMenu
+*fileMenuButton.label: File
+*fileMenuButton.shapeStyle: oval
+
+*fileMenu.save.label: Save To File
+*fileMenu.restore.label: Restore From File
+*fileMenu.quit.label: Quit
+
+*newGame.label: New Game
+
+*undo.label: Undo
+
+*hint.label: Hint
+
+*score.label: Score
+
+*Command.shapeStyle: oval
+
+*frame.translations: #override \
+	<Key>u:		thievesUndo()\n\
+	<Key>n:		thievesNewGame()\n\
+	<Key>s:		thievesScore()\n\
+	<Key>?:		thievesFindAMove()

@@ -277,6 +277,7 @@ static CompositeClassExtensionRec extension_rec = {
   XtCompositeExtensionVersion,		/* version */
   sizeof(CompositeClassExtensionRec),	/* record_size */
   True,					/* accepts_objects */
+  True,                                 /* allows_changed_managed_set */
 };
 
 #define Superclass	(&overrideShellClassRec)
@@ -401,6 +402,9 @@ XkwKSimpleMenuInitialize(Widget request, Widget cnew,
     KSimpleMenuWidget smw = (KSimpleMenuWidget)cnew;
     Dimension width, height;
 
+    (void) request;
+    (void) args;
+    (void) num_args;
     XmuCallInitializers(XtWidgetToApplicationContext(cnew));
 
     if (smw->ksimple_menu.label_class == NULL)
@@ -462,6 +466,7 @@ XkwKSimpleMenuRedisplay(Widget w, XEvent *event, Region region)
     KSmeObject *entry;
     KSmeObjectClass cclass;
 
+    (void) event;
     if (region == NULL) {
 	cairo_t *cr = XkwGetCairo(w);
 	XkwSetSource(cr, &smw->ksimple_menu.background);
@@ -585,6 +590,9 @@ XkwKSimpleMenuSetValues(Widget current, Widget request, Widget cnew,
     KSimpleMenuWidget smw_new = (KSimpleMenuWidget)cnew;
     Boolean ret_val = False, layout = False;
 
+    (void) request;
+    (void) args;
+    (void) num_args;
     if (!XtIsRealized(current))
 	return (False);
 
@@ -869,6 +877,9 @@ Unhighlight(Widget w, XEvent *event, String *params, Cardinal *num_params)
     KSimpleMenuWidget smw = (KSimpleMenuWidget)w;
     KSmeObject entry = smw->ksimple_menu.entry_set;
 
+    (void) event;
+    (void) params;
+    (void) num_params;
     if (entry == NULL)
 	return;
 
@@ -968,6 +979,8 @@ Notify(Widget w, XEvent *event, String *params, Cardinal *num_params)
     KSmeObject entry;
     KSmeObjectClass cclass;
 
+    (void) params;
+    (void) num_params;
     /* may be a propagated event from a sub menu, need to check it */
     if (XtWindow(w) != event->xany.window)
 	return;
@@ -1297,6 +1310,7 @@ AddPositionAction(XtAppContext app_con, XPointer data)
 	{"XawPositionKSimpleMenu",	PositionMenuAction},
     };
 
+    (void) data;
     XtAppAddActions(app_con, pos_action, XtNumber(pos_action));
 }
 
@@ -1446,6 +1460,8 @@ ChangeCursorOnGrab(Widget w, XtPointer temp1, XtPointer temp2)
 {
     KSimpleMenuWidget smw = (KSimpleMenuWidget)w;
 
+    (void) temp1;
+    (void) temp2;
     /*
      * The event mask here is what is currently in the MIT implementation.
      * There really needs to be a way to get the value of the mask out
@@ -1614,8 +1630,6 @@ GetEventEntry(Widget w, XEvent *event)
     return (DoGetEventEntry(w, x_loc, y_loc));
 }
 
-#define maxi(a,b) ({ typeof(a) _ta = (a), _tb = (b); if (_ta > _tb) _tb = _ta; _tb; })
-
 static void
 CalculateNewSize(Widget w, Dimension *width_return, Dimension *height_return)
 {
@@ -1684,8 +1698,11 @@ CalculateNewSize(Widget w, Dimension *width_return, Dimension *height_return)
     height = tmp_h + vadd;
     width += tmp_w + hadd;
 
-    if (xaw->ksimple_menu.label)
-	width = maxi(width, XtWidth(xaw->ksimple_menu.label) + hadd);
+    if (xaw->ksimple_menu.label) {
+        int nwidth = XtWidth(xaw->ksimple_menu.label) + hadd;
+        if (nwidth > width)
+            width = nwidth;
+    }
 
     *width_return = width;
     *height_return = height;

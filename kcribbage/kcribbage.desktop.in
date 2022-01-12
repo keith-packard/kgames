@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=KCribbage
+GenericName=Card Game
+Comment=Play Cribbage against the computer
+Keywords=game;card
+Exec=@BINDIR@/kcribbage
+Icon=@ICONDIR@/kgames.svg
+StartupNotify=false
+Terminal=false
+Type=Application
+Categories=Game;CardGame;Kgames

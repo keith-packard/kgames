@@ -129,6 +129,9 @@ XkwKSmeLineInitialize(Widget request, Widget cnew,
 {
     KSmeLineObject entry = (KSmeLineObject)cnew;
 
+    (void) request;
+    (void) args;
+    (void) num_args;
     if (XtHeight(entry) == 0)
 	XtHeight(entry) = entry->ksme_line.line_width;
 }
@@ -136,6 +139,7 @@ XkwKSmeLineInitialize(Widget request, Widget cnew,
 static void
 XkwKSmeLineDestroy(Widget w)
 {
+    (void) w;
 }
 
 /*ARGSUSED*/
@@ -146,6 +150,9 @@ XkwKSmeLineRedisplay(Widget w, XEvent *event, Region region)
     int y = XtY(w) + (((int)XtHeight(w) - entry->ksme_line.line_width) >> 1);
 
     cairo_t *cr = XkwGetCairo(w);
+
+    (void) event;
+    (void) region;
     XkwSetSource(cr, &entry->ksme_line.foreground);
 
     cairo_rectangle(cr, XtX(w), y,
@@ -174,6 +181,9 @@ XkwKSmeLineSetValues(Widget current, Widget request, Widget cnew,
     KSmeLineObject entry = (KSmeLineObject)cnew;
     KSmeLineObject old_entry = (KSmeLineObject)current;
 
+    (void) request;
+    (void) args;
+    (void) num_args;
     if (entry->ksme_line.line_width != old_entry->ksme_line.line_width) {
 	return (True);
     }

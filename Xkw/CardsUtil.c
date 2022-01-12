@@ -560,6 +560,7 @@ CardShuffle (CardStackPtr stack, Boolean remember)
 	    shuf[0]->prev = 0;
 	shuf++;
     }
+    Dispose (shuffle);
 }
 
 static void
@@ -583,13 +584,15 @@ Unshuffle (CardStackPtr stack, CardPtr *cards, int numCards)
 }
 
 void
-CardInitHistory ()
+CardInitHistory (void)
 {
     CardHistoryPtr  h, p;
 
     for (h = history; h; h = p)
     {
 	p = h->prev;
+        if (h->type == HistoryShuffle)
+            Dispose (h->u.shuffle.cards);
 	Dispose (h);
     }
     history = 0;
@@ -610,7 +613,7 @@ CardRecordHistoryCallback (void (*func)(void *closure), void *closure)
 }
 
 Boolean
-CardUndo ()
+CardUndo (void)
 {
     CardHistoryPtr	h, p;
     int			serial;
@@ -647,7 +650,7 @@ CardUndo ()
 }
 
 int
-CardNextHistory ()
+CardNextHistory (void)
 {
     return historySerial++;
 }

@@ -100,6 +100,9 @@ XkwKLabelInitialize(Widget request, Widget cnew,
 {
     KLabelWidget w = (KLabelWidget)cnew;
 
+    (void) request;
+    (void) args;
+    (void) num_args;
     if (w->klabel.label == NULL)
 	w->klabel.label = XtNewString(w->core.name);
     else
@@ -130,6 +133,7 @@ XkwKLabelRedisplay(Widget gw, XEvent *event, Region region)
     KLabelWidget w = (KLabelWidget)gw;
     cairo_t *cr = draw_begin(w, region);
 
+    (void) event;
     if (!XtIsSensitive(gw))
 	XkwSetSourceInterp(cr, &w->ksimple.foreground, &w->ksimple.background);
     cairo_text_extents_t text_extents;
@@ -165,6 +169,8 @@ XkwKLabelSetValues(Widget gcur, Widget greq, Widget gnew,
     Boolean was_resized = False;
 
     (void) req;
+    (void) args;
+    (void) num_args;
     if (new->klabel.label != cur->klabel.label) {
 	XtFree(cur->klabel.label);
 	if (!new->klabel.label)
@@ -246,6 +252,9 @@ KLabelClassRec klabelClassRec = {
   /* simple */
   {
     XtInheritChangeSensitive,		/* change_sensitive */
+#ifndef OLDXAW
+    NULL,                               /* extension */
+#endif
   },
   {
     /* ksimple fields */

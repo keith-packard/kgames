@@ -134,6 +134,10 @@ XkwKCommandInitialize(Widget request, Widget cnew,
 		      ArgList args, Cardinal *num_args)
 {
     KCommandWidget cbw = (KCommandWidget)cnew;
+
+    (void) request;
+    (void) args;
+    (void) num_args;
     cbw->kcommand.set = False;
     cbw->kcommand.highlighted = HighlightNone;
 }
@@ -194,6 +198,10 @@ Set(Widget w, XEvent *event, String *params, Cardinal *num_params)
 {
     KCommandWidget cbw = (KCommandWidget)w;
 
+    (void) event;
+    (void) params;
+    (void) num_params;
+
     if (cbw->kcommand.set)
 	return;
 
@@ -206,6 +214,10 @@ static void
 Unset(Widget w, XEvent *event, String *params, Cardinal *num_params)
 {
     KCommandWidget cbw = (KCommandWidget)w;
+
+    (void) event;
+    (void) params;
+    (void) num_params;
 
     if (!cbw->kcommand.set)
 	return;
@@ -260,6 +272,10 @@ Unhighlight(Widget w, XEvent *event, String *params, Cardinal *num_params)
 {
     KCommandWidget cbw = (KCommandWidget)w;
 
+    (void) event;
+    (void) params;
+    (void) num_params;
+
     cbw->kcommand.highlighted = HighlightNone;
     if (XtIsRealized(w))
 	PaintKCommandWidget(w, event, HighlightRegion(cbw), True);
@@ -270,6 +286,10 @@ static void
 Notify(Widget w, XEvent *event, String *params, Cardinal *num_params)
 {
     KCommandWidget cbw = (KCommandWidget)w;
+
+    (void) event;
+    (void) params;
+    (void) num_params;
 
     /* check to be sure state is still Set so that user can cancel
        the action (e.g. by moving outside the window, in the default
@@ -328,6 +348,7 @@ PaintKCommandWidget(Widget w, XEvent *event, Region region, Bool change)
 				XtHeight(cbw) - cbw->kcommand.highlight_thickness);
 		cairo_fill(cr);
 	    }
+            cairo_destroy(cr);
 	}
     }
 
@@ -364,6 +385,7 @@ XkwKCommandSetValues(Widget current, Widget request, Widget cnew,
     KCommandWidget oldcbw = (KCommandWidget)current;
     KCommandWidget cbw = (KCommandWidget)cnew;
 
+    (void) request;
     if (oldcbw->core.sensitive != cbw->core.sensitive && !cbw->core.sensitive) {
 	cbw->kcommand.highlighted = HighlightNone;
     }
@@ -488,6 +510,9 @@ KCommandClassRec kcommandClassRec = {
   /* simple */
   {
     XtInheritChangeSensitive,		/* change_sensitive */
+#ifndef OLDXAW
+    NULL,                               /* extension */
+#endif
   },
   /* ksimple */
   {

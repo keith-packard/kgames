@@ -210,6 +210,7 @@ okay:
 					*value = 0;
 					break;
 				}
+                                /* FALLTHROUGH */
 			  case C_75:	case C_100:
 				*value = (Value[card] >> 3);
 				if (pp->speed == C_LIMIT)
@@ -418,6 +419,7 @@ onecard(const PLAY *pp)
 				card = (End - pp->mileage == 75 ? C_75 : C_100);
 			if (spd == C_LIMIT)
 				return Numseen[S_RIGHT_WAY] == 0;
+                        /* FALLTHROUGH */
 		  case 50:
 		  case 25:
 			if (card == -1)

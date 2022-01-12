@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=XMille
+GenericName=Board Game
+Comment=Play Mille Bornes against the computer
+Keywords=game;board
+Exec=@BINDIR@/xmille
+Icon=@ICONDIR@/xmille.svg
+StartupNotify=false
+Terminal=false
+Type=Application
+Categories=Game;CardGame;Kgames

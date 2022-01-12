@@ -1,0 +1,121 @@
+*Background: #fffff0
+*menuBar.Background: #337744
+*Cards.Background: #337744
+*frame.Background: #337744
+*borderWidth: 0
+*SimpleMenu.borderWidth: 1
+*gameState.Background: #337744
+*gameState.Foreground: #fffff0
+*deckCount.Background: #337744
+*deckCount.Foreground: #fffff0
+*reserveCount.Background: #337744
+*reserveCount.Foreground: #fffff0
+
+*aces.numRows: 4
+!*aces.rowMajor: False
+
+*kings.numRows: 4
+!*kings.rowMajor: True
+
+*Cards.immediateUpdate: False
+*Cards.rowsHint: True
+
+*row1.numCols: 5
+*row1.numRows: 2
+*row1.overlap: vertical
+
+*row2.numCols: 5
+*row2.numRows: 2
+*row2.overlap: vertical
+
+*row3.numCols: 5
+*row3.numRows: 2
+*row3.overlap: vertical
+
+*row4.numCols: 5
+*row4.numRows: 2
+*row4.overlap: vertical
+
+*message.justify: left
+*message.label: Sly Fox, Version @KGAMES_VERSION@
+
+*menuBar.layout: vertical { \
+	5 < -5 >\
+	horizontal { \
+		5 < -5 > \
+		fileMenuButton \
+		5 < -5 > \
+		newGame \
+		5 < -5 > \
+		deal \
+		5 < -5 > \
+		undo \
+		5 < -5 > \
+		hint \
+		5 < -5 > \
+		score \
+		0 <+inf -inf> \
+	} \
+	5 < -5 > \
+}
+*frame.layout: vertical {\
+	menuBar < +inff -100% * >\
+	10 < -inf > \
+	horizontal { \
+		10 < -inf > \
+		vertical {\
+			aces < -100% * -100% > \
+			10 < +inf -inf > \
+			deck < -100% * -100% > \
+		} \
+		30 < +inf -inf > \
+		vertical { \
+			row1 < -100% * +100% -100% > \
+			row2 < -100% * +100% -100% > \
+			row3 < -100% * +100% -100% > \
+			row4 < -100% * +100% -100% > \
+			horizontal { \
+				deckCount < -inf * > \
+				gameState < +inf -100% *> \
+				reserveCount < -inf * > \
+			} \
+			0 < +inf >  \
+		} \
+		30 < +inf -inf > \
+		vertical { \
+			kings < -100% * -100% > \
+			10 < +inf -inf > \
+			draw < -100% * -100% > \
+		} \
+		10 < -inf > \
+	} \
+	message < +inf * > \
+}
+
+*fileMenuButton.leftBitmap: menu12
+*fileMenuButton.menuName: fileMenu
+*fileMenuButton.label: File
+*fileMenuButton.shapeStyle: oval
+
+*fileMenu.save.label: Save To File
+*fileMenu.restore.label: Restore From File
+*fileMenu.quit.label: Quit
+
+*newGame.label: New Game
+
+*deal.label: Deal
+
+*undo.label: Undo
+
+*hint.label: Hint
+
+*score.label: Score
+
+*Command.shapeStyle: oval
+
+*frame.translations: #override \
+	<Key>u:		slyfoxUndo()\n\
+	<Key>n:		slyfoxNewGame()\n\
+	<Key>s:		slyfoxScore()\n\
+	<Key>d:		slyfoxStartDeal()\n\
+	<Key>?:		slyfoxFindAMove()

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=KSpider
+GenericName=Solitaire Game
+Comment=Play Spider solitaire
+Keywords=game;card;solitaire;patience
+Exec=@BINDIR@/kspider
+Icon=@ICONDIR@/kgames.svg
+StartupNotify=false
+Terminal=false
+Type=Application
+Categories=Game;CardGame;Kgames

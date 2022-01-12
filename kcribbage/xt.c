@@ -141,6 +141,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     case HandActionDrag:
         if (input->start.w == input->current.w)
             break;
+        /* fall through */
     case HandActionClick:
         selectedCard = input->start.col;
         cardSelected = True;
@@ -185,7 +186,7 @@ XtResource resources[] = {
     { "animationSpeed", "AnimationSpeed", XtRInt, sizeof (int),
      offset(animationSpeed), XtRImmediate, (XtPointer) 500},
     { "explain", "Explain", XtRBoolean, sizeof (Boolean),
-     offset(explain), XtRImmediate, (XtPointer) False},
+     offset(explain), XtRImmediate, (XtPointer) True},
     { "quiet", "Quiet", XtRBoolean, sizeof (Boolean),
      offset(quiet), XtRImmediate, (XtPointer) False},
     { "random", "Random", XtRBoolean, sizeof (Boolean),
@@ -196,10 +197,11 @@ XrmOptionDescRec options[] = {
     { "-smallCards",	"*Cards.smallCards",	XrmoptionNoArg, "True", },
     { "-squareCards",	"*Cards.roundCards",	XrmoptionNoArg, "False", },
     { "-noanimate",	".animationSpeed",	XrmoptionNoArg, "0", },
-    { "-animationSpeed",	".animationSpeed",	XrmoptionSepArg, NULL, },
-    { "-explain",		".explain",		XrmoptionNoArg,	 "True", },
+    { "-animationSpeed",".animationSpeed",	XrmoptionSepArg, NULL, },
+    { "-explain",	".explain",		XrmoptionNoArg,	 "True", },
+    { "-noexplain",	".explain",		XrmoptionNoArg,	 "False", },
     { "-quiet",		".quiet",		XrmoptionNoArg,	 "True", },
-    { "-random",		".random",		XrmoptionNoArg,	 "True", },
+    { "-random",	".random",		XrmoptionNoArg,	 "True", },
 };
 
 void
@@ -311,7 +313,7 @@ UIWait (void)
 {
     XEvent  event;
 
-    UIMessage ("--More--", FALSE);
+    UIMessage ("--More--", TRUE);
     UIRefresh ();
     for (;;)
     {
@@ -386,7 +388,7 @@ static const CardsRank CardsRankMap[] = {
 };
 
 static void
-updateCards (Widget w, CARD *h, int n, CribbageCardPtr cards, BOOLEAN blank)
+updateCards (Widget w, CARD *h, int n, CribbageCardPtr cards, int len, BOOLEAN blank)
 {
     int		    i;
     CardsSuit	    suit;
@@ -422,7 +424,7 @@ updateCards (Widget w, CARD *h, int n, CribbageCardPtr cards, BOOLEAN blank)
                 cards[i].private = CardsAddCard (w, &cards[i].card, 0, i);
         }
     }
-    for (; i < NUM_CARDS; i++) {
+    for (; i < len; i++) {
 	if (cards[i].private)
 	{
 	    CardsRemoveCard (w, cards[i].private);
@@ -450,7 +452,7 @@ UIPrintHand (CARD *h, int n, int who, BOOLEAN blank)
         w = widget(who);
         cards = Cards(who);
     }
-    updateCards (w, h, n, cards, blank);
+    updateCards (w, h, n, cards, NUM_CARDS, blank);
 }
 
 void
@@ -474,9 +476,9 @@ UIPrintCrib (int who, CARD *card, BOOLEAN blank)
 	ocards = compcribCards;
     }
 
-    updateCards (w, crib, 4, cards, TRUE);
-    updateCards (ow, NULL, 0, ocards, TRUE);
-    updateCards (deckWidget, card, 1, deckCards, blank);
+    updateCards (w, crib, 4, cards, NUM_CARDS, TRUE);
+    updateCards (ow, NULL, 0, ocards, NUM_CARDS, TRUE);
+    updateCards (deckWidget, card, 1, deckCards, 1, blank);
 }
 
 void
@@ -705,6 +707,8 @@ static BOOLEAN timer_done;
 static void
 timer_proc(XtPointer client_data, XtIntervalId *id)
 {
+    (void) client_data;
+    (void) id;
     timer_done = TRUE;
 }
 

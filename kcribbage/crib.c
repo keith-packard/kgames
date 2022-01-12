@@ -370,15 +370,19 @@ peg(BOOLEAN mycrib)
 		    sum += VAL(crd.rank);
 		    Table[Tcnt++] = crd;
 		    if (k > 0) {
-			addmsg(quiet ? "I get %d playing " :
-			    "I get %d points playing ", k);
+			addmsg(quiet ? "I get %d playing the " :
+			    "I get %d points playing the ", k);
 			msgcard(crd, FALSE);
 			endmsg(TRUE);
 			if (chkscr(&cscore, k)) {
                             screen_update(FALSE);
 			    return TRUE;
                         }
-		    }
+		    } else {
+                        addmsg("I play the ");
+                        msgcard(crd, FALSE);
+                        endmsg(TRUE);
+                    }
 		    myturn = !myturn;
 		}
 	    }

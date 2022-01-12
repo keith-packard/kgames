@@ -155,21 +155,29 @@ Prompt (char *string)
 #endif
 }
 
+/*
 void
 debug (int pos, char *string, int a0, int a1, int a2)
 {
 }
+*/
 
 static int  yn_done, yn_answer;
 
 static void YesFunc (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     yn_answer = 1;
     yn_done = 1;
 }
 
 static void NoFunc (Widget w, XtPointer closure, XtPointer data)
 {
+    (void) w;
+    (void) closure;
+    (void) data;
     yn_answer = 0;
     yn_done = 1;
 }
@@ -474,13 +482,15 @@ static void draw_action (Widget w, XEvent *e, String *p, Cardinal *n)
 
 static void play_action (Widget w, XEvent *e, String *p, Cardinal *n)
 {
-    (void) p;
-    (void) n;
+    (void) w;
+    (void) e;
     card_action (p, n, M_PLAY);
 }
 
 static void reasonable_action (Widget w, XEvent *e, String *p, Cardinal *n)
 {
+    (void) w;
+    (void) e;
     card_action (p, n, M_REASONABLE);
 }
 
@@ -498,18 +508,27 @@ static void order_action (Widget w, XEvent *e, String *p, Cardinal *n)
 static void quit_action (Widget w, XEvent *e, String *p, Cardinal *n)
 {
     (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     DoQuit (w, (XtPointer) 0, (XtPointer) 0);
 }
 
 static void save_action (Widget w, XEvent *e, String *p, Cardinal *n)
 {
     (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     DoSave (w, (XtPointer) 0, (XtPointer) 0);
 }
 
 static void restore_action (Widget w, XEvent *e, String *p, Cardinal *n)
 {
     (void) w;
+    (void) e;
+    (void) p;
+    (void) n;
     DoRestore (w, (XtPointer) 0, (XtPointer) 0);
 }
 
@@ -534,6 +553,8 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     HandInputPtr    input = (HandInputPtr) data;
     String arg = "";
 
+    (void) w;
+    (void) closure;
     if (*input->num_params > 0)
         arg = input->params[0];
 
@@ -602,10 +623,13 @@ make_hand (char *name, Widget parent, int rows, int cols, Bool overlap_rows)
     XtSetArg (args[i], XtNcardHeight, HEIGHT * scale); i++;
     XtSetArg (args[i], XtNnumRows, rows); i++;
     XtSetArg (args[i], XtNnumCols, cols); i++;
+    XtSetArg (args[i], XtNinternalBorderWidth, WIDTH * scale / 20); i++;
     if (!overlap_rows) {
-	XtSetArg (args[i], XtNrowOffset, HEIGHT * scale + WIDTH * scale/10); i++;
+	XtSetArg (args[i], XtNrowOffset, HEIGHT * scale + WIDTH * scale/20); i++;
+    } else {
+	XtSetArg (args[i], XtNrowOffset, WIDTH * scale/20); i++;
     }
-    XtSetArg (args[i], XtNcolOffset, WIDTH * scale + WIDTH * scale/10); i++;
+    XtSetArg (args[i], XtNcolOffset, WIDTH * scale + WIDTH * scale/20); i++;
     display_x = 0;
     display_y = 0;
     if (rows == 1)
@@ -677,7 +701,7 @@ init_ui (int *argc, char **argv)
     Colormap	def_cm;
     extern double	animation_speed;
     unsigned long	gcmask;
-    Pixmap		grayStipple;
+    Pixmap		grayStipple = None;
     Arg			arg[2];
     Visual		*visual;
 
@@ -996,6 +1020,9 @@ prboard(void)
 void
 stand(int y, int x, char *str)
 {
+    (void) y;
+    (void) x;
+    (void) str;
 }
 
 void
@@ -1015,6 +1042,7 @@ prscore(bool for_real)
 	const char Score_fmt[] = "%4d  ";
 	char		buffer[512];
 
+        (void) for_real;
 	ComputerDistance (Player[1].mileage);
 	HumanDistance (Player[0].mileage);
 

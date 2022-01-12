@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=KMontana
+GenericName=Solitaire Game
+Comment=Play Montana solitaire
+Keywords=game;card;solitaire;patience
+Exec=@BINDIR@/kmontana
+Icon=@ICONDIR@/kgames.svg
+StartupNotify=false
+Terminal=false
+Type=Application
+Categories=Game;CardGame;Kgames

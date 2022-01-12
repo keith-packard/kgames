@@ -19,7 +19,12 @@
 # TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 #
-res_files = res_gen.process('Mille.ad')
+ad_file = configure_file(input: 'Mille.ad.in',
+                         output: '@BASENAME@',
+                         configuration: conf_data,
+                         install: false)
+
+res_files = res_gen.process(ad_file)
 
 srcs_xmille = [
   'animate.c',
@@ -56,3 +61,10 @@ executable('xmille',
 	   link_with: [lib_xkw],
 	   install: true)
 install_man('xmille.6')
+
+install_data('cards/Icon.svg', rename : 'xmille.svg', install_dir : svg_icon_dir)
+
+configure_file(input: 'xmille.desktop.in',
+	       output: '@BASENAME@',
+	       configuration: conf_data,
+	       install_dir : desktop_dir)

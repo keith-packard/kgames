@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=KAces
+GenericName=Solitaire Game
+Comment=Play Aces Up solitaire
+Keywords=game;card;solitaire;patience
+Exec=@BINDIR@/kaces
+Icon=@ICONDIR@/kgames.svg
+StartupNotify=false
+Terminal=false
+Type=Application
+Categories=Game;CardGame;Kgames
