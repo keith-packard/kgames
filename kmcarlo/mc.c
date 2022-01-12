@@ -43,6 +43,7 @@
 #include	<Xkw/CardsUtil.h>
 #include	<Xkw/Message.h>
 #include	"MonteCarlo-res.h"
+#include        "kgames.h"
 
 Widget      toplevel;
 Widget      frame;
@@ -281,7 +282,7 @@ NewGame (void)
     FirstDeal();
     CardInitHistory();
     DisplayStacks();
-    Message(message, "MonteCarlo version 0.9");
+    Message(message, "Keith's Monte Carlo, Version " KGAMES_VERSION_STRING);
 }
 
 static void
