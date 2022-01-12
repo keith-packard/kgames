@@ -50,7 +50,10 @@ main(int ac, char **av)
 	bool	restore;
 
 	/* Revoke setgid privileges */
-	setregid(getgid(), getgid());
+	if (setregid(getgid(), getgid()) < 0) {
+            printf("setregid failed\n");
+            exit(1);
+        }
 
 	if (strcmp(av[0], "a.out") == 0) {
 		outf = fopen("q", "w");

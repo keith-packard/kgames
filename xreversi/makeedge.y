@@ -410,7 +410,7 @@ main (int argc, char **argv)
 	int	ret;
 
 	if (argc > 1)
-		freopen(argv[1], "r", stdin);
+		stdin = freopen(argv[1], "r", stdin);
 	printf("#include \"revers.h\"\n");
 	printf("#pragma GCC diagnostic ignored \"-Wmissing-braces\"\n");
 	printf("scoreT edgescores [4][4][4][4][4][4][4][4] = {\n");

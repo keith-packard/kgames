@@ -556,6 +556,7 @@ DoInputCallback(Widget gw, Action action,
         XkwTranslateCoordsPosition(start_location.w, gw, &w_x, &w_y);
         dx = w_x - start_location.x;
         dy = w_y - start_location.y;
+        hand_action = HandActionStart;
 
         if (dx * dx + dy * dy >= motion_min)
             start_location.dragging = TRUE;

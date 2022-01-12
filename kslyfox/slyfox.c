@@ -800,7 +800,8 @@ StackCallback (Widget w, XtPointer closure, XtPointer data)
         else if (game_state == GAME_DEAL) {
             Message(message, "Selected stack is empty.");
             break;
-        }
+        } else
+            card = NULL;
         if (game_state == GAME_DEAL) {
             if (to_type == STACK_TYPE_ACE || to_type == STACK_TYPE_KING) {
                 Message(message, "Can't move %P.", &card->card);

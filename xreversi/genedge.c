@@ -10,7 +10,7 @@ int
 main (int argc, char ** argv)
 {
 	if (argc > 1)
-		freopen(argv[1], "w", stdout);
+                stdout = freopen(argv[1], "w", stdout);
 	register int	i;
 	for (board[1] = -1; board[1] <= 2; board[1]++)
 	for (board[2] = -1; board[2] <= 2; board[2]++)

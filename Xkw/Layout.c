@@ -739,13 +739,13 @@ ComputeSizes (BoxPtr box)
     BoxPtr	    child;
     GlueRec	    stretch;
     GlueRec	    shrink;
-    GlueRec	    totalGlue[2];
+    GlueRec	    totalGlue[2] = { { .order = 0, .value = 0 }, { .order = 0, .value = 0} };
     double	    remainingGlue = 0.0;
     GluePtr	    glue;
     int		    size;
     int		    totalSizes;
     int		    finalSize[2];
-    int		    totalChange[2];
+    int		    totalChange[2] = { 0, 0 };
     int		    change;
     int		    remainingChange = 0;
     Bool	    shrinking = 0;
