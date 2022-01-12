@@ -707,7 +707,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
     CardStackPtr    stack = NULL;
     CardStackPtr    startStack = NULL;
     int             i;
-    Boolean         hintForward;
+    Boolean         hintForward = True;
     String          type = "";
 
     (void) closure;
@@ -751,6 +751,7 @@ InputCallback (Widget w, XtPointer closure, XtPointer data)
         else
             hintForward = True;
         break;
+    default:
     case HandActionUnexpand:
         i = UNHINT;
         break;

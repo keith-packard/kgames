@@ -211,6 +211,7 @@ compute_position (int player, int type, int arg, int *xp, int *yp)
 			col = arg;
 			break;
 		case 1:
+                default:
 			w = computer_play;
 			yForce = -HEIGHT;
 			break;
@@ -234,6 +235,7 @@ compute_position (int player, int type, int arg, int *xp, int *yp)
 			w = human_play;
 			break;
 		case 1:
+                default:
 			w = computer_play;
 			break;
 		}
@@ -246,6 +248,7 @@ compute_position (int player, int type, int arg, int *xp, int *yp)
 			w = human_play;
 			break;
 		case 1:
+                default:
 			w = computer_play;
 			break;
 		}
@@ -258,6 +261,7 @@ compute_position (int player, int type, int arg, int *xp, int *yp)
 			w = human_play;
 			break;
 		case 1:
+                default:
 			w = computer_play;
 			break;
 		}
@@ -270,6 +274,7 @@ compute_position (int player, int type, int arg, int *xp, int *yp)
 			w = human_play;
 			break;
 		case 1:
+                default:
 			w = computer_play;
 			break;
 		}
@@ -282,12 +287,12 @@ compute_position (int player, int type, int arg, int *xp, int *yp)
 			w = human_play;
 			break;
 		case 1:
+                default:
 			w = computer_play;
 			break;
 		}
 		row = 0;
 		col = 0;
-		break;
 		break;
 	case ANIMATE_SAFETY:
 		switch (player) {
@@ -295,12 +300,18 @@ compute_position (int player, int type, int arg, int *xp, int *yp)
 			w = human_safeties;
 			break;
 		case 1:
+                default:
 			w = computer_safeties;
 			break;
 		}
 		row = arg & 1;
 		col = (arg & 2) >> 1;
 		break;
+        default:
+                w = deck_hand;
+                row = 0;
+                col = 0;
+                break;
 	}
 	HandRectangleForPos (w, row, col, &r);
 	XtSetArg (args[0], XtNx, &x);

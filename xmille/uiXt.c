@@ -698,7 +698,7 @@ init_ui (int *argc, char **argv)
     Colormap	def_cm;
     extern double	animation_speed;
     unsigned long	gcmask;
-    Pixmap		grayStipple;
+    Pixmap		grayStipple = None;
     Arg			arg[2];
     Visual		*visual;
 

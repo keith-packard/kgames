@@ -22,7 +22,12 @@
 project('kgames', 'c',
 	license : 'MIT',
 	version: '2.1',
-	default_options: ['bindir=games', 'datadir=share', 'warning_level=3'])
+	default_options: [
+	  'bindir=games',
+	  'datadir=share',
+	  'warning_level=3',
+	  'buildtype=debugoptimized',
+	])
 
 c_compiler = meson.get_compiler('c')
 
@@ -85,6 +90,11 @@ c_warnings = ['-Werror=implicit-function-declaration',
 	      '-Warray-bounds',
 	      '-Wold-style-definition',
 	      '-Wno-overlength-strings',
+	      '-fstack-protector-strong',
+	      '-Werror=format',
+	      '-Werror=format-security',
+	      '-Werror-date-time',
+	      '-D_FORTIFY_SOURCE=2',
 	     ]
 
 add_project_arguments(c_compiler.get_supported_arguments(c_warnings), language : 'c')
