@@ -44,6 +44,7 @@
 # include	<Xkw/CardsUtil.h>
 # include	<Xkw/Message.h>
 # include	"KMontana-res.h"
+# include       "kgames.h"
 
 Widget	    toplevel;
 Widget	    frame;
@@ -405,7 +406,7 @@ NewGame (void)
     FirstDeal ();
     CardInitHistory ();
     DisplayStacks ();
-    Message (message, "Keith's Montana version 1.0");
+    Message (message, "Keith's Montana, Version " KGAMES_VERSION_STRING);
     Message (dealDisplay, "No deals.");
 }
 

@@ -401,11 +401,7 @@ SetValues (Widget gcur, Widget greq, Widget gnew, Arg *args, Cardinal *count)
 	redraw = TRUE;
     }
     if (!redraw && req->thermo.current != cur->thermo.current)
-    {
-	cairo_t *cr = get_cairo(new);
-	drawMercury (new, cr, cur->thermo.current, req->thermo.current);
-	cairo_destroy(cr);
-    }
+        Redisplay(gnew, NULL, NULL);
     return redraw;
 }
 

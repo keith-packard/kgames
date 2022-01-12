@@ -623,10 +623,13 @@ make_hand (char *name, Widget parent, int rows, int cols, Bool overlap_rows)
     XtSetArg (args[i], XtNcardHeight, HEIGHT * scale); i++;
     XtSetArg (args[i], XtNnumRows, rows); i++;
     XtSetArg (args[i], XtNnumCols, cols); i++;
+    XtSetArg (args[i], XtNinternalBorderWidth, WIDTH * scale / 20); i++;
     if (!overlap_rows) {
-	XtSetArg (args[i], XtNrowOffset, HEIGHT * scale + WIDTH * scale/10); i++;
+	XtSetArg (args[i], XtNrowOffset, HEIGHT * scale + WIDTH * scale/20); i++;
+    } else {
+	XtSetArg (args[i], XtNrowOffset, WIDTH * scale/20); i++;
     }
-    XtSetArg (args[i], XtNcolOffset, WIDTH * scale + WIDTH * scale/10); i++;
+    XtSetArg (args[i], XtNcolOffset, WIDTH * scale + WIDTH * scale/20); i++;
     display_x = 0;
     display_y = 0;
     if (rows == 1)
