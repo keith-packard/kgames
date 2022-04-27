@@ -41,6 +41,7 @@ srcs_reversi = [
 
 genedge = executable('genedge',
 		     'genedge.c',
+		     native: true,
 		     install: false)
 
 bison_gen = generator(bison,
@@ -51,6 +52,7 @@ makeedge_files = bison_gen.process('makeedge.y')
 
 makeedge = executable('makeedge',
 		      makeedge_files,
+		      native: true,
 		      install: false)
 
 edges_in = custom_target('edges.in',
