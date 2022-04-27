@@ -21,7 +21,7 @@
 #
 project('kgames', 'c',
 	license : 'MIT',
-	version: '2.2',
+	version: '2.3',
 	default_options: [
 	  'bindir=games',
 	  'datadir=share',
