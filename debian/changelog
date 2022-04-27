@@ -1,3 +1,10 @@
+kgames (2.3-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Fixes cross-compilation. Closes: #1010226.
+
+ -- Keith Packard <keithp@keithp.com>  Tue, 26 Apr 2022 20:05:33 -0700
+
 kgames (2.2-1) unstable; urgency=medium
 
   * New upstream release.
