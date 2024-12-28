@@ -3,8 +3,9 @@
  */
 
 #include <stdio.h>
+#include <stdint.h>
 
-char	board[9];
+int8_t	board[9];
 
 int
 main (int argc, char ** argv)
