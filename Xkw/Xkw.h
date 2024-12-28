@@ -29,6 +29,18 @@
 #include <X11/Xatom.h>
 #include <X11/extensions/Xrender.h>
 #include <cairo/cairo.h>
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Wunknown-warning-option"
+/*
+ * We're copying the last specified category into the rest
+ * which appears to confuse the gcc analyzer
+ */
+#pragma GCC diagnostic ignored "-Wexpansion-to-defined"
+#endif
+
 #include <librsvg/rsvg.h>
 //#include <librsvg/rsvg-cairo.h>
 
