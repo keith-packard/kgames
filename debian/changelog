@@ -1,3 +1,10 @@
+kgames (2.4.1-1) unstable; urgency=medium
+
+  * New upstream release
+  * Missed a couple of 64-bit time bugs.
+
+ -- Keith Packard <keithp@keithp.com>  Sat, 28 Dec 2024 09:26:42 -0800
+
 kgames (2.4-1) unstable; urgency=medium
 
   * New upstream release
