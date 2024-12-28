@@ -21,7 +21,6 @@
  */
 
 #include <Xkw/Xkw.h>
-#include <librsvg/rsvg.h>
 #include <math.h>
 //#include <librsvg/rsvg-cairo.h>
 
@@ -43,26 +42,19 @@ XkwRsvgDestroy(RsvgHandle *handle)
 double
 XkwRsvgAspect(RsvgHandle *rsvg)
 {
-	RsvgDimensionData 	dimension_data;
-	rsvg_handle_get_dimensions(rsvg, &dimension_data);
+        double  width, height;
+	rsvg_handle_get_intrinsic_size_in_pixels(rsvg, &width, &height);
 
-	if (dimension_data.height == 0)
+	if (height == 0)
 		return INFINITY;
-	return (double) dimension_data.width / (double) dimension_data.height;
+	return width / height;
 }
 
 void
 XkwRsvgDraw(cairo_t *cr, int surface_width, int surface_height, RsvgHandle *rsvg)
 {
-	RsvgDimensionData 	dimension_data;
-	double			scale_x;
-	double			scale_y;
-
-	cairo_save(cr);
-	rsvg_handle_get_dimensions(rsvg, &dimension_data);
-	scale_x = (double) surface_width / (double) dimension_data.width;
-	scale_y = (double) surface_height / (double) dimension_data.height;
-	cairo_scale(cr, scale_x, scale_y);
-	rsvg_handle_render_cairo(rsvg, cr);
-	cairo_restore(cr);
+        RsvgRectangle   viewport = {
+                .x = 0, .y = 0, .width = surface_width, .height = surface_height
+        };
+        rsvg_handle_render_document(rsvg, cr, &viewport, NULL);
 }

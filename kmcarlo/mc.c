@@ -753,7 +753,7 @@ main(int argc, char **argv)
     waste = XtCreateManagedWidget("waste", cardsWidgetClass, frame, NULL, 0);
     wasteLabel = XtCreateManagedWidget("wasteLabel", klabelWidgetClass, frame, NULL, 0);
     message = XtCreateManagedWidget("message", klabelWidgetClass, frame, NULL, 0);
-    srandom(getpid() ^ time((long *) 0));
+    srandom(getpid() ^ time ((time_t *) 0));
     NewGame();
     XtRealizeWidget(toplevel);
     wm_delete_window = XInternAtom(XtDisplay(toplevel), "WM_DELETE_WINDOW",
