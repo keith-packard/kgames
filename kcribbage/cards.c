@@ -18,7 +18,7 @@ makedeck( CARD *d )
 {
 	register  int		i, j, k;
 
-	i = time( (long *) 0 );
+	i = time((time_t *) 0);
 	i = ( (i&0xff) << 8 ) | ( (i >> 8)&0xff ) | 1;
 	srandom( i );
 	k = 0;
@@ -119,4 +119,3 @@ sorthand(CARD *h, int n)
 		    *cp = c;
 		}
 }
-
