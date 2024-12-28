@@ -811,7 +811,7 @@ main (int argc, char **argv)
     stacks = XtCreateManagedWidget ("stacks", cardsWidgetClass, frame, NULL, 0);
     XtAddCallback (stacks, XtNinputCallback, InputCallback, NULL);
     message = XtCreateManagedWidget ("message", klabelWidgetClass, frame, NULL, 0);
-    srandom (getpid () ^ time ((long *) 0));
+    srandom (getpid () ^ time ((time_t *) 0));
     NewGame ();
     XtRealizeWidget (toplevel);
     wm_delete_window = XInternAtom(XtDisplay(toplevel), "WM_DELETE_WINDOW",

@@ -495,7 +495,7 @@ CardRandom (void)
 #endif
     if (!been_here)
     {
-	srandom (getpid () ^ time (0));
+	srandom (getpid () ^ time ((time_t *) 0));
 	been_here = 1;
     }
     return random ();

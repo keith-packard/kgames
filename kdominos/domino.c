@@ -1274,7 +1274,7 @@ main (int argc, char **argv)
 
     computerCount = XtCreateManagedWidget ("computerCount", klabelWidgetClass, frame, NULL, ZERO);
 
-    srandom (getpid () ^ time ((long *) 0));
+    srandom (getpid () ^ time ((time_t *) 0));
 
     restored = Restore();
 
