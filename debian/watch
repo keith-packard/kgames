@@ -1,4 +1,4 @@
 version=4
 opts="mode=git, gitmode=full, pgpmode=none" \
-git://keithp.com/git/kgames \
+https://keithp.com/cgit/kgames.git \
 refs/tags/([\d\.]+) debian uupdate
