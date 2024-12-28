@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <sys/signal.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <time.h>
 #include "revers.h"
 
@@ -63,7 +64,7 @@ main (int argc, char **argv)
 	signal (SIGINT, caught);
 	level = 2;
 	dispInit (argc, argv);
-	srandom (time(NULL));
+	srandom (getpid() ^ time((time_t *) 0));
 	while (*++argv && **argv == '-') {
 		while (*++*argv) {
 			switch (**argv) {
