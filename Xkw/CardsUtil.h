@@ -63,8 +63,8 @@ typedef struct _CardStack {
 } CardStackRec;
 
 #define New(t) (t *) malloc(sizeof (t))
-#define Dispose(p)  free((char *) p)
-#define Some(t,n)   (t*) malloc(sizeof(t) * n)
+#define Dispose(p)  free(p)
+#define Some(t,n)   (t*) calloc(n, sizeof(t))
 #define More(p,t,n) ((p)? (t *) realloc((char *) p, sizeof(t)*n):Some(t,n))
 
 int
