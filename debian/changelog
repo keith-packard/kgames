@@ -1,3 +1,10 @@
+kgames (2.4-1) unstable; urgency=medium
+
+  * New upstream release
+  * Fixes 64-bit time on arm. Closes: #1091297.
+
+ -- Keith Packard <keithp@keithp.com>  Fri, 27 Dec 2024 23:14:33 -0800
+
 kgames (2.3-1) unstable; urgency=medium
 
   * New upstream release.
